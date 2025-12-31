@@ -1,0 +1,74 @@
+[
+  {
+    "id": "TL001",
+    "name": "Transpacific Eastbound",
+    "origin": "Asia",
+    "destination": "North America",
+    "typical_transit_days": "14-21",
+    "volume_rank": 1,
+    "modes": ["Sea", "Air"]
+  },
+  {
+    "id": "TL002",
+    "name": "Asia-Europe",
+    "origin": "Asia",
+    "destination": "Europe",
+    "typical_transit_days": "28-35",
+    "volume_rank": 2,
+    "modes": ["Sea", "Air", "Rail"]
+  },
+  {
+    "id": "TL003",
+    "name": "Transatlantic",
+    "origin": "Europe",
+    "destination": "North America",
+    "typical_transit_days": "10-14",
+    "volume_rank": 3,
+    "modes": ["Sea", "Air"]
+  },
+  {
+    "id": "TL004",
+    "name": "Intra-Asia",
+    "origin": "East Asia",
+    "destination": "Southeast Asia",
+    "typical_transit_days": "3-7",
+    "volume_rank": 4,
+    "modes": ["Sea", "Air"]
+  },
+  {
+    "id": "TL005",
+    "name": "Asia-Middle East",
+    "origin": "Asia",
+    "destination": "Middle East",
+    "typical_transit_days": "14-20",
+    "volume_rank": 5,
+    "modes": ["Sea", "Air"]
+  },
+  {
+    "id": "TL006",
+    "name": "Asia-Africa",
+    "origin": "Asia",
+    "destination": "Africa",
+    "typical_transit_days": "21-30",
+    "volume_rank": 6,
+    "modes": ["Sea"]
+  },
+  {
+    "id": "TL007",
+    "name": "Transpacific Westbound",
+    "origin": "North America",
+    "destination": "Asia",
+    "typical_transit_days": "12-18",
+    "volume_rank": 7,
+    "modes": ["Sea", "Air"]
+  },
+  {
+    "id": "TL008",
+    "name": "Europe-Middle East",
+    "origin": "Europe",
+    "destination": "Middle East",
+    "typical_transit_days": "10-15",
+    "volume_rank": 8,
+    "modes": ["Sea", "Air", "Road"]
+  }
+]

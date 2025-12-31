@@ -1,0 +1,348 @@
+/* ============================================================================
+   FUTUREOS v3000 ICON SYSTEM
+   Line Icons + Subtle Neon Gradient + VisionOS Style
+   ============================================================================ */
+
+:root {
+  --icon-v3000-stroke-width: 1.75px;
+  --icon-v3000-size-default: 28px;
+  --icon-v3000-size-small: 24px;
+  --icon-v3000-size-large: 36px;
+  --icon-v3000-glow-blur: 6px;
+  --icon-v3000-inner-glow: 2%;
+  --icon-v3000-transition: 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* ============================================================================
+   BASE ICON CLASS
+   ============================================================================ */
+
+.icon-v3000 {
+  width: var(--icon-v3000-size-default);
+  height: var(--icon-v3000-size-default);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: var(--icon-v3000-transition);
+  flex-shrink: 0;
+}
+
+.icon-v3000 svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 var(--icon-v3000-glow-blur) rgba(0, 240, 255, 0.15));
+  transition: var(--icon-v3000-transition);
+}
+
+/* Inner Glow Effect */
+.icon-v3000::before {
+  content: '';
+  position: absolute;
+  inset: calc(var(--icon-v3000-inner-glow) * -1);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 240, 255, 0.08), transparent 70%);
+  opacity: 0;
+  transition: opacity var(--icon-v3000-transition);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Size Variants */
+.icon-v3000.icon-small {
+  width: var(--icon-v3000-size-small);
+  height: var(--icon-v3000-size-small);
+}
+
+.icon-v3000.icon-large {
+  width: var(--icon-v3000-size-large);
+  height: var(--icon-v3000-size-large);
+}
+
+/* ============================================================================
+   HOVER EFFECTS
+   ============================================================================ */
+
+.icon-v3000:hover {
+  transform: scale(1.03);
+}
+
+.icon-v3000:hover svg {
+  filter: drop-shadow(0 0 calc(var(--icon-v3000-glow-blur) * 1.5) rgba(0, 240, 255, 0.35));
+  opacity: 1.15;
+}
+
+.icon-v3000:hover::before {
+  opacity: 1;
+}
+
+/* ============================================================================
+   ACTIVE STATE
+   ============================================================================ */
+
+.icon-v3000.active {
+  transform: scale(1.05);
+}
+
+.icon-v3000.active svg {
+  filter: drop-shadow(0 0 calc(var(--icon-v3000-glow-blur) * 2) rgba(54, 226, 123, 0.5));
+}
+
+.icon-v3000.active::before {
+  opacity: 1;
+  background: radial-gradient(circle, rgba(54, 226, 123, 0.12), transparent 70%);
+}
+
+/* ============================================================================
+   ANIMATIONS
+   ============================================================================ */
+
+/* Idle Shimmer - Subtle breathing effect */
+@keyframes icon-v3000-shimmer {
+  0%, 100% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.icon-v3000 {
+  animation: icon-v3000-shimmer 8s ease-in-out infinite;
+}
+
+/* Hover Pulse */
+@keyframes icon-v3000-pulse {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.03);
+  }
+}
+
+.icon-v3000:hover {
+  animation: icon-v3000-pulse 0.6s ease-in-out infinite alternate;
+}
+
+/* Hologram Flicker (for AI icon) */
+@keyframes icon-v3000-flicker {
+  0%, 100% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.85;
+  }
+}
+
+.icon-v3000.icon-hologram {
+  animation: icon-v3000-flicker 3s ease-in-out infinite;
+}
+
+/* ============================================================================
+   ICON IN BUTTONS / CARDS
+   ============================================================================ */
+
+/* Scenario Selector Icons */
+.rc-sim-scenario-icon {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--icon-v3000-transition);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.rc-sim-scenario-icon.icon-v3000 {
+  width: 28px;
+  height: 28px;
+}
+
+.rc-sim-scenario-icon svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 6px rgba(0, 240, 255, 0.2));
+  transition: filter 0.25s cubic-bezier(0.25, 0.8, 0.25, 1), transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.rc-sim-scenario-btn:hover .rc-sim-scenario-icon svg {
+  filter: drop-shadow(0 0 10px rgba(0, 240, 255, 0.4));
+  transform: scale(1.05);
+}
+
+.rc-sim-scenario-btn.active .rc-sim-scenario-icon {
+  position: relative;
+}
+
+.rc-sim-scenario-btn.active .rc-sim-scenario-icon svg {
+  filter: drop-shadow(0 0 12px rgba(54, 226, 123, 0.5));
+  transform: scale(1.08);
+}
+
+.rc-sim-scenario-btn.active .rc-sim-scenario-icon::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 12px;
+  background: radial-gradient(circle at center, rgba(54, 226, 123, 0.15), transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+  animation: icon-v3000-shimmer 3s ease-in-out infinite;
+}
+
+/* Dock Nav Icons */
+.rc-dock-btn .icon-v3000 {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.rc-dock-btn .icon-v3000 svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 6px rgba(0, 240, 255, 0.25));
+  transition: filter 0.25s cubic-bezier(0.25, 0.8, 0.25, 1), transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.rc-dock-btn:hover .icon-v3000 svg {
+  filter: drop-shadow(0 0 10px rgba(0, 240, 255, 0.5));
+  transform: scale(1.1);
+}
+
+.rc-dock-btn.rc-dock-btn-primary .icon-v3000 svg {
+  filter: drop-shadow(0 0 12px rgba(0, 240, 255, 0.7));
+}
+
+.rc-dock-btn.rc-dock-btn-primary:hover .icon-v3000 svg {
+  filter: drop-shadow(0 0 16px rgba(0, 240, 255, 0.8));
+  transform: scale(1.15);
+}
+
+.rc-dock-btn.rc-dock-btn-primary .icon-v3000::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, rgba(0, 240, 255, 0.2), transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+  animation: icon-v3000-shimmer 2s ease-in-out infinite;
+}
+
+/* AI Button Icon */
+.rc-chatbot-icon .icon-v3000 {
+  width: 32px;
+  height: 32px;
+}
+
+.rc-chatbot-icon .icon-v3000.icon-hologram svg {
+  filter: drop-shadow(0 0 12px rgba(0, 240, 255, 0.5));
+}
+
+/* Chaos Card Icons */
+.rc-chaos-card .icon-v3000 {
+  width: 32px;
+  height: 32px;
+}
+
+/* Engine Card Icons */
+.rc-engine-icon .icon-v3000 {
+  width: 28px;
+  height: 28px;
+}
+
+/* ============================================================================
+   ICON CONTAINER WITH GLOW BACKGROUND
+   ============================================================================ */
+
+.icon-v3000-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 12px;
+  background: rgba(0, 240, 255, 0.03);
+  border: 1px solid rgba(0, 240, 255, 0.1);
+  transition: var(--icon-v3000-transition);
+}
+
+.icon-v3000-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background: radial-gradient(circle at center, rgba(0, 240, 255, 0.08), transparent 70%);
+  opacity: 0;
+  transition: opacity var(--icon-v3000-transition);
+  pointer-events: none;
+}
+
+.icon-v3000-container:hover {
+  background: rgba(0, 240, 255, 0.06);
+  border-color: rgba(0, 240, 255, 0.25);
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.15);
+}
+
+.icon-v3000-container:hover::before {
+  opacity: 1;
+}
+
+.icon-v3000-container.active {
+  background: rgba(0, 240, 255, 0.1);
+  border-color: rgba(0, 240, 255, 0.5);
+  box-shadow: 0 0 24px rgba(0, 240, 255, 0.3);
+}
+
+.icon-v3000-container.active::before {
+  opacity: 1;
+  background: radial-gradient(circle at center, rgba(54, 226, 123, 0.12), transparent 70%);
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .icon-v3000 {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .icon-v3000.icon-small {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .icon-v3000.icon-large {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* ============================================================================
+   REDUCE MOTION
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .icon-v3000 {
+    animation: none;
+  }
+  
+  .icon-v3000:hover {
+    animation: none;
+  }
+  
+  .icon-v3000.icon-hologram {
+    animation: none;
+  }
+}
+

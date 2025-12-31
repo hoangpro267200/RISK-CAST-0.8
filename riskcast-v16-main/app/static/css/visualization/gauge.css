@@ -1,0 +1,42 @@
+/**
+ * RISKCAST Visualization - Gauge Styles
+ */
+
+.riskcast-gauge {
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.riskcast-gauge canvas {
+    display: block;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .riskcast-gauge {
+        max-width: 250px;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

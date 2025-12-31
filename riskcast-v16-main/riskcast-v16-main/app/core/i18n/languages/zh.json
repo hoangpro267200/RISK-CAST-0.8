@@ -1,0 +1,113 @@
+{
+  "common": {
+    "risk": "风险",
+    "score": "分数",
+    "level": "等级",
+    "confidence": "置信度",
+    "factors": "因素",
+    "drivers": "驱动因素",
+    "recommendations": "建议",
+    "scenario": "场景",
+    "baseline": "基准",
+    "delta": "变化",
+    "analysis": "分析",
+    "report": "报告",
+    "export": "导出"
+  },
+  "risk": {
+    "level": {
+      "low": "低",
+      "low_medium": "低-中",
+      "medium": "中",
+      "medium_high": "中-高",
+      "high": "高",
+      "critical": "极高"
+    },
+    "factors": {
+      "delay": "交付延迟风险",
+      "port": "港口拥堵",
+      "climate": "天气灾害",
+      "carrier": "承运人可靠性",
+      "esg": "ESG暴露",
+      "equipment": "设备可用性",
+      "network": "网络依赖"
+    },
+    "explanations": {
+      "low": "低风险级别表示货物可以使用标准操作程序进行。",
+      "medium": "中等风险级别建议加强监控和适度应急规划。",
+      "high": "高风险级别需要立即关注和全面的缓解策略。",
+      "critical": "极高风险级别需要紧急行动和替代路线考虑。"
+    },
+    "matrix": {
+      "low_probability": "低概率",
+      "medium_probability": "中等概率",
+      "high_probability": "高概率",
+      "low_severity": "低严重性",
+      "medium_severity": "中等严重性",
+      "high_severity": "高严重性"
+    },
+    "recommendations": {
+      "operational": "运营（立即行动）",
+      "tactical": "战术（短期行动）",
+      "strategic": "战略（长期行动）"
+    }
+  },
+  "scenarios": {
+    "heavy_rain_q3": "第三季度雨季",
+    "port_strike": "港口罢工",
+    "equipment_shortage": "设备短缺",
+    "carrier_drop": "承运人可靠性下降",
+    "holiday_peak": "假日高峰季",
+    "extreme_weather": "极端天气事件",
+    "route_disruption": "贸易路线中断",
+    "esg_pressure": "ESG合规压力"
+  },
+  "terminology": {
+    "port": "港口",
+    "airport": "机场",
+    "transit": "过境",
+    "carrier": "承运人",
+    "vessel": "船舶",
+    "container": "集装箱",
+    "cargo": "货物",
+    "route": "路线",
+    "origin": "起运地",
+    "destination": "目的地"
+  },
+  "regions": {
+    "vn": "越南",
+    "sea": "东南亚",
+    "china": "中国",
+    "eu": "欧盟",
+    "us": "美国",
+    "global": "全球"
+  },
+  "messages": {
+    "loading": "加载中...",
+    "analyzing": "正在分析风险...",
+    "generating": "正在生成报告...",
+    "exporting": "正在导出PDF...",
+    "error": "发生错误",
+    "success": "成功"
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

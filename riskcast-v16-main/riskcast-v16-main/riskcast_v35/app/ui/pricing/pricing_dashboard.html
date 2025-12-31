@@ -1,0 +1,120 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pricing Dashboard - RISKCAST v35</title>
+    <link rel="stylesheet" href="/static/css/global_visionos.css" />
+    <link rel="stylesheet" href="/ui/pricing/pricing_dashboard.css" />
+</head>
+<body class="page visionos has-topbar">
+    <nav class="vision-topbar glass-panel">
+        <div class="vision-topbar__brand">
+            <div class="vision-topbar__logo">
+                <svg width="26" height="26" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="rcNeonPricing" x1="2" y1="2" x2="30" y2="30">
+                            <stop offset="0%" stop-color="#00FFC8"/>
+                            <stop offset="100%" stop-color="#00D4FF"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M16 3L27.5 9.5V22.5L16 29L4.5 22.5V9.5L16 3Z" stroke="url(#rcNeonPricing)" stroke-width="2.2" stroke-linejoin="round"/>
+                    <path d="M16 8L23 12V20L16 24L9 20V12L16 8Z" stroke="url(#rcNeonPricing)" stroke-width="1.6" stroke-linejoin="round" opacity="0.7"/>
+                    <path d="M16 11L20 13.5V18.5L16 21L12 18.5V13.5L16 11Z" fill="url(#rcNeonPricing)" opacity="0.9"/>
+                </svg>
+            </div>
+            <div class="vision-topbar__title">
+                <span>RISKCAST</span>
+                <span class="vision-topbar__version">v35 FutureOS</span>
+            </div>
+        </div>
+
+        <div class="vision-topbar__nav">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/shipments" class="nav-link">Shipments</a>
+            <a href="/pricing" class="nav-link active">Pricing</a>
+            <a href="/consolidation" class="nav-link">Consolidation</a>
+            <a href="/documents" class="nav-link">Documents</a>
+            <a href="/customs" class="nav-link">Customs</a>
+            <a href="/tracking" class="nav-link">Tracking</a>
+        </div>
+    </nav>
+
+    <div class="topbar-offset">
+    <header class="glass header">
+        <div class="logo">RISKCAST v35</div>
+        <div class="title">VisionOS Pricing Engine</div>
+    </header>
+
+    <main class="layout fade-in">
+        <section class="glass panel form-panel">
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">Quote Request</p>
+                    <h1 class="panel-title">Get Pricing Quote</h1>
+                </div>
+                <button id="submit-btn" class="cta">Get Quote</button>
+            </div>
+            <div class="form-grid">
+                <label>
+                    <span>POL</span>
+                    <input id="pol" type="text" placeholder="SGSIN" value="SGSIN" />
+                </label>
+                <label>
+                    <span>POD</span>
+                    <input id="pod" type="text" placeholder="USLAX" value="USLAX" />
+                </label>
+                <label>
+                    <span>ETD From</span>
+                    <input id="etd-from" type="datetime-local" />
+                </label>
+                <label>
+                    <span>ETD To</span>
+                    <input id="etd-to" type="datetime-local" />
+                </label>
+                <label>
+                    <span>Incoterm</span>
+                    <input id="incoterm" type="text" placeholder="FOB" />
+                </label>
+                <label>
+                    <span>Cargo Description</span>
+                    <input id="cargo-description" type="text" placeholder="Electronics" />
+                </label>
+                <label>
+                    <span>Weight (kg)</span>
+                    <input id="weight" type="number" step="0.01" placeholder="2000" />
+                </label>
+                <label>
+                    <span>Volume (m³)</span>
+                    <input id="volume" type="number" step="0.01" placeholder="12" />
+                </label>
+            </div>
+            <div id="status" class="status"></div>
+        </section>
+
+        <section class="glass panel results-panel">
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">Results</p>
+                    <h2 class="panel-title">Best Option</h2>
+                </div>
+            </div>
+            <div id="best-option-card" class="card best-card empty-state">
+                <p>No quote yet. Submit to see results.</p>
+            </div>
+
+            <div class="panel-header alt-header">
+                <div>
+                    <p class="eyebrow">Alternatives</p>
+                    <h2 class="panel-title">More Lanes</h2>
+                </div>
+            </div>
+            <div id="alternative-options" class="alt-list"></div>
+        </section>
+    </main>
+    </div>
+
+    <script src="/ui/pricing/pricing_dashboard.js"></script>
+</body>
+</html>
+

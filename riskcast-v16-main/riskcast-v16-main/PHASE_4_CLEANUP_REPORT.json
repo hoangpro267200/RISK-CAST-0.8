@@ -1,0 +1,18 @@
+{
+  "summary": {
+    "console_logs_removed": 0,
+    "todos_removed": 3,
+    "legacy_comments_removed": 92,
+    "commented_code_removed": 79,
+    "unused_imports_removed": 0,
+    "files_modified": 114,
+    "lines_removed": 582,
+    "files_deleted": []
+  },
+  "files_processed": {
+    "js": 84,
+    "py": 67,
+    "css": 52,
+    "html": 14
+  }
+}

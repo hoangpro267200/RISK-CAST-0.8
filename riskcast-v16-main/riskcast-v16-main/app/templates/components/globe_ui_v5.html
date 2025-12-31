@@ -1,0 +1,205 @@
+<!-- GlobeUI v5 — FutureOS Hologram Earth -->
+<div class="relative h-[420px] md:h-[520px] lg:h-[620px] w-full flex items-center justify-center">
+  <div class="relative w-full h-full max-w-[520px] max-h-[520px] aspect-square flex items-center justify-center">
+
+    <!-- A. Outer halo glow -->
+    <div class="absolute inset-0 rounded-full pointer-events-none opacity-40 blur-[40px]"
+         style="background: radial-gradient(circle, rgba(0,240,255,0.45) 0%, transparent 70%);">
+    </div>
+
+    <!-- B. Sensor ring background -->
+    <div class="absolute inset-[8%] rounded-full border border-cyan-400/20"></div>
+    <div class="absolute inset-[14%] rounded-full border border-cyan-400/10"></div>
+
+    <!-- C. Rotating orbital rings (AI orbits) -->
+    <div class="absolute w-[120%] h-[120%] rounded-full border border-cyan-400/12"
+         style="transform: rotateX(65deg); animation: globe-spin 24s linear infinite;"></div>
+    <div class="absolute w-[132%] h-[132%] rounded-full border border-cyan-300/10 border-dashed"
+         style="transform: rotateX(65deg); animation: globe-spin-rev 32s linear infinite;"></div>
+
+    <!-- D. Planet image (continents) - CSS fallback -->
+    <div class="absolute inset-[10%] rounded-full overflow-hidden"
+         style="
+           background: 
+             radial-gradient(circle at 30% 30%, rgba(13, 47, 53, 0.85) 0%, transparent 50%),
+             radial-gradient(circle at 70% 70%, rgba(6, 24, 28, 0.9) 0%, transparent 50%),
+             radial-gradient(circle at 50% 50%, rgba(3, 11, 16, 0.95) 0%, rgba(6, 24, 28, 0.85) 100%);
+           opacity: 0.9;
+           mix-blend-mode: screen;
+           mask-image: radial-gradient(circle at 50% 45%, black 45%, transparent 70%);
+         ">
+      <!-- Continent-like dot pattern -->
+      <div class="w-full h-full"
+           style="
+             background-image:
+               radial-gradient(circle at 25% 35%, rgba(0, 240, 255, 0.08) 0.5px, transparent 0.5px),
+               radial-gradient(circle at 75% 60%, rgba(0, 240, 255, 0.06) 0.5px, transparent 0.5px),
+               radial-gradient(circle at 45% 75%, rgba(0, 240, 255, 0.07) 0.5px, transparent 0.5px),
+               radial-gradient(circle at 60% 25%, rgba(0, 240, 255, 0.05) 0.5px, transparent 0.5px);
+             background-size: 40% 40%, 35% 35%, 45% 45%, 38% 38%;
+             background-position: 0% 0%, 100% 100%, 50% 100%, 100% 0%;
+             opacity: 0.6;
+           ">
+      </div>
+    </div>
+
+    <!-- E. Lat/Lon grid overlay -->
+    <div class="absolute inset-[10%] rounded-full opacity-50 pointer-events-none"
+         style="
+           background-image:
+             radial-gradient(circle at 50% 50%, rgba(0,240,255,0.16) 0%, transparent 70%),
+             repeating-linear-gradient(0deg, rgba(0,240,255,0.32) 0, rgba(0,240,255,0.32) 1px, transparent 4px),
+             repeating-linear-gradient(90deg, rgba(0,240,255,0.24) 0, rgba(0,240,255,0.24) 1px, transparent 4px);
+           mix-blend-mode: screen;
+         ">
+    </div>
+
+    <!-- F. Data dots layer -->
+    <div class="absolute inset-[12%] rounded-full overflow-hidden pointer-events-none">
+      <div class="w-full h-full"
+           style="
+             background-image:
+               radial-gradient(circle at 20% 30%, rgba(0,240,255,0.55) 0, transparent 35%),
+               radial-gradient(circle at 70% 65%, rgba(0,240,255,0.45) 0, transparent 35%),
+               radial-gradient(circle at 40% 80%, rgba(0,240,255,0.35) 0, transparent 40%),
+               radial-gradient(circle at 60% 40%, rgba(0,240,255,0.28) 0, transparent 35%);
+             background-size: 220% 220%;
+             animation: dots-shift 18s ease-in-out infinite alternate;
+           ">
+      </div>
+    </div>
+
+    <!-- G. AI pulse core (ở tâm trái đất) -->
+    <div class="absolute inset-[25%] rounded-full flex items-center justify-center pointer-events-none">
+      <div class="relative">
+        <div class="w-3 h-3 rounded-full bg-cyan-300 shadow-[0_0_16px_rgba(0,240,255,0.8)]"></div>
+        <div class="absolute inset-0 rounded-full border border-cyan-300/70 animate-ai-pulse"></div>
+        <div class="absolute inset-[-10px] rounded-full border border-cyan-400/40 animate-ai-pulse-slow"></div>
+      </div>
+    </div>
+
+    <!-- H. Risk points (critical events) -->
+    <!-- Risk #1 -->
+    <div class="absolute top-[30%] left-[55%] z-30 group cursor-pointer">
+      <div class="relative flex items-center justify-center">
+        <div class="w-[9px] h-[9px] bg-[#ff3366] rounded-full shadow-[0_0_18px_rgba(255,51,102,0.9)]"></div>
+        <div class="absolute w-9 h-9 bg-[#ff3366]/35 rounded-full animate-risk-ping"></div>
+      </div>
+    </div>
+    <!-- Risk #2 -->
+    <div class="absolute bottom-[25%] left-[42%] z-30 group cursor-pointer">
+      <div class="relative flex items-center justify-center">
+        <div class="w-[7px] h-[7px] bg-[#ff3366] rounded-full shadow-[0_0_14px_rgba(255,51,102,0.8)]"></div>
+        <div class="absolute w-8 h-8 bg-[#ff3366]/30 rounded-full animate-risk-ping-fast"></div>
+      </div>
+    </div>
+
+    <!-- I. Shipping lanes (animated arcs) -->
+    <svg class="absolute inset-[8%] w-[84%] h-[84%] pointer-events-none opacity-60 mix-blend-screen">
+      <defs>
+        <linearGradient id="laneGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#00f0ff" stop-opacity="0.1" />
+          <stop offset="50%" stop-color="#00f0ff" stop-opacity="1" />
+          <stop offset="100%" stop-color="#00f0ff" stop-opacity="0.1" />
+        </linearGradient>
+      </defs>
+      <path d="M120 220 Q 210 120 320 180"
+            fill="none" stroke="url(#laneGrad)" stroke-width="1"
+            stroke-dasharray="6 6">
+        <animate attributeName="stroke-dashoffset" dur="2.2s" from="90" to="0" repeatCount="indefinite" />
+      </path>
+      <path d="M130 260 Q 240 330 340 260"
+            fill="none" stroke="url(#laneGrad)" stroke-width="1"
+            stroke-dasharray="5 7">
+        <animate attributeName="stroke-dashoffset" dur="2.8s" from="70" to="0" repeatCount="indefinite" />
+      </path>
+    </svg>
+
+    <!-- J. Floating AI status card -->
+    <div class="absolute -right-5 top-10 bg-[#030b11]/80 backdrop-blur-xl border border-cyan-300/25 px-4 py-3 rounded-2xl shadow-[0_18px_40px_rgba(0,0,0,0.65)] animate-float pointer-events-auto">
+      <p class="text-[10px] uppercase tracking-[0.18em] text-cyan-300/70 mb-1">
+        Optimization
+      </p>
+      <p class="text-sm font-semibold text-white">
+        +24.5% Efficiency
+      </p>
+    </div>
+
+    <!-- K. Floating risk summary pill -->
+    <div class="absolute -left-5 bottom-10 bg-[#050b10]/85 backdrop-blur-xl border border-[#ff3366]/35 px-4 py-2.5 rounded-2xl shadow-[0_18px_40px_rgba(0,0,0,0.7)] animate-float-slow pointer-events-auto">
+      <p class="text-[10px] uppercase tracking-[0.18em] text-[#ff889f] mb-0.5">
+        Active risks
+      </p>
+      <p class="text-sm font-semibold text-white">
+        4 Critical Events
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<!-- GlobeUI v5 animations -->
+<style>
+@keyframes globe-spin {
+  from { transform: rotateX(65deg) rotateZ(0deg); }
+  to   { transform: rotateX(65deg) rotateZ(360deg); }
+}
+@keyframes globe-spin-rev {
+  from { transform: rotateX(65deg) rotateZ(360deg); }
+  to   { transform: rotateX(65deg) rotateZ(0deg); }
+}
+
+/* AI core pulses */
+@keyframes ai-pulse {
+  0%   { transform: scale(1);   opacity: 0.9; }
+  60%  { transform: scale(1.35); opacity: 0; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+@keyframes ai-pulse-slow {
+  0%   { transform: scale(1.1);   opacity: 0.6; }
+  80%  { transform: scale(1.6);   opacity: 0; }
+  100% { transform: scale(1.6);   opacity: 0; }
+}
+.animate-ai-pulse {
+  animation: ai-pulse 2.2s ease-out infinite;
+}
+.animate-ai-pulse-slow {
+  animation: ai-pulse-slow 3.4s ease-out infinite;
+}
+
+/* Risk pings */
+@keyframes risk-ping {
+  0%   { transform: scale(1); opacity: 0.7; }
+  70%  { transform: scale(1.8); opacity: 0; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+.animate-risk-ping {
+  animation: risk-ping 1.8s ease-out infinite;
+}
+.animate-risk-ping-fast {
+  animation: risk-ping 1.3s ease-out infinite;
+}
+
+/* Floating cards */
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(-8px); }
+}
+@keyframes float-slow {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(-5px); }
+}
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+.animate-float-slow {
+  animation: float-slow 5.5s ease-in-out infinite;
+}
+
+/* Data dots subtle movement */
+@keyframes dots-shift {
+  0%   { background-position: 0% 0%; }
+  50%  { background-position: 30% 40%; }
+  100% { background-position: 10% 80%; }
+}
+</style>

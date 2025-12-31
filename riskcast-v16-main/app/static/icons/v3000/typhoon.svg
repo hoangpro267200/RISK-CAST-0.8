@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <defs>
+    <linearGradient id="typhoonGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00f0ff;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#00d4e0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#36e27b;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <circle cx="12" cy="12" r="8" stroke="url(#typhoonGradient)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M12 4L12 20" stroke="url(#typhoonGradient)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M4 12L20 12" stroke="url(#typhoonGradient)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M6.34315 6.34315L17.6569 17.6569" stroke="url(#typhoonGradient)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M17.6569 6.34315L6.34315 17.6569" stroke="url(#typhoonGradient)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <circle cx="12" cy="12" r="2" fill="url(#typhoonGradient)" opacity="0.6"/>
+</svg>
+
+
+
+
+
+

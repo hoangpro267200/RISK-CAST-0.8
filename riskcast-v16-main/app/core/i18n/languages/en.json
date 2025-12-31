@@ -1,0 +1,381 @@
+{
+  "common": {
+    "risk": "Risk",
+    "score": "Score",
+    "level": "Level",
+    "confidence": "Confidence",
+    "factors": "Factors",
+    "drivers": "Drivers",
+    "recommendations": "Recommendations",
+    "scenario": "Scenario",
+    "baseline": "Baseline",
+    "delta": "Delta",
+    "analysis": "Analysis",
+    "report": "Report",
+    "export": "Export",
+    "loading": "Loading...",
+    "calculating": "Calculating...",
+    "no_data": "No data available",
+    "success": "Success",
+    "error": "An error occurred",
+    "days": "days",
+    "usd": "USD",
+    "percent": "%",
+    "units": "units"
+  },
+  "header": {
+    "brand_title": "RISKCAST v12.5",
+    "brand_subtitle": "AI-Powered Logistics Risk Intelligence Platform",
+    "status_ready": "Analysis Complete",
+    "status_loading": "Loading data..."
+  },
+  "tabs": {
+    "enterprise": "Enterprise Dashboard",
+    "research": "Research / NCKH View",
+    "investor": "Investor Pitch View"
+  },
+  "risk": {
+    "level": {
+      "low": "Low",
+      "low_medium": "Low-Medium",
+      "medium": "Medium",
+      "medium_high": "Medium-High",
+      "high": "High",
+      "critical": "Critical"
+    },
+    "factors": {
+      "delay": "Delivery Delay Risk",
+      "port": "Port Congestion",
+      "climate": "Weather Hazard",
+      "carrier": "Carrier Reliability",
+      "esg": "ESG Exposure",
+      "equipment": "Equipment Availability",
+      "network": "Network Dependencies"
+    },
+    "explanations": {
+      "low": "Low risk level indicates shipment can proceed with standard operating procedures.",
+      "medium": "Medium risk level suggests enhanced monitoring and moderate contingency planning.",
+      "high": "High risk level requires immediate attention and comprehensive mitigation strategies.",
+      "critical": "Critical risk level demands urgent action and alternative route considerations."
+    },
+    "matrix": {
+      "low_probability": "Low Probability",
+      "medium_probability": "Medium Probability",
+      "high_probability": "High Probability",
+      "low_severity": "Low Severity",
+      "medium_severity": "Medium Severity",
+      "high_severity": "High Severity"
+    },
+    "recommendations_type": {
+      "operational": "Operational (Immediate Actions)",
+      "tactical": "Tactical (Short-term Actions)",
+      "strategic": "Strategic (Long-term Actions)"
+    },
+    "layers": {
+      "delay": "Delay Risk",
+      "damage": "Damage Risk",
+      "cost": "Cost Volatility",
+      "operational": "Operational Risk",
+      "esg": "ESG Risk",
+      "political": "Political Risk",
+      "climate": "Climate Risk"
+    }
+  },
+  "executive": {
+    "section_title": "Executive Snapshot",
+    "overall_risk": "Overall Risk Index",
+    "expected_loss": "Expected Loss",
+    "reliability": "Delivery Reliability",
+    "esg": "ESG Score (Environment – Social – Governance)",
+    "per_shipment": "Per shipment",
+    "on_time_prob": "On-time probability",
+    "climate_political": "Climate + Political",
+    "top_route": "Top Route Risk:",
+    "main_driver": "Main Driver:",
+    "recommendation": "System Recommendation:"
+  },
+  "gauges": {
+    "section_title": "Risk Gauges Overview",
+    "risk_title": "Overall Risk Index",
+    "reliability_title": "Reliability Score",
+    "esg_title": "ESG Score",
+    "explanations": {
+      "title": "Detailed Insights",
+      "risk": {
+        "low": "Low risk (0–40). The logistics flow is stable with minimal disruption probability. Suitable for cost/time optimization.",
+        "medium": "Moderate risk (40–70). Certain operational or weather-driven fluctuations are emerging. Active monitoring required.",
+        "high": "High risk (70–100). Elevated probability of delays or incidents. Route reassessment and mitigation actions recommended."
+      },
+      "reliability": {
+        "very_high": "Very high reliability (>85). Strong predictive stability; ideal for high-value shipments.",
+        "stable": "Stable (60–85). Acceptable variations within control limits.",
+        "unstable": "Unstable (<60). Sensitive to disruptions. Not ideal for time-critical cargo."
+      },
+      "esg": {
+        "strong": "Strong ESG compliance (>70). Environmentally aligned route, suitable for sustainability-focused businesses.",
+        "moderate": "Moderate ESG performance (40–70). Acceptable but not optimized.",
+        "weak": "Weak ESG compliance (<40). Elevated ESG risk; alternative routing recommended."
+      }
+    }
+  },
+  "sections": {
+    "radar": "Risk Profile Radar Chart",
+    "layers": "Risk Layer Decomposition",
+    "montecarlo": "Monte Carlo Distribution",
+    "timeline": "Risk Timeline",
+    "matrix": "Probability × Impact Risk Matrix",
+    "scenario": "Scenario Stress Test (What-if)",
+    "tradeoff": "Cost-Time-Risk Tradeoff",
+    "route": "Route Segment Analysis",
+    "recommendations": "AI Expert Recommendations",
+    "research_methodology": "Research Methodology Overview",
+    "problem_solution": "Problem → Solution → Why Now",
+    "economics": "Economics Snapshot",
+    "arr": "ARR / Revenue Potential",
+    "architecture": "Engine-as-a-Service Architecture",
+    "pitch": "One-Slide Story for Investors",
+    "buyer_seller": "Buyer & Seller"
+  },
+  "research_panels": {
+    "dataset": "Panel 1: Dataset Interpretation",
+    "criteria": "Panel 2: Criteria Construction",
+    "fuzzy_ahp": "Panel 3: Fuzzy AHP Methodology",
+    "fuzzy_topsis": "Panel 4: Fuzzy-TOPSIS Analysis",
+    "montecarlo": "Panel 5: Monte Carlo Simulation",
+    "integrated": "Panel 6: Integrated Risk Model",
+    "policy": "Panel 7: Policy Implications for Vietnamese SMEs",
+    "sensitivity": "Panel 8: Sensitivity & Robustness Check"
+  },
+  "investor": {
+    "problem_title": "Problem",
+    "solution_title": "Solution",
+    "why_now_title": "Why Now",
+    "ask": "The Ask:"
+  },
+  "scenarios": {
+    "base": "Base Case",
+    "best": "Best Case",
+    "worst": "Worst Case",
+    "heavy_rain_q3": "Heavy Rain Season Q3",
+    "port_strike": "Port Strike",
+    "equipment_shortage": "Equipment Shortage",
+    "carrier_drop": "Carrier Reliability Drop",
+    "holiday_peak": "Holiday Peak Season",
+    "extreme_weather": "Extreme Weather Event",
+    "route_disruption": "Trade Route Disruption",
+    "esg_pressure": "ESG Compliance Pressure"
+  },
+  "terminology": {
+    "port": "Port",
+    "airport": "Airport",
+    "transit": "Transit",
+    "carrier": "Carrier",
+    "vessel": "Vessel",
+    "container": "Container",
+    "cargo": "Cargo",
+    "route": "Route",
+    "origin": "Origin",
+    "destination": "Destination"
+  },
+  "regions": {
+    "vn": "Vietnam",
+    "sea": "Southeast Asia",
+    "china": "China",
+    "eu": "European Union",
+    "us": "United States",
+    "global": "Global"
+  },
+  "buttons": {
+    "analyze": "Run Analysis",
+    "reset": "Reset",
+    "export": "Export Report"
+  },
+  "errors": {
+    "no_data": "No data available. Please run analysis first.",
+    "fetch": "Failed to fetch data from server.",
+    "required": "This field is required",
+    "positive": "Value must be a positive number",
+    "date_invalid": "Invalid date"
+  },
+  "messages": {
+    "loading": "Loading...",
+    "analyzing": "Analyzing risk...",
+    "generating": "Generating report...",
+    "exporting": "Exporting PDF...",
+    "error": "An error occurred",
+    "success": "Success",
+    "confirm_reset": "Are you sure you want to reset all fields?",
+    "alert_success": "Risk analysis completed successfully!",
+    "based_on_simulations": "Based on",
+    "simulations": "simulations"
+  },
+  "input": {
+    "section1_title": "Cargo Configuration",
+    "section1_subtitle": "Background data for AI to optimize routes, time and risks by shipping region.",
+    "section2_title": "Shipping Information",
+    "section2_subtitle": "Route details and delivery conditions",
+    "section3_title": "Additional Parameters",
+    "section3_subtitle": "Factors affecting risk",
+    "buyer_seller_subtitle": "Trading partner information",
+    "placeholder_select": "Select...",
+    "placeholder_packages": "Enter quantity",
+    "placeholder_auto": "Auto-calculated"
+  },
+  "labels": {
+    "transport_mode": "Transport Mode",
+    "cargo_type": "Cargo Type",
+    "route": "Route",
+    "incoterm": "Incoterm Condition",
+    "container": "Container Type",
+    "packaging": "Packaging Quality",
+    "priority": "Priority Mode",
+    "packages": "Number of Packages",
+    "etd": "Expected Departure Date (ETD)",
+    "eta": "Expected Arrival Date (ETA)",
+    "cargo_value": "Cargo Value (USD)",
+    "transit_time": "Transit Time",
+    "climate_tail_prob": "Climate Tail Event Probability"
+  },
+  "transport_modes": {
+    "sea": "Sea Freight",
+    "air": "Air Freight",
+    "road": "Road Transport",
+    "rail": "Rail Transport",
+    "multimodal": "Multimodal Transport",
+    "intermodal": "Intermodal Transport",
+    "express": "Courier / Express",
+    "postal": "International Postal / Parcel",
+    "pipeline": "Pipeline Transport",
+    "inland": "Inland Waterway",
+    "roro": "Ro-Ro Transport",
+    "ocean_fcl": "Ocean Freight — FCL",
+    "ocean_lcl": "Ocean Freight — LCL",
+    "air_freight": "Air Freight",
+    "rail_freight": "Rail Freight",
+    "road_truck": "Road — Truck",
+    "courier": "Courier / Express",
+    "inland_waterway": "Inland Waterway",
+    "cross_border": "Cross-border Road",
+    "last_mile": "Last-mile Delivery"
+  },
+  "cargo_types": {
+    "general": "General Cargo",
+    "electronics": "Electronics",
+    "food_bev": "Food & Beverage",
+    "garments": "Garments / Textile",
+    "agriculture": "Agriculture",
+    "refrigerated": "Refrigerated / Frozen",
+    "chemicals": "Chemicals",
+    "machinery": "Machinery",
+    "fragile": "Fragile Goods",
+    "auto_parts": "Automotive Parts"
+  },
+  "routes": {
+    "vn_us": "Vietnam → United States",
+    "vn_eu": "Vietnam → Europe",
+    "vn_cn": "Vietnam → China",
+    "vn_sg": "Vietnam → Singapore",
+    "domestic": "Domestic"
+  },
+  "incoterms": {
+    "exw": "EXW - Ex Works",
+    "fca": "FCA - Free Carrier",
+    "fas": "FAS - Free Alongside Ship",
+    "fob": "FOB - Free on Board",
+    "cfr": "CFR - Cost and Freight",
+    "cif": "CIF - Cost, Insurance and Freight",
+    "cpt": "CPT - Carriage Paid To",
+    "cip": "CIP - Carriage and Insurance Paid To",
+    "dap": "DAP - Delivered at Place",
+    "dpu": "DPU - Delivered at Place Unloaded",
+    "ddp": "DDP - Delivered Duty Paid"
+  },
+  "containers": {
+    "20ft": "20ft Standard",
+    "40ft": "40ft Standard",
+    "40hc": "40ft High Cube",
+    "45hc": "45ft High Cube",
+    "reefer": "Reefer Container",
+    "opentop": "Open-top",
+    "flatrack": "Flat-rack",
+    "isotank": "ISO Tank"
+  },
+  "packaging": {
+    "poor": "Poor",
+    "medium": "Medium",
+    "good": "Good",
+    "excellent": "Excellent"
+  },
+  "priority": {
+    "economy": "Economy",
+    "standard": "Standard",
+    "express": "Express",
+    "critical": "Critical"
+  },
+  "buyer_seller": {
+    "buyer_section": "Buyer Information",
+    "buyer_name": "Buyer Name",
+    "buyer_country": "Buyer Country",
+    "buyer_size": "Company Size",
+    "buyer_esg": "ESG Score (if available)",
+    "buyer_reliability": "Reliability Score",
+    "seller_section": "Seller Information",
+    "seller_name": "Seller Name",
+    "seller_country": "Seller Country",
+    "seller_size": "Company Size",
+    "seller_esg": "ESG Score (if available)",
+    "seller_reliability": "Reliability Score"
+  },
+  "countries": {
+    "vn": "Vietnam",
+    "cn": "China",
+    "jp": "Japan",
+    "kr": "South Korea",
+    "us": "United States",
+    "eu": "European Union",
+    "sg": "Singapore",
+    "th": "Thailand",
+    "my": "Malaysia",
+    "id": "Indonesia",
+    "ph": "Philippines",
+    "in": "India",
+    "au": "Australia",
+    "uk": "United Kingdom",
+    "de": "Germany",
+    "fr": "France",
+    "nl": "Netherlands",
+    "be": "Belgium"
+  },
+  "company_size": {
+    "sme": "SME (10–200 employees)",
+    "medium": "Medium (200–500)",
+    "large": "Large (>500)"
+  },
+  "modules": {
+    "fuzzy_title": "Fuzzy AHP",
+    "fuzzy_desc": "Multi-criteria decision analysis",
+    "arima_title": "ARIMA Forecasting",
+    "arima_desc": "Time series prediction model",
+    "mc_title": "Monte Carlo",
+    "mc_desc": "Stochastic simulation engine",
+    "var_title": "VaR / CVaR",
+    "var_desc": "Extreme risk quantification"
+  },
+  "ai_chat": {
+    "title": "AI Assistant",
+    "placeholder": "Enter your question...",
+    "send": "Send",
+    "thinking": "Thinking...",
+    "error": "An error occurred. Please try again.",
+    "welcome": "Hello! I am the RISKCAST AI assistant. I can help you analyze logistics risks."
+  },
+  "report": {
+    "title": "Risk Analysis Report",
+    "generated_at": "Generated at",
+    "shipment_id": "Shipment ID",
+    "summary": "Summary",
+    "details": "Details",
+    "recommendations": "Recommendations",
+    "appendix": "Appendix"
+  }
+}

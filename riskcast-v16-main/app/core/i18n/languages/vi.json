@@ -1,0 +1,381 @@
+{
+  "common": {
+    "risk": "Rủi ro",
+    "score": "Điểm số",
+    "level": "Mức độ",
+    "confidence": "Độ tin cậy",
+    "factors": "Yếu tố",
+    "drivers": "Động lực",
+    "recommendations": "Khuyến nghị",
+    "scenario": "Kịch bản",
+    "baseline": "Cơ bản",
+    "delta": "Thay đổi",
+    "analysis": "Phân tích",
+    "report": "Báo cáo",
+    "export": "Xuất file",
+    "loading": "Đang tải...",
+    "calculating": "Đang tính toán...",
+    "no_data": "Không có dữ liệu",
+    "success": "Thành công",
+    "error": "Đã xảy ra lỗi",
+    "days": "ngày",
+    "usd": "USD",
+    "percent": "%",
+    "units": "đơn vị"
+  },
+  "header": {
+    "brand_title": "RISKCAST v12.5",
+    "brand_subtitle": "Nền Tảng Thông Minh Phân Tích Rủi Ro Logistics Được Hỗ Trợ Bởi AI",
+    "status_ready": "Phân Tích Hoàn Tất",
+    "status_loading": "Đang tải dữ liệu..."
+  },
+  "tabs": {
+    "enterprise": "Chế Độ Doanh Nghiệp",
+    "research": "Chế Độ Phân Tích NCKH",
+    "investor": "Chế Độ Trình Bày Nhà Đầu Tư"
+  },
+  "risk": {
+    "level": {
+      "low": "Thấp",
+      "low_medium": "Thấp-Trung bình",
+      "medium": "Trung bình",
+      "medium_high": "Trung bình-Cao",
+      "high": "Cao",
+      "critical": "Rất cao"
+    },
+    "factors": {
+      "delay": "Rủi ro chậm trễ giao hàng",
+      "port": "Tắc nghẽn cảng",
+      "climate": "Rủi ro thời tiết",
+      "carrier": "Độ tin cậy hãng vận chuyển",
+      "esg": "Rủi ro ESG",
+      "equipment": "Khả năng sẵn có thiết bị",
+      "network": "Phụ thuộc mạng lưới"
+    },
+    "explanations": {
+      "low": "Mức rủi ro thấp cho thấy lô hàng có thể tiếp tục với quy trình vận hành tiêu chuẩn.",
+      "medium": "Mức rủi ro trung bình gợi ý giám sát tăng cường và lập kế hoạch dự phòng vừa phải.",
+      "high": "Mức rủi ro cao yêu cầu chú ý ngay lập tức và chiến lược giảm thiểu toàn diện.",
+      "critical": "Mức rủi ro rất cao đòi hỏi hành động khẩn cấp và xem xét tuyến đường thay thế."
+    },
+    "matrix": {
+      "low_probability": "Xác suất thấp",
+      "medium_probability": "Xác suất trung bình",
+      "high_probability": "Xác suất cao",
+      "low_severity": "Mức độ nghiêm trọng thấp",
+      "medium_severity": "Mức độ nghiêm trọng trung bình",
+      "high_severity": "Mức độ nghiêm trọng cao"
+    },
+    "recommendations_type": {
+      "operational": "Vận hành (Hành động ngay lập tức)",
+      "tactical": "Chiến thuật (Hành động ngắn hạn)",
+      "strategic": "Chiến lược (Hành động dài hạn)"
+    },
+    "layers": {
+      "delay": "Rủi Ro Trễ",
+      "damage": "Rủi Ro Hư Hại",
+      "cost": "Biến Động Chi Phí",
+      "operational": "Rủi Ro Vận Hành",
+      "esg": "Rủi Ro ESG",
+      "political": "Rủi Ro Chính Trị",
+      "climate": "Rủi Ro Khí Hậu"
+    }
+  },
+  "executive": {
+    "section_title": "Tổng Quan Điều Hành",
+    "overall_risk": "Chỉ số rủi ro tổng hợp",
+    "expected_loss": "Tổn thất kỳ vọng",
+    "reliability": "Độ tin cậy giao hàng",
+    "esg": "Điểm ESG (Môi trường – Xã hội – Quản trị)",
+    "per_shipment": "Mỗi lô hàng",
+    "on_time_prob": "Xác suất đúng hạn",
+    "climate_political": "Khí hậu + Chính trị",
+    "top_route": "Rủi ro tuyến vận tải lớn nhất:",
+    "main_driver": "Nguyên nhân chính:",
+    "recommendation": "Khuyến nghị của hệ thống:"
+  },
+  "gauges": {
+    "section_title": "Tổng Quan Đồng Hồ Rủi Ro",
+    "risk_title": "Chỉ Số Rủi Ro Tổng Thể",
+    "reliability_title": "Điểm Độ Tin Cậy",
+    "esg_title": "Điểm ESG",
+    "explanations": {
+      "title": "Giải Thích Chuyên Sâu",
+      "risk": {
+        "low": "Mức rủi ro thấp (0–40). Chuỗi vận tải duy trì độ ổn định cao, xác suất biến cố thấp. Có thể tối ưu thêm chi phí hoặc thời gian.",
+        "medium": "Rủi ro trung bình (40–70). Một số yếu tố vận hành – thời tiết – cảng có xu hướng biến động. Doanh nghiệp nên theo dõi sát để giảm thiểu tổn thất.",
+        "high": "Rủi ro cao (70–100). Xác suất sự cố hoặc chậm trễ tăng rõ rệt. Cần đánh giá lại tuyến đường, phương thức vận tải và điều kiện cargo."
+      },
+      "reliability": {
+        "very_high": "Độ tin cậy rất cao (>85). Biến động thấp, mô hình dự báo ổn định. Phù hợp các lô hàng giá trị lớn.",
+        "stable": "Ổn định (60–85). Hệ thống có dao động nhẹ nhưng trong giới hạn cho phép.",
+        "unstable": "Không ổn định (<60). Hoạt động dễ chịu tác động bởi thời tiết hoặc tắc nghẽn. Không khuyến nghị với hàng nhạy cảm thời gian."
+      },
+      "esg": {
+        "strong": "Tuân thủ ESG mạnh (>70). Tuyến vận tải thân thiện môi trường, phù hợp các doanh nghiệp ưu tiên bền vững.",
+        "moderate": "Mức trung bình (40–70). Chưa tối ưu ESG nhưng vẫn chấp nhận được.",
+        "weak": "Mức thấp (<40). Rủi ro tuân thủ ESG cao. Nên xem xét tuyến vận tải khác."
+      }
+    }
+  },
+  "sections": {
+    "radar": "Biểu Đồ Radar Hồ Sơ Rủi Ro",
+    "layers": "Phân Tích Phân Lớp Rủi Ro",
+    "montecarlo": "Phân Phối Monte Carlo",
+    "timeline": "Dòng Thời Gian Rủi Ro",
+    "matrix": "Ma Trận Rủi Ro Xác Suất × Tác Động",
+    "scenario": "Kiểm Tra Áp Lực Kịch Bản (What-if)",
+    "tradeoff": "Đánh Đổi Chi Phí-Thời Gian-Rủi Ro",
+    "route": "Phân Tích Theo Cấp Độ Tuyến Đường",
+    "recommendations": "Khuyến Nghị Từ Chuyên Gia AI",
+    "research_methodology": "Tổng Quan Phương Pháp Nghiên Cứu",
+    "problem_solution": "Vấn Đề → Giải Pháp → Tại Sao Bây Giờ",
+    "economics": "Tóm Tắt Tác Động Kinh Tế",
+    "arr": "ARR / Tiềm Năng Doanh Thu",
+    "architecture": "Kiến Trúc Engine-as-a-Service",
+    "pitch": "Câu Chuyện Một Trang Cho Nhà Đầu Tư",
+    "buyer_seller": "Người Mua & Người Bán"
+  },
+  "research_panels": {
+    "dataset": "Bảng 1: Giải Thích Dữ Liệu",
+    "criteria": "Bảng 2: Xây Dựng Tiêu Chí",
+    "fuzzy_ahp": "Bảng 3: Phương Pháp Fuzzy AHP",
+    "fuzzy_topsis": "Bảng 4: Phân Tích Fuzzy-TOPSIS",
+    "montecarlo": "Bảng 5: Mô Phỏng Monte Carlo",
+    "integrated": "Bảng 6: Mô Hình Rủi Ro Tích Hợp",
+    "policy": "Bảng 7: Ý Nghĩa Chính Sách Cho SME Việt Nam",
+    "sensitivity": "Bảng 8: Kiểm Tra Độ Nhạy & Độ Vững Chắc"
+  },
+  "investor": {
+    "problem_title": "Vấn Đề",
+    "solution_title": "Giải Pháp",
+    "why_now_title": "Tại Sao Bây Giờ",
+    "ask": "Yêu Cầu:"
+  },
+  "scenarios": {
+    "base": "Trường Hợp Cơ Bản",
+    "best": "Kịch Bản Tốt Nhất",
+    "worst": "Kịch Bản Xấu Nhất",
+    "heavy_rain_q3": "Mùa mưa lớn Q3",
+    "port_strike": "Đình công cảng",
+    "equipment_shortage": "Thiếu thiết bị",
+    "carrier_drop": "Giảm độ tin cậy hãng vận chuyển",
+    "holiday_peak": "Mùa cao điểm nghỉ lễ",
+    "extreme_weather": "Sự kiện thời tiết cực đoan",
+    "route_disruption": "Gián đoạn tuyến thương mại",
+    "esg_pressure": "Áp lực tuân thủ ESG"
+  },
+  "terminology": {
+    "port": "Cảng",
+    "airport": "Sân bay",
+    "transit": "Quá cảnh",
+    "carrier": "Hãng vận chuyển",
+    "vessel": "Tàu",
+    "container": "Container",
+    "cargo": "Hàng hóa",
+    "route": "Tuyến đường",
+    "origin": "Nơi xuất phát",
+    "destination": "Điểm đến"
+  },
+  "regions": {
+    "vn": "Việt Nam",
+    "sea": "Đông Nam Á",
+    "china": "Trung Quốc",
+    "eu": "Liên minh Châu Âu",
+    "us": "Hoa Kỳ",
+    "global": "Toàn cầu"
+  },
+  "buttons": {
+    "analyze": "Chạy Phân Tích",
+    "reset": "Đặt Lại",
+    "export": "Xuất Báo Cáo"
+  },
+  "errors": {
+    "no_data": "Không có dữ liệu. Vui lòng chạy phân tích trước.",
+    "fetch": "Không thể tải dữ liệu từ máy chủ.",
+    "required": "Trường này là bắt buộc",
+    "positive": "Giá trị phải là số dương",
+    "date_invalid": "Ngày không hợp lệ"
+  },
+  "messages": {
+    "loading": "Đang tải...",
+    "analyzing": "Đang phân tích rủi ro...",
+    "generating": "Đang tạo báo cáo...",
+    "exporting": "Đang xuất PDF...",
+    "error": "Đã xảy ra lỗi",
+    "success": "Thành công",
+    "confirm_reset": "Bạn có chắc chắn muốn đặt lại tất cả các trường?",
+    "alert_success": "Phân tích rủi ro hoàn tất thành công!",
+    "based_on_simulations": "Dựa trên",
+    "simulations": "mô phỏng"
+  },
+  "input": {
+    "section1_title": "Cấu Hình Hàng Hóa",
+    "section1_subtitle": "Dữ liệu nền để AI tối ưu lộ trình, thời gian và rủi ro theo từng khu vực vận chuyển.",
+    "section2_title": "Thông Tin Vận Chuyển",
+    "section2_subtitle": "Chi tiết tuyến đường và điều kiện giao hàng",
+    "section3_title": "Thông Số Bổ Sung",
+    "section3_subtitle": "Các yếu tố ảnh hưởng đến rủi ro",
+    "buyer_seller_subtitle": "Thông tin đối tác thương mại",
+    "placeholder_select": "Chọn...",
+    "placeholder_packages": "Nhập số lượng",
+    "placeholder_auto": "Tự động tính toán"
+  },
+  "labels": {
+    "transport_mode": "Phương Thức Vận Tải",
+    "cargo_type": "Loại Hàng Hóa",
+    "route": "Tuyến Đường",
+    "incoterm": "Điều Kiện Incoterm",
+    "container": "Loại Container",
+    "packaging": "Chất Lượng Bao Bì",
+    "priority": "Chế Độ Ưu Tiên",
+    "packages": "Số Lượng Kiện Hàng",
+    "etd": "Ngày Gửi Hàng Dự Kiến (ETD)",
+    "eta": "Ngày Đến Dự Kiến (ETA)",
+    "cargo_value": "Giá Trị Hàng Hóa (USD)",
+    "transit_time": "Thời Gian Vận Chuyển",
+    "climate_tail_prob": "Xác Suất Sự Kiện Khí Hậu Cực Đoan"
+  },
+  "transport_modes": {
+    "sea": "Đường biển",
+    "air": "Đường hàng không",
+    "road": "Đường bộ",
+    "rail": "Đường sắt",
+    "multimodal": "Đa phương thức",
+    "intermodal": "Liên hợp vận tải",
+    "express": "Chuyển phát nhanh",
+    "postal": "Bưu kiện quốc tế",
+    "pipeline": "Đường ống",
+    "inland": "Đường thủy nội địa",
+    "roro": "Vận tải Ro-Ro",
+    "ocean_fcl": "Vận Tải Biển — FCL",
+    "ocean_lcl": "Vận Tải Biển — LCL",
+    "air_freight": "Vận Tải Hàng Không",
+    "rail_freight": "Vận Tải Đường Sắt",
+    "road_truck": "Đường Bộ — Xe Tải",
+    "courier": "Chuyển Phát Nhanh / Express",
+    "inland_waterway": "Đường Thủy Nội Địa",
+    "cross_border": "Đường Bộ Xuyên Biên Giới",
+    "last_mile": "Giao Hàng Cuối Dặm"
+  },
+  "cargo_types": {
+    "general": "Hàng Hóa Thông Thường",
+    "electronics": "Điện Tử",
+    "food_bev": "Thực Phẩm & Đồ Uống",
+    "garments": "May Mặc / Dệt May",
+    "agriculture": "Nông Sản",
+    "refrigerated": "Hàng Lạnh / Đông Lạnh",
+    "chemicals": "Hóa Chất",
+    "machinery": "Máy Móc Thiết Bị",
+    "fragile": "Hàng Dễ Vỡ",
+    "auto_parts": "Linh Kiện Ô Tô"
+  },
+  "routes": {
+    "vn_us": "Việt Nam → Hoa Kỳ",
+    "vn_eu": "Việt Nam → Châu Âu",
+    "vn_cn": "Việt Nam → Trung Quốc",
+    "vn_sg": "Việt Nam → Singapore",
+    "domestic": "Nội Địa"
+  },
+  "incoterms": {
+    "exw": "EXW - Giao Tại Xưởng",
+    "fca": "FCA - Giao Cho Người Chuyên Chở",
+    "fas": "FAS - Giao Dọc Mạn Tàu",
+    "fob": "FOB - Giao Lên Tàu",
+    "cfr": "CFR - Tiền Hàng Và Cước Phí",
+    "cif": "CIF - Tiền Hàng, Bảo Hiểm Và Cước",
+    "cpt": "CPT - Cước Phí Trả Tới",
+    "cip": "CIP - Cước Phí Và Bảo Hiểm Trả Tới",
+    "dap": "DAP - Giao Tại Nơi Đến",
+    "dpu": "DPU - Giao Tại Nơi Đến Đã Dỡ Hàng",
+    "ddp": "DDP - Giao Đã Nộp Thuế"
+  },
+  "containers": {
+    "20ft": "20ft Thường",
+    "40ft": "40ft Thường",
+    "40hc": "40ft Cao (High Cube)",
+    "45hc": "45ft Cao (High Cube)",
+    "reefer": "Container Lạnh (Reefer)",
+    "opentop": "Container Mở Nóc (Open-top)",
+    "flatrack": "Flat-rack (Sàn Phẳng)",
+    "isotank": "ISO Tank"
+  },
+  "packaging": {
+    "poor": "Kém",
+    "medium": "Trung Bình",
+    "good": "Tốt",
+    "excellent": "Xuất Sắc"
+  },
+  "priority": {
+    "economy": "Tiết Kiệm (Economy)",
+    "standard": "Tiêu Chuẩn (Standard)",
+    "express": "Hỏa Tốc (Express)",
+    "critical": "Cấp Bách (Critical)"
+  },
+  "buyer_seller": {
+    "buyer_section": "Thông tin Người Mua (Buyer)",
+    "buyer_name": "Tên người mua",
+    "buyer_country": "Quốc gia người mua",
+    "buyer_size": "Quy mô doanh nghiệp",
+    "buyer_esg": "Điểm ESG (nếu có)",
+    "buyer_reliability": "Điểm uy tín (Reliability)",
+    "seller_section": "Thông tin Người Bán (Seller)",
+    "seller_name": "Tên người bán",
+    "seller_country": "Quốc gia người bán",
+    "seller_size": "Quy mô doanh nghiệp",
+    "seller_esg": "Điểm ESG (nếu có)",
+    "seller_reliability": "Điểm uy tín (Reliability)"
+  },
+  "countries": {
+    "vn": "Việt Nam",
+    "cn": "Trung Quốc",
+    "jp": "Nhật Bản",
+    "kr": "Hàn Quốc",
+    "us": "Hoa Kỳ",
+    "eu": "Liên Minh Châu Âu",
+    "sg": "Singapore",
+    "th": "Thái Lan",
+    "my": "Malaysia",
+    "id": "Indonesia",
+    "ph": "Philippines",
+    "in": "Ấn Độ",
+    "au": "Úc",
+    "uk": "Vương Quốc Anh",
+    "de": "Đức",
+    "fr": "Pháp",
+    "nl": "Hà Lan",
+    "be": "Bỉ"
+  },
+  "company_size": {
+    "sme": "SME (10–200 lao động)",
+    "medium": "Trung bình (200–500)",
+    "large": "Lớn (>500)"
+  },
+  "modules": {
+    "fuzzy_title": "Fuzzy AHP",
+    "fuzzy_desc": "Phân tích quyết định đa tiêu chí",
+    "arima_title": "Dự Báo ARIMA",
+    "arima_desc": "Mô hình dự đoán chuỗi thời gian",
+    "mc_title": "Monte Carlo",
+    "mc_desc": "Công cụ mô phỏng ngẫu nhiên",
+    "var_title": "VaR / CVaR",
+    "var_desc": "Định lượng rủi ro cực đoan"
+  },
+  "ai_chat": {
+    "title": "Trợ Lý AI",
+    "placeholder": "Nhập câu hỏi của bạn...",
+    "send": "Gửi",
+    "thinking": "Đang suy nghĩ...",
+    "error": "Có lỗi xảy ra. Vui lòng thử lại.",
+    "welcome": "Xin chào! Tôi là trợ lý AI của RISKCAST. Tôi có thể giúp bạn phân tích rủi ro logistics."
+  },
+  "report": {
+    "title": "Báo Cáo Phân Tích Rủi Ro",
+    "generated_at": "Được tạo lúc",
+    "shipment_id": "Mã lô hàng",
+    "summary": "Tóm tắt",
+    "details": "Chi tiết",
+    "recommendations": "Khuyến nghị",
+    "appendix": "Phụ lục"
+  }
+}

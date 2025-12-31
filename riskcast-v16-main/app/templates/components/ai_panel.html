@@ -1,0 +1,60 @@
+<!-- AI Chat Widget - Inline styles and scripts will be moved to external files in Phase 2 -->
+<link rel="stylesheet" href="/static/css/ai_chat.css">
+<script src="/static/js/modules/ai_chat.js"></script>
+
+<!-- HTML STRUCTURE -->
+<div class="ai-widget-container">
+    <!-- Floating Chat Button -->
+    <button class="ai-chat-button" id="chatButton" aria-label="Mở trợ lý AI">
+        🤖
+        <span class="notification-badge" id="notificationBadge" style="display: none;">3</span>
+    </button>
+</div>
+
+<!-- Chat Popup -->
+<div class="ai-chat-popup" id="chatPopup">
+    <!-- Header -->
+    <div class="chat-header">
+        <div class="chat-header-info">
+            <div class="chat-title">
+                <h3>RISKCAST AI Assistant</h3>
+                <div class="chat-status">
+                    <span class="status-dot"></span>
+                    <span>Online</span>
+                </div>
+            </div>
+        </div>
+        <button class="chat-close" id="chatClose">✕</button>
+    </div>
+
+    <!-- Messages Container -->
+    <div class="chat-messages" id="chatMessages">
+        <div class="message ai">
+            <div class="message-avatar">🤖</div>
+            <div class="message-bubble">
+                Xin chào! Tôi là RISKCAST AI Assistant. Tôi có thể giúp bạn phân tích rủi ro logistics. 👋
+            </div>
+        </div>
+        <div class="message ai">
+            <div class="message-avatar">🤖</div>
+            <div class="message-bubble">
+                Bạn có thể hỏi tôi về bất kỳ điều gì liên quan đến rủi ro vận tải, bảo hiểm, ESG, hoặc khuyến nghị tuyến đường!
+            </div>
+        </div>
+    </div>
+
+    <!-- Input Container -->
+    <div class="chat-input-container">
+        <div class="chat-input-wrapper">
+            <input 
+                type="text" 
+                class="chat-input" 
+                id="chatInput" 
+                placeholder="Nhập tin nhắn..."
+                autocomplete="off"
+            >
+            <button class="chat-send-btn" id="sendButton">➤</button>
+        </div>
+    </div>
+</div>
+

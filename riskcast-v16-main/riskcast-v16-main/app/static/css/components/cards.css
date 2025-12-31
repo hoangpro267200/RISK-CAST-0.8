@@ -1,0 +1,175 @@
+/**
+ * ============================================================
+ * CARDS.CSS - Card Components
+ * ============================================================
+ * Reusable card styles
+ */
+
+/* ============================================
+   BASE CARD
+   ============================================ */
+.card {
+    background: #04120f;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    padding: 32px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-card);
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-card-hover);
+}
+
+.card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-green), transparent);
+    opacity: 0.3;
+}
+
+/* ============================================
+   CARD HEADER
+   ============================================ */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.card-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0;
+}
+
+.card-title .icon-card {
+    flex-shrink: 0;
+}
+
+.card-badge {
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: rgba(0, 255, 136, 0.1);
+    border: 1px solid var(--accent-green);
+    font-size: 11px;
+    color: var(--accent-green);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+/* ============================================
+   RISK CARD
+   ============================================ */
+.risk-card {
+    background: rgba(26, 35, 50, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+}
+
+.risk-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #00d4ff, #00ff88);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.risk-card:hover::before {
+    opacity: 1;
+}
+
+/* ============================================
+   SUMMARY CARD
+   ============================================ */
+.summary-card {
+    background: rgba(20, 35, 30, 0.6);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    transition: all var(--transition);
+}
+
+.summary-card:hover {
+    background: rgba(20, 35, 30, 0.8);
+    border-color: var(--border-hover);
+    box-shadow: var(--shadow-glow);
+    transform: translateY(-2px);
+}
+
+/* ============================================
+   DASHBOARD CARD
+   ============================================ */
+.dashboard-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: var(--space-xl);
+    box-shadow: var(--shadow-card);
+}
+
+/* ============================================
+   CARD BODY & FOOTER
+   ============================================ */
+.card-body {
+    padding: var(--space-lg) 0;
+}
+
+.card-footer {
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--border-color);
+    margin-top: var(--space-lg);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+    .card {
+        padding: var(--space-lg);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

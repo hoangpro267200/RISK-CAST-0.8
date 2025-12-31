@@ -1,0 +1,26 @@
+@charset "UTF-8";
+/* =============================================================================
+   NEON THEME — DEFAULT THEME FOR RISKCAST v12.5
+   Sử dụng biến SCSS convert sang CSS variable để truy cập trong JS/HTML
+============================================================================= */
+:root {
+  --bg-primary: #000000;
+  --bg-secondary: #071018;
+  --bg-card: #0c1117;
+  --accent-green: #00ff88;
+  --accent-cyan: #00d9ff;
+  --accent-yellow: #ffaa00;
+  --accent-red: #ff4444;
+  --text-primary: #e8f5ff;
+  --text-secondary: #9fb3c8;
+  --text-muted: #6b7c92;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-soft: rgba(255, 255, 255, 0.06);
+  --glow: rgba(0, 255, 136, 0.3);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+}
+
+/*# sourceMappingURL=neon.css.map */

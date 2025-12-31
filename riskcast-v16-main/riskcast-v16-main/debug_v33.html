@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Overview v33</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a1a; color: #0f0; }
+        .check { margin: 10px 0; padding: 10px; background: #2a2a2a; border-left: 3px solid #0f0; }
+        .error { border-left-color: #f00; color: #f00; }
+        .warning { border-left-color: #ff0; color: #ff0; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Overview v33 Debug Check</h1>
+    <div id="checks"></div>
+    <script>
+        const checks = [];
+        
+        // Check 1: Template
+        checks.push({
+            name: 'Template File',
+            check: () => {
+                const scripts = Array.from(document.querySelectorAll('script[src*="overview_v33"]'));
+                return scripts.length > 0 ? '✅ Found overview_v33.js' : '❌ overview_v33.js not loaded';
+            }
+        });
+        
+        // Check 2: CSS
+        checks.push({
+            name: 'CSS Files',
+            check: () => {
+                const styles = Array.from(document.querySelectorAll('link[href*="overview_v33"]'));
+                return styles.length > 0 ? '✅ Found overview_v33.css' : '❌ overview_v33.css not loaded';
+            }
+        });
+        
+        // Check 3: Container
+        checks.push({
+            name: 'Main Container',
+            check: () => {
+                const container = document.querySelector('.overview-v33-container');
+                return container ? '✅ Container exists' : '❌ Container not found';
+            }
+        });
+        
+        // Check 4: Navbar
+        checks.push({
+            name: 'Top Navbar',
+            check: () => {
+                const navbar = document.querySelector('.top-navbar');
+                return navbar ? '✅ Navbar exists' : '❌ Navbar not found';
+            }
+        });
+        
+        // Check 5: Risk Card
+        checks.push({
+            name: 'Risk Assessment Card',
+            check: () => {
+                const riskCard = document.querySelector('.risk-card');
+                return riskCard ? '✅ Risk card exists' : '❌ Risk card not found';
+            }
+        });
+        
+        // Check 6: Gauge
+        checks.push({
+            name: 'Risk Gauge',
+            check: () => {
+                const gauge = document.getElementById('gaugeFill');
+                return gauge ? '✅ Gauge SVG exists' : '❌ Gauge SVG not found';
+            }
+        });
+        
+        // Check 7: AI Button
+        checks.push({
+            name: 'AI Floating Button',
+            check: () => {
+                const aiBtn = document.getElementById('aiFloatBtn');
+                return aiBtn ? '✅ AI button exists' : '❌ AI button not found';
+            }
+        });
+        
+        // Check 8: Edit Toggle
+        checks.push({
+            name: 'Smart Edit Toggle',
+            check: () => {
+                const toggle = document.getElementById('editModeToggle');
+                return toggle ? '✅ Edit toggle exists' : '❌ Edit toggle not found';
+            }
+        });
+        
+        // Check 9: Cesium Container
+        checks.push({
+            name: 'Cesium Container',
+            check: () => {
+                const cesium = document.getElementById('cesiumContainer');
+                return cesium ? '✅ Cesium container exists' : '❌ Cesium container not found';
+            }
+        });
+        
+        // Check 10: Route Legs
+        checks.push({
+            name: 'Route Legs Container',
+            check: () => {
+                const legs = document.getElementById('routeLegsList');
+                return legs ? '✅ Route legs container exists' : '❌ Route legs container not found';
+            }
+        });
+        
+        // Render checks
+        const container = document.getElementById('checks');
+        checks.forEach(({name, check}) => {
+            const result = check();
+            const div = document.createElement('div');
+            div.className = 'check' + (result.includes('❌') ? ' error' : '');
+            div.innerHTML = `<strong>${name}:</strong> ${result}`;
+            container.appendChild(div);
+        });
+        
+        // Check version
+        if (window.OVERVIEW_VERSION) {
+            const div = document.createElement('div');
+            div.className = 'check';
+            div.innerHTML = `<strong>Version:</strong> ✅ ${window.OVERVIEW_VERSION}`;
+            container.appendChild(div);
+        } else {
+            const div = document.createElement('div');
+            div.className = 'check error';
+            div.innerHTML = `<strong>Version:</strong> ❌ window.OVERVIEW_VERSION not set`;
+            container.appendChild(div);
+        }
+    </script>
+</body>
+</html>
+

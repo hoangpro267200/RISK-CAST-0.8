@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <defs>
+    <linearGradient id="chartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00f0ff;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#00d4e0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#36e27b;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <path d="M3 20L3 18L7 18L7 12L11 12L11 8L15 8L15 14L19 14L19 10L21 10L21 20L3 20Z" stroke="url(#chartGradient)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M3 20L21 20" stroke="url(#chartGradient)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>
+
+
+
+
+
+

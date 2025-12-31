@@ -1,0 +1,381 @@
+{
+  "common": {
+    "risk": "风险",
+    "score": "分数",
+    "level": "等级",
+    "confidence": "置信度",
+    "factors": "因素",
+    "drivers": "驱动因素",
+    "recommendations": "建议",
+    "scenario": "场景",
+    "baseline": "基准",
+    "delta": "变化",
+    "analysis": "分析",
+    "report": "报告",
+    "export": "导出",
+    "loading": "加载中...",
+    "calculating": "计算中...",
+    "no_data": "没有数据",
+    "success": "成功",
+    "error": "发生错误",
+    "days": "天",
+    "usd": "美元",
+    "percent": "%",
+    "units": "单位"
+  },
+  "header": {
+    "brand_title": "RISKCAST v12.5",
+    "brand_subtitle": "AI驱动物流风险智能平台",
+    "status_ready": "分析完成",
+    "status_loading": "正在加载数据..."
+  },
+  "tabs": {
+    "enterprise": "企业仪表板",
+    "research": "研究视图",
+    "investor": "投资者演示"
+  },
+  "risk": {
+    "level": {
+      "low": "低",
+      "low_medium": "低-中",
+      "medium": "中",
+      "medium_high": "中-高",
+      "high": "高",
+      "critical": "极高"
+    },
+    "factors": {
+      "delay": "交付延迟风险",
+      "port": "港口拥堵",
+      "climate": "天气灾害",
+      "carrier": "承运人可靠性",
+      "esg": "ESG暴露",
+      "equipment": "设备可用性",
+      "network": "网络依赖"
+    },
+    "explanations": {
+      "low": "低风险级别表示货物可以使用标准操作程序进行。",
+      "medium": "中等风险级别建议加强监控和适度应急规划。",
+      "high": "高风险级别需要立即关注和全面的缓解策略。",
+      "critical": "极高风险级别需要紧急行动和替代路线考虑。"
+    },
+    "matrix": {
+      "low_probability": "低概率",
+      "medium_probability": "中等概率",
+      "high_probability": "高概率",
+      "low_severity": "低严重性",
+      "medium_severity": "中等严重性",
+      "high_severity": "高严重性"
+    },
+    "recommendations_type": {
+      "operational": "运营（立即行动）",
+      "tactical": "战术（短期行动）",
+      "strategic": "战略（长期行动）"
+    },
+    "layers": {
+      "delay": "延迟风险",
+      "damage": "损坏风险",
+      "cost": "成本波动",
+      "operational": "运营风险",
+      "esg": "ESG风险",
+      "political": "政治风险",
+      "climate": "气候风险"
+    }
+  },
+  "executive": {
+    "section_title": "执行摘要",
+    "overall_risk": "综合风险指数",
+    "expected_loss": "预期损失",
+    "reliability": "交付可靠性",
+    "esg": "ESG分数（环境-社会-治理）",
+    "per_shipment": "每批货物",
+    "on_time_prob": "准时概率",
+    "climate_political": "气候+政治",
+    "top_route": "最高路线风险：",
+    "main_driver": "主要驱动因素：",
+    "recommendation": "系统建议："
+  },
+  "gauges": {
+    "section_title": "风险仪表概览",
+    "risk_title": "综合风险指数",
+    "reliability_title": "可靠性分数",
+    "esg_title": "ESG分数",
+    "explanations": {
+      "title": "详细洞察",
+      "risk": {
+        "low": "低风险（0-40）。物流流程稳定，中断概率低。适合成本/时间优化。",
+        "medium": "中等风险（40-70）。某些运营或天气驱动的波动正在出现。需要主动监控。",
+        "high": "高风险（70-100）。延迟或事故概率升高。建议重新评估路线和缓解措施。"
+      },
+      "reliability": {
+        "very_high": "极高可靠性（>85）。强预测稳定性；适合高价值货物。",
+        "stable": "稳定（60-85）。控制范围内的可接受变化。",
+        "unstable": "不稳定（<60）。对中断敏感。不适合时间敏感货物。"
+      },
+      "esg": {
+        "strong": "强ESG合规（>70）。环境友好路线，适合注重可持续发展的企业。",
+        "moderate": "中等ESG表现（40-70）。可接受但未优化。",
+        "weak": "弱ESG合规（<40）。ESG风险升高；建议替代路线。"
+      }
+    }
+  },
+  "sections": {
+    "radar": "风险档案雷达图",
+    "layers": "风险层分解",
+    "montecarlo": "蒙特卡洛分布",
+    "timeline": "风险时间线",
+    "matrix": "概率×影响风险矩阵",
+    "scenario": "场景压力测试（假设分析）",
+    "tradeoff": "成本-时间-风险权衡",
+    "route": "路线段分析",
+    "recommendations": "AI专家建议",
+    "research_methodology": "研究方法概述",
+    "problem_solution": "问题→解决方案→为什么是现在",
+    "economics": "经济快照",
+    "arr": "年度经常性收入/收入潜力",
+    "architecture": "引擎即服务架构",
+    "pitch": "投资者一页故事",
+    "buyer_seller": "买方与卖方"
+  },
+  "research_panels": {
+    "dataset": "面板1：数据集解释",
+    "criteria": "面板2：标准构建",
+    "fuzzy_ahp": "面板3：模糊AHP方法",
+    "fuzzy_topsis": "面板4：模糊TOPSIS分析",
+    "montecarlo": "面板5：蒙特卡洛模拟",
+    "integrated": "面板6：综合风险模型",
+    "policy": "面板7：越南中小企业政策含义",
+    "sensitivity": "面板8：敏感性和稳健性检查"
+  },
+  "investor": {
+    "problem_title": "问题",
+    "solution_title": "解决方案",
+    "why_now_title": "为什么是现在",
+    "ask": "诉求："
+  },
+  "scenarios": {
+    "base": "基准情景",
+    "best": "最佳情景",
+    "worst": "最差情景",
+    "heavy_rain_q3": "第三季度雨季",
+    "port_strike": "港口罢工",
+    "equipment_shortage": "设备短缺",
+    "carrier_drop": "承运人可靠性下降",
+    "holiday_peak": "假日高峰季",
+    "extreme_weather": "极端天气事件",
+    "route_disruption": "贸易路线中断",
+    "esg_pressure": "ESG合规压力"
+  },
+  "terminology": {
+    "port": "港口",
+    "airport": "机场",
+    "transit": "过境",
+    "carrier": "承运人",
+    "vessel": "船舶",
+    "container": "集装箱",
+    "cargo": "货物",
+    "route": "路线",
+    "origin": "起运地",
+    "destination": "目的地"
+  },
+  "regions": {
+    "vn": "越南",
+    "sea": "东南亚",
+    "china": "中国",
+    "eu": "欧盟",
+    "us": "美国",
+    "global": "全球"
+  },
+  "buttons": {
+    "analyze": "运行分析",
+    "reset": "重置",
+    "export": "导出报告"
+  },
+  "errors": {
+    "no_data": "没有数据。请先运行分析。",
+    "fetch": "无法从服务器获取数据。",
+    "required": "此字段为必填项",
+    "positive": "值必须为正数",
+    "date_invalid": "日期无效"
+  },
+  "messages": {
+    "loading": "加载中...",
+    "analyzing": "正在分析风险...",
+    "generating": "正在生成报告...",
+    "exporting": "正在导出PDF...",
+    "error": "发生错误",
+    "success": "成功",
+    "confirm_reset": "您确定要重置所有字段吗？",
+    "alert_success": "风险分析成功完成！",
+    "based_on_simulations": "基于",
+    "simulations": "次模拟"
+  },
+  "input": {
+    "section1_title": "货物配置",
+    "section1_subtitle": "AI优化路线、时间和风险的背景数据。",
+    "section2_title": "运输信息",
+    "section2_subtitle": "路线详情和交付条件",
+    "section3_title": "附加参数",
+    "section3_subtitle": "影响风险的因素",
+    "buyer_seller_subtitle": "贸易伙伴信息",
+    "placeholder_select": "选择...",
+    "placeholder_packages": "输入数量",
+    "placeholder_auto": "自动计算"
+  },
+  "labels": {
+    "transport_mode": "运输方式",
+    "cargo_type": "货物类型",
+    "route": "路线",
+    "incoterm": "贸易术语",
+    "container": "集装箱类型",
+    "packaging": "包装质量",
+    "priority": "优先级",
+    "packages": "包裹数量",
+    "etd": "预计发货日期（ETD）",
+    "eta": "预计到达日期（ETA）",
+    "cargo_value": "货物价值（美元）",
+    "transit_time": "运输时间",
+    "climate_tail_prob": "极端气候事件概率"
+  },
+  "transport_modes": {
+    "sea": "海运",
+    "air": "空运",
+    "road": "公路运输",
+    "rail": "铁路运输",
+    "multimodal": "多式联运",
+    "intermodal": "联合运输",
+    "express": "快递",
+    "postal": "国际邮包",
+    "pipeline": "管道运输",
+    "inland": "内河运输",
+    "roro": "滚装运输",
+    "ocean_fcl": "海运 — 整箱",
+    "ocean_lcl": "海运 — 拼箱",
+    "air_freight": "航空货运",
+    "rail_freight": "铁路货运",
+    "road_truck": "公路 — 卡车",
+    "courier": "快递/速递",
+    "inland_waterway": "内河航道",
+    "cross_border": "跨境公路",
+    "last_mile": "最后一公里配送"
+  },
+  "cargo_types": {
+    "general": "普通货物",
+    "electronics": "电子产品",
+    "food_bev": "食品饮料",
+    "garments": "服装/纺织品",
+    "agriculture": "农产品",
+    "refrigerated": "冷藏/冷冻",
+    "chemicals": "化学品",
+    "machinery": "机械设备",
+    "fragile": "易碎物品",
+    "auto_parts": "汽车零部件"
+  },
+  "routes": {
+    "vn_us": "越南 → 美国",
+    "vn_eu": "越南 → 欧洲",
+    "vn_cn": "越南 → 中国",
+    "vn_sg": "越南 → 新加坡",
+    "domestic": "国内"
+  },
+  "incoterms": {
+    "exw": "EXW - 工厂交货",
+    "fca": "FCA - 货交承运人",
+    "fas": "FAS - 船边交货",
+    "fob": "FOB - 船上交货",
+    "cfr": "CFR - 成本加运费",
+    "cif": "CIF - 成本、保险费加运费",
+    "cpt": "CPT - 运费付至",
+    "cip": "CIP - 运费和保险费付至",
+    "dap": "DAP - 目的地交货",
+    "dpu": "DPU - 目的地卸货交货",
+    "ddp": "DDP - 完税后交货"
+  },
+  "containers": {
+    "20ft": "20英尺标准",
+    "40ft": "40英尺标准",
+    "40hc": "40英尺高柜",
+    "45hc": "45英尺高柜",
+    "reefer": "冷藏集装箱",
+    "opentop": "开顶集装箱",
+    "flatrack": "平板集装箱",
+    "isotank": "ISO罐式集装箱"
+  },
+  "packaging": {
+    "poor": "差",
+    "medium": "中等",
+    "good": "好",
+    "excellent": "优秀"
+  },
+  "priority": {
+    "economy": "经济",
+    "standard": "标准",
+    "express": "快速",
+    "critical": "紧急"
+  },
+  "buyer_seller": {
+    "buyer_section": "买方信息",
+    "buyer_name": "买方名称",
+    "buyer_country": "买方国家",
+    "buyer_size": "公司规模",
+    "buyer_esg": "ESG分数（如有）",
+    "buyer_reliability": "可靠性评分",
+    "seller_section": "卖方信息",
+    "seller_name": "卖方名称",
+    "seller_country": "卖方国家",
+    "seller_size": "公司规模",
+    "seller_esg": "ESG分数（如有）",
+    "seller_reliability": "可靠性评分"
+  },
+  "countries": {
+    "vn": "越南",
+    "cn": "中国",
+    "jp": "日本",
+    "kr": "韩国",
+    "us": "美国",
+    "eu": "欧盟",
+    "sg": "新加坡",
+    "th": "泰国",
+    "my": "马来西亚",
+    "id": "印度尼西亚",
+    "ph": "菲律宾",
+    "in": "印度",
+    "au": "澳大利亚",
+    "uk": "英国",
+    "de": "德国",
+    "fr": "法国",
+    "nl": "荷兰",
+    "be": "比利时"
+  },
+  "company_size": {
+    "sme": "中小企业（10-200员工）",
+    "medium": "中型（200-500）",
+    "large": "大型（>500）"
+  },
+  "modules": {
+    "fuzzy_title": "模糊AHP",
+    "fuzzy_desc": "多准则决策分析",
+    "arima_title": "ARIMA预测",
+    "arima_desc": "时间序列预测模型",
+    "mc_title": "蒙特卡洛",
+    "mc_desc": "随机模拟引擎",
+    "var_title": "VaR / CVaR",
+    "var_desc": "极端风险量化"
+  },
+  "ai_chat": {
+    "title": "AI助手",
+    "placeholder": "输入您的问题...",
+    "send": "发送",
+    "thinking": "思考中...",
+    "error": "发生错误。请重试。",
+    "welcome": "您好！我是RISKCAST AI助手。我可以帮助您分析物流风险。"
+  },
+  "report": {
+    "title": "风险分析报告",
+    "generated_at": "生成时间",
+    "shipment_id": "货运ID",
+    "summary": "摘要",
+    "details": "详情",
+    "recommendations": "建议",
+    "appendix": "附录"
+  }
+}

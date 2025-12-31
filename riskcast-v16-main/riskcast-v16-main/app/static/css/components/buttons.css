@@ -1,0 +1,174 @@
+/**
+ * ============================================================
+ * BUTTONS.CSS - Button Components
+ * ============================================================
+ * All button variants and styles
+ */
+
+/* ============================================
+   BASE BUTTON
+   ============================================ */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: var(--radius-lg);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition);
+    white-space: nowrap;
+}
+
+/* ============================================
+   PRIMARY BUTTON
+   ============================================ */
+.btn-primary {
+    background: linear-gradient(90deg, var(--neon-primary), var(--neon-secondary));
+    padding: 16px 32px;
+    border-radius: 12px;
+    color: #021A17;
+    font-weight: 600;
+    font-size: 15px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition);
+    box-shadow: 0 4px 16px rgba(0, 255, 200, 0.25);
+    height: 52px;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(90deg, var(--neon-secondary), var(--neon-primary));
+    box-shadow: 0 6px 24px rgba(0, 255, 200, 0.35);
+    transform: translateY(-2px);
+}
+
+/* ============================================
+   SECONDARY BUTTON
+   ============================================ */
+.btn-secondary {
+    padding: 16px 32px;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 255, 200, 0.4);
+    color: var(--neon-secondary);
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    background: rgba(0, 255, 200, 0.05);
+    cursor: pointer;
+    transition: all var(--transition);
+    height: 52px;
+}
+
+.btn-secondary:hover {
+    border-color: var(--neon-primary);
+    color: var(--neon-primary);
+    background: rgba(0, 255, 200, 0.1);
+    box-shadow: 0 0 20px rgba(0, 255, 200, 0.25);
+    transform: translateY(-2px);
+}
+
+/* ============================================
+   GHOST BUTTON
+   ============================================ */
+.btn-ghost {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-primary);
+}
+
+.btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--neon-primary);
+    color: var(--neon-primary);
+}
+
+/* ============================================
+   DANGER BUTTON
+   ============================================ */
+.btn-danger {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid var(--accent-red);
+    color: var(--accent-red);
+}
+
+.btn-danger:hover {
+    background: rgba(239, 68, 68, 0.2);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+}
+
+/* ============================================
+   BUTTON VARIANTS
+   ============================================ */
+.btn-icon {
+    padding: 8px;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+}
+
+.btn-sm {
+    padding: 8px 16px;
+    font-size: var(--font-size-sm);
+    height: auto;
+}
+
+.btn-lg {
+    padding: 20px 40px;
+    font-size: var(--font-size-lg);
+    height: 60px;
+}
+
+.btn-block {
+    width: 100%;
+    display: flex;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+    .btn-primary,
+    .btn-secondary {
+        padding: 12px 24px;
+        font-size: 14px;
+        height: 48px;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

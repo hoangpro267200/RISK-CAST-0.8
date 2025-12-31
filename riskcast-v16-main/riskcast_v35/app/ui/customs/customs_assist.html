@@ -1,0 +1,30 @@
+﻿{% extends "base.html" %}
+{% block title %}Customs Assist - RISKCAST v35{% endblock %}
+{% block content %}
+<div class="customs-assist">
+    <h1>Customs Assist Engine</h1>
+    <section class="hs-suggest">
+        <h2>Suggest HS Codes</h2>
+        <form id="hs-form">
+            <label>Shipment ID: <input type="text" name="shipment_id" required></label>
+            <label>Item Description: <textarea name="item_description" required></textarea></label>
+            <button type="submit">Suggest HS Codes</button>
+        </form>
+        <div id="hs-suggestions"></div>
+    </section>
+    <section class="declaration-gen">
+        <h2>Generate Customs Declaration XML</h2>
+        <form id="declaration-form">
+            <label>Shipment ID: <input type="text" name="shipment_id" required></label>
+            <button type="submit">Generate XML</button>
+        </form>
+        <div id="declaration-xml"></div>
+    </section>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+// TODO: Submit customs requests
+</script>
+{% endblock %}
+

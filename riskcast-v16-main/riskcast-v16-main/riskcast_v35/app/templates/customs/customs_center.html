@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customs Assist Center - RISKCAST v35</title>
+    <link rel="stylesheet" href="/static/css/global_visionos.css">
+    <link rel="stylesheet" href="/static/css/customs_center.css">
+</head>
+<body class="page visionos has-topbar">
+    <nav class="vision-topbar glass-panel">
+        <div class="vision-topbar__brand">
+            <div class="vision-topbar__logo">
+                <svg width="26" height="26" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="rcNeonCustoms" x1="2" y1="2" x2="30" y2="30">
+                            <stop offset="0%" stop-color="#00FFC8"/>
+                            <stop offset="100%" stop-color="#00D4FF"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M16 3L27.5 9.5V22.5L16 29L4.5 22.5V9.5L16 3Z" stroke="url(#rcNeonCustoms)" stroke-width="2.2" stroke-linejoin="round"/>
+                    <path d="M16 8L23 12V20L16 24L9 20V12L16 8Z" stroke="url(#rcNeonCustoms)" stroke-width="1.6" stroke-linejoin="round" opacity="0.7"/>
+                    <path d="M16 11L20 13.5V18.5L16 21L12 18.5V13.5L16 11Z" fill="url(#rcNeonCustoms)" opacity="0.9"/>
+                </svg>
+            </div>
+            <div class="vision-topbar__title">
+                <span>RISKCAST</span>
+                <span class="vision-topbar__version">v35 FutureOS</span>
+            </div>
+        </div>
+
+        <div class="vision-topbar__nav">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/shipments" class="nav-link">Shipments</a>
+            <a href="/pricing" class="nav-link">Pricing</a>
+            <a href="/consolidation" class="nav-link">Consolidation</a>
+            <a href="/documents" class="nav-link">Documents</a>
+            <a href="/customs" class="nav-link active">Customs</a>
+            <a href="/tracking" class="nav-link">Tracking</a>
+        </div>
+    </nav>
+
+    <main class="layout fade-in topbar-offset">
+        <section class="glass panel left">
+            <h2>HS Code Suggestion</h2>
+            <label>
+                <span>Description</span>
+                <textarea id="hs-description" placeholder="Describe the goods (e.g., electronics, rice, coffee)..."></textarea>
+            </label>
+            <button id="btn-suggest" class="cta">Suggest HS Codes</button>
+            <div class="selected">Selected HS: <span id="selected-hs">None</span></div>
+            <div id="hs-candidates" class="candidates"></div>
+        </section>
+
+        <section class="glass panel right">
+            <h2>Customs Declaration XML</h2>
+            <label>
+                <span>Shipment ID</span>
+                <input id="shipment-id" type="text" placeholder="Enter shipment UUID">
+            </label>
+            <div class="actions">
+                <button id="btn-generate" class="cta">Generate Declaration XML</button>
+                <button id="btn-load-profile" class="ghost">Load Existing Profile</button>
+            </div>
+            <div class="xml-meta">
+                <div>Current HS: <span id="xml-hs">-</span></div>
+                <div id="port-flags" class="port-flags"></div>
+            </div>
+            <pre id="xml-output" class="xml-box glass">Waiting...</pre>
+            <button id="btn-copy" class="ghost copy-btn">Copy XML <span class="tooltip" id="copy-tip">Copied!</span></button>
+            <div id="customs-profile" class="profile-box"></div>
+        </section>
+    </main>
+
+    <script src="/static/js/customs_center.js"></script>
+</body>
+</html>
+

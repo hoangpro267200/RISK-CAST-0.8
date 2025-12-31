@@ -1,0 +1,52 @@
+{
+  "include": [
+    "app"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/dist",
+    "**/venv",
+    "**/__pycache__",
+    "**/site-packages/**",
+    "**/WindowsApps/**",
+    "**/PythonSoftwareFoundation.Python.3.12*/**",
+    "**/asyncio/**",
+    "**/multiprocessing/**",
+    "**/uvicorn/**",
+    "C:/Program Files/WindowsApps/**",
+    "C:/Users/ASUS/AppData/Local/Packages/PythonSoftwareFoundation.Python.3.12*/**"
+  ],
+  "executionEnvironments": [
+    {
+      "root": ".",
+      "pythonVersion": "3.12",
+      "pythonPlatform": "Windows",
+      "extraPaths": [
+        "C:\\Users\\ASUS\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python312\\site-packages"
+      ]
+    }
+  ],
+  "reportMissingImports": "none",
+  "reportMissingTypeStubs": "none",
+  "reportMissingModuleSource": "none",
+  "reportUnusedImport": "none",
+  "reportUnusedClass": "none",
+  "reportUnusedFunction": "none",
+  "reportUnusedVariable": "none",
+  "reportAttributeAccessIssue": "none",
+  "reportOptionalMemberAccess": "none",
+  "reportOptionalSubscript": "none",
+  "reportGeneralTypeIssues": "none",
+  "reportArgumentType": "none",
+  "reportCallIssue": "none",
+  "reportOptionalIterable": "none",
+  "reportPrivateUsage": "none",
+  "reportUnknownMemberType": "none",
+  "reportUnknownArgumentType": "none",
+  "reportUnknownVariableType": "none",
+  "reportUnknownParameterType": "none",
+  "typeCheckingMode": "basic",
+  "useLibraryCodeForTypes": false,
+  "ignoreExternal": true
+}
+

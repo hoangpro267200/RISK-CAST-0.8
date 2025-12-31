@@ -1,0 +1,27 @@
+{
+  "risk_score": 75,
+  "risk_level": "High",
+  "confidence": 0.85,
+  "profile": {
+    "score": 75,
+    "level": "High",
+    "confidence": 0.85,
+    "explanation": ["High risk due to weather disruption"],
+    "factors": {
+      "climate": 0.85,
+      "port": 0.30,
+      "carrier": 0.20
+    }
+  },
+  "drivers": [
+    {
+      "name": "Weather Disruption Risk",
+      "impact": 100.0,
+      "description": "Climate conditions contribute 100.0% to overall risk, indicating significant weather-related disruption potential."
+    }
+  ],
+  "reasoning": {
+    "explanation": "Risk assessment indicates a High risk level (score: 75.0/100). The primary risk driver is Weather Disruption Risk (100.0% contribution). Climate conditions contribute 100.0% to overall risk, indicating significant weather-related disruption potential."
+  }
+}
+

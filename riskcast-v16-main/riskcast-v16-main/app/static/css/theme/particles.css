@@ -1,0 +1,119 @@
+/**
+ * ============================================================
+ * PARTICLES.CSS - Floating Particles Animation
+ * ============================================================
+ * Creates floating particles effect in the background
+ * with opacity 0.3 and smooth animations
+ */
+
+.particles-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.particle {
+    position: absolute;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.3), rgba(0, 255, 136, 0.3));
+    opacity: 0.3;
+    animation: float 20s infinite ease-in-out;
+}
+
+/* Particle sizes - varied for visual interest */
+.particle--small {
+    width: 4px;
+    height: 4px;
+}
+
+.particle--medium {
+    width: 6px;
+    height: 6px;
+}
+
+.particle--large {
+    width: 8px;
+    height: 8px;
+}
+
+/* Floating animation */
+@keyframes float {
+    0%, 100% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0.3;
+    }
+    25% {
+        transform: translate(20px, -30px) scale(1.1);
+        opacity: 0.4;
+    }
+    50% {
+        transform: translate(-15px, -60px) scale(0.9);
+        opacity: 0.25;
+    }
+    75% {
+        transform: translate(30px, -40px) scale(1.05);
+        opacity: 0.35;
+    }
+}
+
+/* Staggered animation delays for natural movement */
+.particle:nth-child(1) { animation-delay: 0s; }
+.particle:nth-child(2) { animation-delay: 2s; }
+.particle:nth-child(3) { animation-delay: 4s; }
+.particle:nth-child(4) { animation-delay: 6s; }
+.particle:nth-child(5) { animation-delay: 8s; }
+.particle:nth-child(6) { animation-delay: 10s; }
+.particle:nth-child(7) { animation-delay: 12s; }
+.particle:nth-child(8) { animation-delay: 14s; }
+.particle:nth-child(9) { animation-delay: 16s; }
+.particle:nth-child(10) { animation-delay: 18s; }
+.particle:nth-child(11) { animation-delay: 1s; }
+.particle:nth-child(12) { animation-delay: 3s; }
+.particle:nth-child(13) { animation-delay: 5s; }
+.particle:nth-child(14) { animation-delay: 7s; }
+.particle:nth-child(15) { animation-delay: 9s; }
+.particle:nth-child(16) { animation-delay: 11s; }
+.particle:nth-child(17) { animation-delay: 13s; }
+.particle:nth-child(18) { animation-delay: 15s; }
+.particle:nth-child(19) { animation-delay: 17s; }
+.particle:nth-child(20) { animation-delay: 19s; }
+
+/* Glow effect for some particles */
+.particle--glow {
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.4),
+                0 0 20px rgba(0, 255, 136, 0.2);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

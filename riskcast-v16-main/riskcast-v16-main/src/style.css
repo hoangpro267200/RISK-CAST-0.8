@@ -1,0 +1,108 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply box-border;
+  }
+  
+  body {
+    @apply font-sans;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer components {
+  /* Glassmorphism base class */
+  .glass-card {
+    @apply backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl shadow-2xl;
+  }
+  
+  .glass-card-hero {
+    @apply backdrop-blur-3xl bg-white/10 border border-white/15 rounded-3xl shadow-2xl;
+  }
+  
+  /* Neon glow effects */
+  .neon-glow-blue {
+    box-shadow: 
+      0 0 10px rgba(79, 195, 247, 0.5),
+      0 0 20px rgba(79, 195, 247, 0.3),
+      0 0 30px rgba(79, 195, 247, 0.1);
+  }
+  
+  .neon-glow-red {
+    box-shadow: 
+      0 0 10px rgba(239, 68, 68, 0.5),
+      0 0 20px rgba(239, 68, 68, 0.3),
+      0 0 30px rgba(239, 68, 68, 0.1);
+  }
+  
+  .neon-glow-green {
+    box-shadow: 
+      0 0 10px rgba(16, 185, 129, 0.5),
+      0 0 20px rgba(16, 185, 129, 0.3),
+      0 0 30px rgba(16, 185, 129, 0.1);
+  }
+  
+  .neon-glow-yellow {
+    box-shadow: 
+      0 0 10px rgba(245, 158, 11, 0.5),
+      0 0 20px rgba(245, 158, 11, 0.3),
+      0 0 30px rgba(245, 158, 11, 0.1);
+  }
+  
+  /* Neon divider */
+  .neon-divider {
+    @apply h-px bg-gradient-to-r from-transparent via-neon-blue to-transparent;
+    box-shadow: 0 0 8px rgba(79, 195, 247, 0.5);
+  }
+  
+  /* Loading shimmer */
+  .loading-shimmer {
+    @apply animate-pulse bg-gradient-to-r from-white/5 via-white/10 to-white/5;
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+  
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  
+  /* Smooth transitions */
+  .transition-spring {
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  
+  .transition-smooth {
+    transition: all 0.3s ease-out;
+  }
+}
+
+@layer utilities {
+  /* Scrollbar styling */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    @apply bg-white/5 rounded-full;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-white/20 rounded-full hover:bg-white/30;
+  }
+  
+  /* Text gradients */
+  .text-gradient-blue {
+    @apply bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent;
+  }
+  
+  .text-gradient-risk {
+    @apply bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent;
+  }
+}
+

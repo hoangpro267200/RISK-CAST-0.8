@@ -1,0 +1,252 @@
+/* ==========================================================================
+   SUMMARY_V400 - VISIONOS ULTRA TYPOGRAPHY
+   SF Pro Display style typography system
+   ========================================================================== */
+
+/* ===== SF PRO DISPLAY FONT ===== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ===== HEADERS - VisionOS v600 Ultra (tiêu đề mạnh, mô tả mờ nhẹ) ===== */
+.summary-logo__brand {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.4px;
+    line-height: 1.2;
+    color: rgba(245, 250, 255, 0.98);
+}
+
+/* ===== PANEL LABEL - VisionOS Clean Typography ===== */
+.summary-panel__label {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 18px; /* Inter SemiBold, 18px */
+    font-weight: 530; /* Thin-medium weight for premium feel */
+    letter-spacing: -0.2px; /* Negative spacing for tight feel */
+    line-height: 1.4;
+    color: var(--text-primary);
+    transform: translateY(0px); /* Fix lệch */
+}
+
+.advisor-panel__label {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.4px;
+    line-height: 1.2;
+}
+
+/* ===== AI HEADER - Premium Typography ===== */
+.ai-header {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.3px;
+    line-height: 1.3;
+}
+
+/* ===== LABELS - VisionOS v600 Ultra (màu chữ sáng hơn) ===== */
+.field-tile__label,
+.banner-tile__label,
+.mega-tile__label {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    line-height: 1.4;
+    color: rgba(167, 179, 200, 0.9);
+}
+
+/* ===== PANEL TAG - Legacy support ===== */
+.summary-panel__tag {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 13px; /* 13px Medium */
+    font-weight: 600; /* Medium */
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: linear-gradient(90deg, #1EF7C3, #14D9A4); /* Gradient green */
+    color: #003B32; /* Dark green text - bold */
+    border-radius: 999px; /* Pill shape (rounded-full) */
+    padding: 4px 12px;
+    display: inline-flex;
+    align-items: center;
+    box-shadow: 0 0 12px rgba(30, 247, 195, 0.4); /* Subtle shadow */
+    font-weight: 700; /* Bold text */
+}
+
+/* ===== SECTION BADGE - Auto Verified (Soft Cyan) ===== */
+.section-badge {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.section-badge.auto-verified {
+    padding: 6px 14px;
+    background: linear-gradient(135deg, #36e3ff, #17b3ff); /* Soft cyan gradient */
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #00131a; /* Dark cyan text */
+    box-shadow: 0 0 10px rgba(0, 200, 255, 0.35); /* Soft glow */
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    transition: all 0.25s ease;
+}
+
+.section-badge.auto-verified:hover {
+    box-shadow: 0 0 15px rgba(0, 200, 255, 0.5);
+    transform: scale(1.02);
+}
+
+.completeness-bar__label,
+.error-chip__label {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ===== VALUES - VisionOS v600 Ultra (mảnh, rõ, spacing tốt) ===== */
+.field-tile__value {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: -0.15px;
+    line-height: 1.4;
+    color: rgba(245, 250, 255, 0.95);
+}
+
+.field-tile__value--large {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+}
+
+.banner-tile__value {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.25px;
+    line-height: 1.3;
+}
+
+.mega-tile__value {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.4px;
+    line-height: 1.2;
+}
+
+/* ===== BODY TEXT ===== */
+.advisor-item__message {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: -0.1px;
+    line-height: 1.5;
+}
+
+.advisor-item__fields {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+}
+
+.empty-state__text {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: -0.1px;
+    line-height: 1.6;
+}
+
+/* ===== BUTTONS ===== */
+.btn {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.1px;
+}
+
+.btn--sm {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* ===== MONOSPACE (for codes/numbers) ===== */
+.field-tile__status-text,
+.advisor-item__fields,
+.completeness-bar__value,
+.error-chip__count {
+    font-family: 'Space Mono', 'SF Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+/* ===== SUBTITLE - VisionOS v600 Ultra (mô tả mờ nhẹ) ===== */
+.summary-logo__subtitle {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+    opacity: 0.65;
+    color: rgba(167, 179, 200, 0.85);
+}
+
+/* ===== EDITOR ===== */
+.editor-bubble__label {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+}
+
+.editor-bubble__path {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.editor-field-label {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.editor-input,
+.editor-select,
+.editor-textarea {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: -0.1px;
+}
+
+/* ===== RISK CARDS ===== */
+.risk-card__label {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+}
+
+.risk-card__status {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+

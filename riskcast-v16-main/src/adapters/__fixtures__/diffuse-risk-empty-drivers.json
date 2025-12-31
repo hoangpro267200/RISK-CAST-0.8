@@ -1,0 +1,22 @@
+{
+  "risk_score": 45,
+  "risk_level": "Medium",
+  "confidence": 0.80,
+  "profile": {
+    "score": 45,
+    "level": "Medium",
+    "confidence": 0.80,
+    "explanation": ["Medium risk with no dominant drivers"],
+    "factors": {
+      "climate": 0.35,
+      "port": 0.30,
+      "carrier": 0.25,
+      "network": 0.20
+    }
+  },
+  "drivers": [],
+  "reasoning": {
+    "explanation": "Risk assessment indicates a Medium risk level (score: 45.0/100). The overall risk is distributed across multiple minor factors, with no single dominant driver. Climate conditions pose some risk, but not as a dominant driver."
+  }
+}
+

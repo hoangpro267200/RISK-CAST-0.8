@@ -1,0 +1,98 @@
+[
+  {
+    "id": "SR-SGN-BKK-SEA-001",
+    "pol": "SGN",
+    "pod": "BKK",
+    "mode": "SEA",
+    "carrier": "Maersk",
+    "transit_time": 4,
+    "schedule_frequency": "3 sailings/week",
+    "reliability_score": 86,
+    "sample_etd": "2025-12-14",
+    "notes": "Strong SEA lane. Good consistency. Avoid peak season delays."
+  },
+  {
+    "id": "SR-SGN-BKK-AIR-001",
+    "pol": "SGN",
+    "pod": "BKK",
+    "mode": "AIR",
+    "carrier": "Vietnam Airlines",
+    "transit_time": 1,
+    "schedule_frequency": "Daily",
+    "reliability_score": 92,
+    "sample_etd": "2025-12-14",
+    "notes": "Fastest connection. Stable on-time performance."
+  },
+  {
+    "id": "SR-SGN-LAX-SEA-001",
+    "pol": "SGN",
+    "pod": "LAX",
+    "mode": "SEA",
+    "carrier": "ONE",
+    "transit_time": 21,
+    "schedule_frequency": "2 sailings/week",
+    "reliability_score": 74,
+    "sample_etd": "2025-12-16",
+    "notes": "Long-haul transpacific. Congestion risk in LAX."
+  },
+  {
+    "id": "SR-SGN-LAX-AIR-001",
+    "pol": "SGN",
+    "pod": "LAX",
+    "mode": "AIR",
+    "carrier": "Korean Air",
+    "transit_time": 2,
+    "schedule_frequency": "Daily",
+    "reliability_score": 88,
+    "sample_etd": "2025-12-14",
+    "notes": "Best reliability. Premium freight lane via ICN."
+  },
+  {
+    "id": "SR-HPH-HKG-SEA-001",
+    "pol": "HPH",
+    "pod": "HKG",
+    "mode": "SEA",
+    "carrier": "COSCO",
+    "transit_time": 3,
+    "schedule_frequency": "5 sailings/week",
+    "reliability_score": 80,
+    "sample_etd": "2025-12-15",
+    "notes": "High-frequency feeder. Works well for LCL consolidation."
+  },
+  {
+    "id": "SR-HAN-NRT-AIR-001",
+    "pol": "HAN",
+    "pod": "NRT",
+    "mode": "AIR",
+    "carrier": "ANA",
+    "transit_time": 1,
+    "schedule_frequency": "Daily",
+    "reliability_score": 95,
+    "sample_etd": "2025-12-14",
+    "notes": "Electronics corridor. Very high reliability."
+  },
+  {
+    "id": "SR-SGN-RTD-SEA-001",
+    "pol": "SGN",
+    "pod": "RTM",
+    "mode": "SEA",
+    "carrier": "Hapag-Lloyd",
+    "transit_time": 26,
+    "schedule_frequency": "Weekly",
+    "reliability_score": 72,
+    "sample_etd": "2025-12-18",
+    "notes": "EU lane. Rotterdam congestion may impact arrival."
+  },
+  {
+    "id": "SR-SGN-RTM-AIR-001",
+    "pol": "SGN",
+    "pod": "RTM",
+    "mode": "AIR",
+    "carrier": "Lufthansa Cargo",
+    "transit_time": 3,
+    "schedule_frequency": "Daily",
+    "reliability_score": 89,
+    "sample_etd": "2025-12-14",
+    "notes": "Reliable EU air freight. Higher cost tier."
+  }
+]

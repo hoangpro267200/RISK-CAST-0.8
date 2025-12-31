@@ -1,0 +1,226 @@
+/**
+ * RISKCAST FUTUREOS – JavaScript
+ * Handles scroll-based reveals, map narrative, and interactive animations
+ */
+
+(function() {
+    'use strict';
+
+    // ========================================
+    // INITIALIZATION
+    // ========================================
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        initScrollReveal();
+        initMapNarrative();
+        initSimulationHover();
+        initConsoleParallax();
+    });
+
+    // ========================================
+    // SCROLL-BASED REVEAL
+    // ========================================
+    
+    function initScrollReveal() {
+        const animatedElements = document.querySelectorAll('.rc-animate-item');
+        
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.15
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    // Add visible class to trigger animation
+                    entry.target.classList.add('rc-visible');
+                    
+                    // Stop observing after animation triggers (no replay)
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+        
+        // Observe all animated elements
+        animatedElements.forEach(element => {
+            observer.observe(element);
+        });
+    }
+
+    // ========================================
+    // MAP NARRATIVE SEQUENCE
+    // ========================================
+    
+    function initMapNarrative() {
+        const mapSection = document.getElementById('map');
+        if (!mapSection) return;
+        
+        const portKlang = document.getElementById('port-klang');
+        const routeOriginal = document.getElementById('route-original');
+        const routeAlternative = document.getElementById('route-alternative');
+        const aiBubble = document.getElementById('ai-bubble');
+        
+        const step1 = document.getElementById('step-1');
+        const step2 = document.getElementById('step-2');
+        const step3 = document.getElementById('step-3');
+        
+        let hasPlayed = false;
+        
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.3
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && !hasPlayed) {
+                    hasPlayed = true;
+                    playMapNarrative();
+                }
+            });
+        }, observerOptions);
+        
+        observer.observe(mapSection);
+        
+        function playMapNarrative() {
+            // Step 1: Port Klang congestion detected (0s)
+            setTimeout(() => {
+                if (portKlang) portKlang.classList.add('active');
+                if (step1) step1.classList.add('active');
+            }, 0);
+            
+            // Step 2: AI draws alternative route (1.2s)
+            setTimeout(() => {
+                if (routeOriginal) routeOriginal.classList.add('active');
+                if (routeAlternative) routeAlternative.classList.add('active');
+                if (step2) step2.classList.add('active');
+                if (step1) step1.classList.remove('active');
+            }, 1200);
+            
+            // Step 3: AI bubble with optimization results (2.8s)
+            setTimeout(() => {
+                if (aiBubble) aiBubble.classList.add('active');
+                if (step3) step3.classList.add('active');
+                if (step2) step2.classList.remove('active');
+            }, 2800);
+        }
+    }
+
+    // ========================================
+    // SIMULATION CARD HOVER INTERACTIONS
+    // ========================================
+    
+    function initSimulationHover() {
+        const simCards = document.querySelectorAll('.rc-sim-card');
+        
+        simCards.forEach(card => {
+            // Mini chart animation on hover is handled by CSS
+            // Route switch animation on hover is handled by CSS
+            // Mode switch animation on hover is handled by CSS
+            // Carrier switch animation on hover is handled by CSS
+            
+            // Add subtle sound effect trigger point (optional)
+            card.addEventListener('mouseenter', function() {
+                // Could add subtle interaction feedback here
+                // e.g., haptic feedback or sound if desired
+            });
+        });
+    }
+
+    // ========================================
+    // CONSOLE PARALLAX (SUBTLE MOUSE MOVE)
+    // ========================================
+    
+    function initConsoleParallax() {
+        const console = document.querySelector('.rc-console__inner');
+        if (!console) return;
+        
+        const consoleSection = document.querySelector('.rc-futureos');
+        if (!consoleSection) return;
+        
+        let isInView = false;
+        
+        // Check if console section is in view
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                isInView = entry.isIntersecting;
+            });
+        }, {
+            threshold: 0.2
+        });
+        
+        observer.observe(consoleSection);
+        
+        // Mouse move parallax effect
+        document.addEventListener('mousemove', (e) => {
+            if (!isInView) return;
+            
+            const rect = consoleSection.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            
+            const deltaX = (x - centerX) / centerX;
+            const deltaY = (y - centerY) / centerY;
+            
+            // Very subtle movement (max 3 degrees)
+            const rotateY = deltaX * 3;
+            const rotateX = -deltaY * 3;
+            
+            console.style.transform = `perspective(1200px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        });
+        
+        // Reset on mouse leave
+        consoleSection.addEventListener('mouseleave', () => {
+            console.style.transform = 'perspective(1200px) rotateX(2deg) rotateY(-3deg)';
+        });
+    }
+
+    // ========================================
+    // UTILITY: SMOOTH SCROLL (OPTIONAL)
+    // ========================================
+    
+    // Add smooth scroll for any anchor links
+    const anchorLinks = document.querySelectorAll('a[href^="#"]');
+    
+    anchorLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            const targetId = this.getAttribute('href');
+            if (targetId === '#') return;
+            
+            const targetElement = document.querySelector(targetId);
+            if (!targetElement) return;
+            
+            e.preventDefault();
+            
+            targetElement.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        });
+    });
+
+    // ========================================
+    // PERFORMANCE: REDUCE MOTION PREFERENCE
+    // ========================================
+    
+    // Respect user's motion preferences
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    
+    if (prefersReducedMotion.matches) {
+        // Disable animations for users who prefer reduced motion
+        document.documentElement.style.setProperty('--transition-smooth', 'none');
+        document.documentElement.style.setProperty('--transition-slow', 'none');
+        
+        // Remove animation classes
+        const animatedElements = document.querySelectorAll('[class*="rc-animate"]');
+        animatedElements.forEach(el => {
+            el.style.animation = 'none';
+        });
+    }
+
+})();

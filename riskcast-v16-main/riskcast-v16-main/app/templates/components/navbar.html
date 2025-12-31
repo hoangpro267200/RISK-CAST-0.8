@@ -1,0 +1,58 @@
+<!-- NAVBAR -->
+<nav class="global-navbar">
+    <div class="nav-left">
+        <div class="nav-logo">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" class="logo-icon">
+                <defs>
+                    <!-- Neon gradient -->
+                    <linearGradient id="premiumGlow" x1="0" y1="0" x2="48" y2="48">
+                        <stop offset="0%" stop-color="#00F6A2"/>
+                        <stop offset="100%" stop-color="#0FFFC7"/>
+                    </linearGradient>
+                    
+                    <!-- Inner glow -->
+                    <linearGradient id="innerShield" x1="0" y1="0" x2="48" y2="48">
+                        <stop offset="0%" stop-color="#00FFD0"/>
+                        <stop offset="100%" stop-color="#00A388"/>
+                    </linearGradient>
+                </defs>
+                
+                <!-- Outer hexagon (glowing 3D frame) -->
+                <path d="M24 4 L40 14 L40 30 L24 40 L8 30 L8 14 Z"
+                      stroke="url(#premiumGlow)"
+                      stroke-width="3"
+                      stroke-linejoin="round"
+                      filter="drop-shadow(0 0 16px rgba(0,255,200,0.45))"/>
+                
+                <!-- Inner hexagon (3D layer) -->
+                <path d="M24 10 L35 17 L35 27 L24 34 L13 27 L13 17 Z"
+                      stroke="url(#premiumGlow)"
+                      stroke-width="2"
+                      stroke-linejoin="round"
+                      opacity="0.7"/>
+                
+                <!-- Premium Shield icon (AI Protection) -->
+                <path d="M24 15 L30 19 V25 L24 29 L18 25 V19 Z"
+                      fill="url(#innerShield)"
+                      opacity="0.95"/>
+                
+                <!-- 3D highlight -->
+                <path d="M24 15 L30 19 L24 22"
+                      stroke="#FFFFFF"
+                      stroke-opacity="0.35"
+                      stroke-width="1"/>
+            </svg>
+        </div>
+        <span class="nav-title">RISKCAST v15</span>
+    </div>
+
+    <div class="nav-right">
+        <a href="/" class="nav-link">Home</a>
+        <a href="/input" class="nav-link">Input</a>
+        <a href="/overview" class="nav-link">Overview</a>
+        <a href="/results" class="nav-link">Results</a>
+        <a href="/research" class="nav-link">Research</a>
+    </div>
+</nav>
+
+
