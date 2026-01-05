@@ -3,10 +3,11 @@ RISKCAST API v1 - Risk Routes
 Risk analysis endpoints
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from typing import Dict, Any, Optional, List
 from datetime import datetime
+import os
 
 from app.core.services.risk_service import run_risk_engine_v14
 from app.core.engine_v2.risk_pipeline import RiskPipeline
@@ -16,7 +17,6 @@ from app.core.scenario_engine.scenario_store import ScenarioStore
 from app.core.scenario_engine.presets import ScenarioPresets
 from app.core.engine_v2.llm_reasoner import LLMReasoner
 from fastapi.responses import Response, StreamingResponse  # type: ignore
-from fastapi import Request
 
 router = APIRouter()
 
@@ -72,19 +72,31 @@ class ShipmentModel(BaseModel):
 
 
 @router.post("/risk/analyze")
-async def analyze_risk(shipment: ShipmentModel):
+async def analyze_risk(shipment: ShipmentModel, request: Request):
     """
     Analyze shipment risk
+    
+    ⚠️ DEPRECATED: This endpoint is deprecated. Use /api/v1/risk/v2/analyze instead.
+    See docs/DEPRECATION.md for migration guide.
     """
+    from app.utils.standard_responses import ok, fail
+    
     try:
         shipment_dict = shipment.model_dump()
         result = run_risk_engine_v14(shipment_dict)
-        return {
-            "status": "success",
-            "result": result
-        }
+        # Use standard response envelope
+        return ok(data={"result": result}, request=request)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Risk analysis failed: {str(e)}")
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Risk analysis failed: {str(e)}", exc_info=True)
+        return fail(
+            code="RISK_ANALYSIS_ERROR",
+            message="Risk analysis failed",
+            details={"error": str(e)} if os.getenv("DEBUG") == "true" else None,
+            status_code=500,
+            request=request
+        )
 
 
 @router.post("/risk/evaluate")

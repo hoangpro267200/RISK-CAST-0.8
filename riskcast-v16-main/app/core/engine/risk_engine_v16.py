@@ -59,7 +59,20 @@ class RiskConfig:
     """Centralized configuration for v16.0 risk modeling"""
     
     # Monte Carlo Simulation
-    MC_ITERATIONS_DEFAULT = 50000
+    # Read from environment, with defaults
+    import os
+    _env_iterations = os.getenv("MC_ITERATIONS")
+    _env_iterations_dev = os.getenv("MC_ITERATIONS_DEV")
+    _is_dev = os.getenv("ENVIRONMENT", "development") == "development"
+    
+    # Use dev iterations if in development mode and set, otherwise use production default
+    if _is_dev and _env_iterations_dev:
+        MC_ITERATIONS_DEFAULT = int(_env_iterations_dev)
+    elif _env_iterations:
+        MC_ITERATIONS_DEFAULT = int(_env_iterations)
+    else:
+        MC_ITERATIONS_DEFAULT = 50000  # Production default
+    
     MC_ITERATIONS_MIN = 10000
     MC_ITERATIONS_MAX = 100000
     ANTITHETIC_SAMPLING = True
@@ -3258,10 +3271,19 @@ class EnterpriseRiskEngineV16:
     - Enhanced AI narratives
     """
     
-    def __init__(self):
+    def __init__(self, mc_iterations: Optional[int] = None):
+        """
+        Initialize Enterprise Risk Engine v16
+        
+        Args:
+            mc_iterations: Monte Carlo iterations (defaults to RiskConfig.MC_ITERATIONS_DEFAULT)
+        """
+        # Use provided iterations or default from config
+        iterations = mc_iterations or RiskConfig.MC_ITERATIONS_DEFAULT
+        
         # Existing components (import from current module)
         self.fuzzy_ahp = FuzzyAHP()
-        self.mc_engine = MonteCarloEngine()
+        self.mc_engine = MonteCarloEngine(iterations=iterations)
         self.financial_calculator = FinancialRiskCalculator()
         self.delay_estimator = DelayEstimator()
         
@@ -3271,6 +3293,9 @@ class EnterpriseRiskEngineV16:
         self.packing_analyzer = PackingEfficiencyAnalyzer()
         self.partner_scorer = PartnerCredibilityScorer()
         self.priority_optimizer = PriorityWeightOptimizer()
+        
+        # Store iterations for metadata
+        self.iterations_used = iterations
     
     def calculate_risk(self, shipment_data: Dict) -> Dict[str, Any]:
         """
@@ -4239,6 +4264,11 @@ def calculate_enterprise_risk(shipment_data: Dict, buyer: Optional[Dict] = None,
     """
     V16.0: Main API endpoint (backward compatible with v14)
     
+    Features:
+    - Caching support (same inputs return cached results)
+    - Configurable Monte Carlo iterations via environment
+    - Fast mode in development (lower iterations)
+    
     Args:
         shipment_data: Enhanced shipment parameters (v16.0 compatible)
         buyer: Optional buyer information
@@ -4246,7 +4276,9 @@ def calculate_enterprise_risk(shipment_data: Dict, buyer: Optional[Dict] = None,
     
     Returns:
         Comprehensive risk analysis with v16.0 enhancements
+        Includes meta.iterations_used in result
     """
+    from app.core.utils.cache import generate_cache_key, get_cache, set_cache
     
     # Merge seller/buyer into shipment_data if provided
     if seller:
@@ -4254,11 +4286,39 @@ def calculate_enterprise_risk(shipment_data: Dict, buyer: Optional[Dict] = None,
     if buyer:
         shipment_data['buyer'] = buyer
     
-    # Initialize v16 engine
-    engine = EnterpriseRiskEngineV16()
+    # Try cache first
+    cache_key = generate_cache_key(shipment_data)
+    cached_result = get_cache(cache_key)
+    if cached_result:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"[Cache] Cache hit for key: {cache_key[:16]}...")
+        return cached_result
+    
+    # Cache miss - calculate
+    # Get iterations from request or use default
+    mc_iterations = shipment_data.get('mc_iterations')
+    if mc_iterations:
+        try:
+            mc_iterations = int(mc_iterations)
+        except (ValueError, TypeError):
+            mc_iterations = None
+    
+    # Initialize v16 engine with configured iterations
+    engine = EnterpriseRiskEngineV16(mc_iterations=mc_iterations)
     
     # Calculate risk (returns dict directly in v16.0)
     result = engine.calculate_risk(shipment_data)
+    
+    # Add iterations_used to result metadata
+    if 'advanced_metrics' not in result:
+        result['advanced_metrics'] = {}
+    result['advanced_metrics']['iterations_used'] = engine.iterations_used
+    # Also add to root level for easy access
+    result['iterations_used'] = engine.iterations_used
+    
+    # Store in cache
+    set_cache(cache_key, result)
     
     # Return v16.0 comprehensive results (backward compatible)
     return result

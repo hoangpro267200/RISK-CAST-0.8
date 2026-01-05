@@ -372,7 +372,20 @@ def _transform_engine_output(engine_result: Dict[str, Any], original_payload: Di
 def run_risk_engine_v14(payload: Dict[str, Any]) -> Dict[str, Any]:
     """
     Main service function: Map Shipment -> Engine input -> Engine output -> Option A format
+    
+    ⚠️ DEPRECATED: This function is deprecated. It still works but uses an adapter
+    to call the canonical v16 engine. New code should use the canonical engine directly.
+    
+    See docs/DEPRECATION.md for migration guide.
     """
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.warning(
+        "[DEPRECATED] run_risk_engine_v14() is deprecated. "
+        "Please migrate to canonical engine interface. "
+        "See docs/DEPRECATION.md for migration guide."
+    )
+    
     try:
         # Step 1: Map Option A Shipment to engine input format
         engine_input = _map_shipment_to_engine(payload)

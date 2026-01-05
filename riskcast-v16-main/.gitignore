@@ -16,8 +16,10 @@ venv.bak/
 *.css.map
 *.map
 
-# Environment variables
+# Environment variables (CRITICAL: Never commit .env file!)
 .env
+.env.local
+.env.*.local
 .env_1
 .env.local
 .env.*.local

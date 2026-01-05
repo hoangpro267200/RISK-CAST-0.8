@@ -1572,6 +1572,47 @@ function ShipmentHeader({ data }) {
     ] })
   ] });
 }
+const formatPercentage = (value) => {
+  const absValue = Math.abs(value);
+  if (absValue % 1 === 0) {
+    return `${absValue}%`;
+  }
+  return `${absValue.toFixed(1)}%`;
+};
+const CustomLabel = ({ x, y, width, value, viewBox }) => {
+  if (value === void 0 || value === null || width === void 0 || x === void 0 || y === void 0) {
+    return null;
+  }
+  const formattedValue = formatPercentage(value);
+  const barEnd = x + width;
+  const chartWidth = viewBox?.width || 0;
+  const marginRight = 60;
+  const maxX = chartWidth - marginRight;
+  const minBarWidthForInsideLabel = 60;
+  const hasSpaceInside = width >= minBarWidthForInsideLabel && barEnd < maxX - 40;
+  const labelX = hasSpaceInside ? barEnd - 6 : barEnd + 10;
+  const textAnchor = hasSpaceInside ? "end" : "start";
+  const fillColor = hasSpaceInside ? "#FFFFFF" : "#E5E7EB";
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "text",
+    {
+      x: labelX,
+      y,
+      fill: fillColor,
+      textAnchor,
+      dominantBaseline: "middle",
+      fontSize: "12",
+      fontWeight: "600",
+      style: {
+        textShadow: "0 1px 3px rgba(0,0,0,0.9)",
+        pointerEvents: "none",
+        userSelect: "none",
+        transition: "font-size 0.2s ease"
+      },
+      children: formattedValue
+    }
+  );
+};
 const RiskSensitivityTornado = ({ drivers }) => {
   const [containerRef, containerSize] = useContainerSize();
   const data = (drivers || []).filter((d) => d != null && d.name).map((d) => ({
@@ -1603,28 +1644,59 @@ const RiskSensitivityTornado = ({ drivers }) => {
             height: containerSize.height,
             data,
             layout: "vertical",
-            margin: { top: 20, right: 30, left: 100, bottom: 20 },
+            margin: { top: 20, right: 60, left: 100, bottom: 20 },
             children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx(CartesianGrid, { strokeDasharray: "3 3", stroke: "rgba(255,255,255,0.1)" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(XAxis, { type: "number", tick: { fill: "rgba(255,255,255,0.6)" } }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                XAxis,
+                {
+                  type: "number",
+                  tick: { fill: "rgba(255,255,255,0.6)", fontSize: 11 },
+                  domain: [0, "dataMax"]
+                }
+              ),
               /* @__PURE__ */ jsxRuntimeExports.jsx(YAxis, { dataKey: "name", type: "category", tick: { fill: "rgba(255,255,255,0.6)", fontSize: 12 }, width: 90 }),
               /* @__PURE__ */ jsxRuntimeExports.jsx(
                 Tooltip,
                 {
                   contentStyle: {
-                    backgroundColor: "rgba(0,0,0,0.9)",
+                    backgroundColor: "rgba(0,0,0,0.95)",
                     border: "1px solid rgba(255,255,255,0.2)",
-                    borderRadius: "12px"
+                    borderRadius: "12px",
+                    padding: "12px"
+                  },
+                  formatter: (value) => [
+                    value !== void 0 ? formatPercentage(value) : "0%",
+                    "Impact"
+                  ],
+                  labelStyle: {
+                    color: "#FFFFFF",
+                    fontWeight: "600",
+                    marginBottom: "4px"
+                  },
+                  itemStyle: {
+                    color: "#F3F4F6",
+                    fontSize: "13px"
                   }
                 }
               ),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Bar, { dataKey: "impact", radius: [0, 4, 4, 0], children: data.map((entry, index) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-                Cell,
-                {
-                  fill: entry.impact >= 0 ? "#EF4444" : "#10B981"
-                },
-                `cell-${index}`
-              )) })
+              /* @__PURE__ */ jsxRuntimeExports.jsxs(Bar, { dataKey: "impact", radius: [0, 4, 4, 0], children: [
+                data.map((entry, index) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  Cell,
+                  {
+                    fill: entry.impact >= 0 ? "#EF4444" : "#10B981"
+                  },
+                  `cell-${index}`
+                )),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  LabelList,
+                  {
+                    dataKey: "impact",
+                    content: /* @__PURE__ */ jsxRuntimeExports.jsx(CustomLabel, {}),
+                    position: "right"
+                  }
+                )
+              ] })
             ]
           }
         ) : /* @__PURE__ */ jsxRuntimeExports.jsx(ChartSkeleton, { height: 400 })

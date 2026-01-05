@@ -9,9 +9,10 @@ from contextlib import contextmanager
 from typing import Generator
 
 # Database URL from environment or default
+# WARNING: Default contains placeholder credentials - MUST be set via environment variable in production!
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "mysql+pymysql://root:password@localhost:3306/riskcast?charset=utf8mb4"
+    "mysql+pymysql://root:password@localhost:3306/riskcast?charset=utf8mb4"  # Placeholder - change in production!
 )
 
 # Create engine

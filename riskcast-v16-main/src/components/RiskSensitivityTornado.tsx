@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell, LabelList } from 'recharts';
 import { GlassCard } from './GlassCard';
 import { ChartSkeleton } from './ChartSkeleton';
 import { useContainerSize } from '../hooks/useContainerSize';
@@ -13,6 +13,52 @@ interface SensitivityDriver {
 interface RiskSensitivityTornadoProps {
   drivers: SensitivityDriver[];
 }
+
+const formatPercentage = (value: number): string => {
+  const absValue = Math.abs(value);
+  if (absValue % 1 === 0) {
+    return `${absValue}%`;
+  }
+  return `${absValue.toFixed(1)}%`;
+};
+
+const CustomLabel: React.FC<any> = ({ x, y, width, value, viewBox }) => {
+  if (value === undefined || value === null || width === undefined || x === undefined || y === undefined) {
+    return null;
+  }
+  
+  const formattedValue = formatPercentage(value);
+  const barEnd = (x as number) + (width as number);
+  const chartWidth = viewBox?.width || 0;
+  const marginRight = 60;
+  const maxX = chartWidth - marginRight;
+  const minBarWidthForInsideLabel = 60;
+  
+  const hasSpaceInside = (width as number) >= minBarWidthForInsideLabel && barEnd < maxX - 40;
+  const labelX = hasSpaceInside ? barEnd - 6 : barEnd + 10;
+  const textAnchor = hasSpaceInside ? 'end' : 'start';
+  const fillColor = hasSpaceInside ? '#FFFFFF' : '#E5E7EB';
+  
+  return (
+    <text
+      x={labelX}
+      y={y}
+      fill={fillColor}
+      textAnchor={textAnchor}
+      dominantBaseline="middle"
+      fontSize="12"
+      fontWeight="600"
+      style={{ 
+        textShadow: '0 1px 3px rgba(0,0,0,0.9)',
+        pointerEvents: 'none',
+        userSelect: 'none',
+        transition: 'font-size 0.2s ease'
+      }}
+    >
+      {formattedValue}
+    </text>
+  );
+};
 
 export const RiskSensitivityTornado: React.FC<RiskSensitivityTornadoProps> = ({ drivers }) => {
   const [containerRef, containerSize] = useContainerSize<HTMLDivElement>();
@@ -60,16 +106,34 @@ export const RiskSensitivityTornado: React.FC<RiskSensitivityTornadoProps> = ({ 
             height={containerSize.height}
             data={data} 
             layout="vertical" 
-            margin={{ top: 20, right: 30, left: 100, bottom: 20 }}
+            margin={{ top: 20, right: 60, left: 100, bottom: 20 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-            <XAxis type="number" tick={{ fill: 'rgba(255,255,255,0.6)' }} />
+            <XAxis 
+              type="number" 
+              tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 11 }}
+              domain={[0, 'dataMax']}
+            />
             <YAxis dataKey="name" type="category" tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 12 }} width={90} />
             <Tooltip
               contentStyle={{
-                backgroundColor: 'rgba(0,0,0,0.9)',
+                backgroundColor: 'rgba(0,0,0,0.95)',
                 border: '1px solid rgba(255,255,255,0.2)',
                 borderRadius: '12px',
+                padding: '12px',
+              }}
+              formatter={(value: number | undefined) => [
+                value !== undefined ? formatPercentage(value) : '0%',
+                'Impact'
+              ]}
+              labelStyle={{
+                color: '#FFFFFF',
+                fontWeight: '600',
+                marginBottom: '4px',
+              }}
+              itemStyle={{
+                color: '#F3F4F6',
+                fontSize: '13px',
               }}
             />
             <Bar dataKey="impact" radius={[0, 4, 4, 0]}>
@@ -79,6 +143,11 @@ export const RiskSensitivityTornado: React.FC<RiskSensitivityTornadoProps> = ({ 
                   fill={entry.impact >= 0 ? '#EF4444' : '#10B981'}
                 />
               ))}
+              <LabelList 
+                dataKey="impact" 
+                content={<CustomLabel />}
+                position="right"
+              />
             </Bar>
           </BarChart>
         ) : (
