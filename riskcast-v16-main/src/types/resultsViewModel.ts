@@ -159,6 +159,8 @@ export interface RiskLayerViewModel {
   name: string;
   score: number; // 0-100
   contribution: number; // 0-100 (percentage)
+  category?: string; // TRANSPORT, CARGO, COMMERCIAL, COMPLIANCE, EXTERNAL
+  enabled?: boolean;
 }
 
 /**

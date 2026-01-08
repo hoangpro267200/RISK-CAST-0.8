@@ -322,10 +322,9 @@ async def dashboard_page(request: Request):
 
 @app.get("/summary", response_class=HTMLResponse)
 async def summary_page(request: Request):
-    """Summary v400 page - Shipment Overview & Smart Editor."""
-    context = {"request": request}
-    context.update(get_template_context())
-    return templates.TemplateResponse("summary/summary_v400.html", context)
+    """Summary page - Redirect to new Shipment Summary page."""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/shipments/summary", status_code=303)
 
 # IMPORTANT: /results/data must be defined BEFORE /results to avoid route conflicts
 # CRITICAL: This route uses exact match "/results/data" - will NOT match /assets/* or /results/*
@@ -483,6 +482,9 @@ app.include_router(ai_router, prefix="/api/ai", tags=["AI Adviser"])
 # Include Overview router
 app.include_router(overview_router)
 
+# Include Shipment Summary router (New Vanilla JS implementation)
+from app.routes.shipment_summary import router as shipment_summary_router
+app.include_router(shipment_summary_router)
 
 # Include Overview v33 routes (FutureOS Edition)
 app.include_router(update_shipment_router)  # PATCH /api/update_shipment

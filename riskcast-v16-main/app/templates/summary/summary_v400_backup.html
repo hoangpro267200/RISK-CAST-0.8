@@ -19,20 +19,14 @@
     <!-- Theme and Effects MUST load last -->
     <link rel="stylesheet" href="/static/css/summary_v400/summary_theme_visionos.css">
     <link rel="stylesheet" href="/static/css/summary_v400/summary_effects.css">
-    <!-- v550 Enhancements -->
-    <link rel="stylesheet" href="/static/css/summary_v400/summary_enhancements_v550.css">
     <!-- Editor positioning fixes MUST load last -->
     <link rel="stylesheet" href="/static/css/summary_v400/summary_editor_fix.css">
     <!-- Floating Language Switcher -->
     <link rel="stylesheet" href="/static/css/components/floating_lang_switcher.css">
-    
 </head>
 <body>
     <!-- Background Particles -->
     <div class="particle-field" id="particleField"></div>
-    
-    <!-- Toast Container -->
-    <div class="toast-container" id="toastContainer"></div>
     
     <!-- Main Container -->
     <div class="summary-root" id="summaryRoot">
@@ -49,15 +43,9 @@
                         </svg>
                     </div>
                     <div class="summary-logo__text">
-                        <div class="summary-logo__brand">RISKCAST</div>
-                        <div class="summary-logo__subtitle">FutureOS — Shipment Summary</div>
+                        <div class="summary-logo__brand">RISKCAST FutureOS</div>
+                        <div class="summary-logo__subtitle">Summary v550 Ultra — VisionOS Shipment Overview</div>
                     </div>
-                </div>
-                
-                <!-- Save State Indicator -->
-                <div class="save-state-indicator" id="saveStateIndicator">
-                    <div class="save-state-indicator__icon"></div>
-                    <span class="save-state-indicator__text">All changes saved</span>
                 </div>
             </div>
             <div class="summary-topbar__right">
@@ -207,10 +195,7 @@
                                 </defs>
                             </svg>
                         </span>
-                        <div>
-                            <span class="advisor-panel__label ai-header">🤖 Trợ lý Logistics AI</span>
-                            <div class="advisor-panel__subtitle">Real-time validation & suggestions</div>
-                        </div>
+                        <span class="advisor-panel__label ai-header">Trợ lý Logistics AI</span>
                     </div>
                 </div>
                 <div class="advisor-panel__body" id="advisorBody">
@@ -248,14 +233,6 @@
                         <span class="error-chip__label">Cảnh báo</span>
                         <span class="error-chip__count">0</span>
                     </div>
-                </div>
-                <!-- Last Saved Timestamp -->
-                <div class="action-strip__timestamp" id="lastSavedTimestamp">
-                    <svg class="action-strip__timestamp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <circle cx="12" cy="12" r="10" stroke-width="2"/>
-                        <path d="M12 6v6l4 2" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                    <span id="lastSavedText">Last saved: just now</span>
                 </div>
             </div>
             <div class="action-strip__right">
@@ -307,3 +284,4 @@
 
 </body>
 </html>
+

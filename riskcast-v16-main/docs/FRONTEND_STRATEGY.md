@@ -102,6 +102,7 @@ src/
 - ⚠️ **DO NOT** create new Vue components
 - ✅ Maintain existing Vue components
 - 🔄 Migrate to React when feasible
+- 📦 **Summary components archived** (see [Summary Page Strategy](./SUMMARY_PAGE_STRATEGY.md))
 
 **Migration Priority:**
 1. Low priority (features work)
@@ -112,6 +113,11 @@ src/
 
 **Migration Guide:**
 See "Vue → React Migration" section below.
+
+**Special Case - Summary Page:**
+- Vue summary components have been archived
+- Summary page uses Vanilla JS business logic in `app/static/js/summary/`
+- See [Summary Page Strategy](./SUMMARY_PAGE_STRATEGY.md) for details
 
 ### Vanilla JavaScript (Legacy)
 

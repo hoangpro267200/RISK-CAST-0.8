@@ -276,11 +276,13 @@ export function adaptResultV2(raw: unknown): ResultsViewModel {
   // ============================================================
   // LAYERS
   // ============================================================
-  const layers = toArray<{ name?: unknown; score?: unknown; contribution?: unknown; [key: string]: unknown }>(data.layers, []);
+  const layers = toArray<{ name?: unknown; score?: unknown; contribution?: unknown; category?: unknown; enabled?: unknown; [key: string]: unknown }>(data.layers, []);
   const normalizedLayers = layers.map((layer) => ({
     name: toString(layer?.name, 'Unknown Layer'),
     score: round(toPercent(layer?.score), 1),
     contribution: round(toPercent(layer?.contribution), 0),
+    category: toString(layer?.category, 'UNKNOWN'),
+    enabled: layer?.enabled !== false, // Default to true if not specified
   }));
 
   // ============================================================

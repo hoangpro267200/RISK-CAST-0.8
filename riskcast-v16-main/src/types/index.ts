@@ -63,8 +63,10 @@ export interface LayerData {
   name: string;
   score: number; // 0-100
   contribution: number; // 0-100
-  status: LayerStatus;
-  notes: string;
+  category?: string; // TRANSPORT, CARGO, COMMERCIAL, COMPLIANCE, EXTERNAL
+  enabled?: boolean;
+  status?: LayerStatus;
+  notes?: string;
   confidence?: number; // 0-100 (layer-specific confidence)
   dataSource?: string;
   lastUpdated?: string;
