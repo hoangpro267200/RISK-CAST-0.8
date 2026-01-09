@@ -41,7 +41,7 @@ Sau khi thêm API key, **bắt buộc phải restart server**:
 
 ## Ví dụ file .env
 ```
-ANTHROPIC_API_KEY=sk-ant-api03-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+ANTHROPIC_API_KEY=YOUR_API_KEY_HERE
 ```
 
 

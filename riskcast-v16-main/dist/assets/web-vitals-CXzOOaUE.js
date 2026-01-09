@@ -240,3 +240,4 @@ export {
   G as onLCP,
   Q as onTTFB
 };
+//# sourceMappingURL=web-vitals-CXzOOaUE.js.map

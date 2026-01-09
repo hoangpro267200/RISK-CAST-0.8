@@ -4,6 +4,10 @@ __pycache__/
 *$py.class
 *.so
 .Python
+*.pyc
+*.pyo
+*.pyd
+.Python
 
 # Virtual Environment
 venv/
@@ -11,18 +15,37 @@ env/
 ENV/
 env.bak/
 venv.bak/
+.venv/
 
 # Build artifacts
 *.css.map
 *.map
+*.js.map
+dist/
+build/
+*.egg-info/
 
 # Environment variables (CRITICAL: Never commit .env file!)
 .env
 .env.local
 .env.*.local
 .env_1
-.env.local
-.env.*.local
+.env.backup
+.env.test
+.env.production
+.env.development
+*.env
+!*.env.example
+
+# API Keys and Secrets (NEVER COMMIT!)
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+credentials/
+config.local.*
+*.secret
 
 # IDE
 .vscode/
@@ -30,17 +53,48 @@ venv.bak/
 *.swp
 *.swo
 *~
+*.code-workspace
 
 # OS
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # Logs
 *.log
+logs/
+*.log.*
 
-# Data files (optional - uncomment if you want to ignore)
-# data/*.json
-# data/*.db
+# Data files (sensitive data)
+data/conversations/*.json
+data/exports/*.pdf
+data/exports/*.xlsx
+data/*.db
+data/*.sqlite
+data/*.sqlite3
 
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
 
-node_modules
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+tmp/
+temp/

@@ -2,12 +2,12 @@ import React from 'react';
 import type { RiskLevel } from '../types';
 
 interface BadgeRiskProps {
-  level: RiskLevel;
+  level: RiskLevel | undefined;
   size?: 'sm' | 'md' | 'lg';
 }
 
 export const BadgeRisk: React.FC<BadgeRiskProps> = ({ level, size = 'md' }) => {
-  const colorMap = {
+  const colorMap: Record<RiskLevel, string> = {
     LOW: 'bg-green-500/20 text-green-400',
     MEDIUM: 'bg-amber-500/20 text-amber-400',
     HIGH: 'bg-red-500/20 text-red-400',
@@ -18,6 +18,14 @@ export const BadgeRisk: React.FC<BadgeRiskProps> = ({ level, size = 'md' }) => {
     md: 'text-sm px-3 py-1',
     lg: 'text-base px-4 py-1.5',
   };
+
+  if (!level) {
+    return (
+      <span className={`rounded-full font-medium bg-gray-500/20 text-gray-400 ${sizeMap[size]}`}>
+        Unknown
+      </span>
+    );
+  }
 
   return (
     <span className={`rounded-full font-medium ${colorMap[level]} ${sizeMap[size]}`}>

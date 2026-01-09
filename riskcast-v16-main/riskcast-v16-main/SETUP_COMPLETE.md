@@ -43,7 +43,7 @@ RICK CAST/
 
 Tạo file `.env` ở root project với nội dung:
 ```
-ANTHROPIC_API_KEY=sk-ant-api03-uSmzVdtNDKst8IEbz2-ROKaY_xAaWHy9nHmE4h700okZQNyFERdARrUXJ5tyDVLzSp7nn5wwXss0Z-cJWsp7iA-wtLB0AAA
+ANTHROPIC_API_KEY=YOUR_API_KEY_HERE
 APP_NAME=RISKCAST_v16
 DEBUG=True
 HOST=0.0.0.0

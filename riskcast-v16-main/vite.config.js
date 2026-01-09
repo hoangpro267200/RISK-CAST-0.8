@@ -59,7 +59,7 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       reportCompressedSize: true,
-      sourcemap: mode === 'analyze',
+      sourcemap: true, // Enable sourcemap for debugging
       minify: false, // Disable minify to avoid terser dependency
       rollupOptions: {
         output: {

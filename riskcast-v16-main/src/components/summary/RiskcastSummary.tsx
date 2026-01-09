@@ -6,6 +6,7 @@ import { AIAdvisor } from './AIAdvisor';
 import { IntelligenceModules } from './IntelligenceModules';
 import { ActionFooter } from './ActionFooter';
 import { SmartInlineEditor } from './SmartInlineEditor';
+import { SystemChatPanel } from '../SystemChatPanel';
 import type { ShipmentData, ModulesState, SaveState } from './types';
 import { getValidationIssues, type ValidationIssue } from '../../lib/validation';
 
@@ -807,6 +808,14 @@ export function RiskcastSummary({ initialData }: RiskcastSummaryProps) {
         transportMode={data.trade?.mode}
         onSave={handleEditorSave}
         onClose={handleEditorClose}
+      />
+
+      {/* AI System Chat Panel */}
+      <SystemChatPanel
+        context={{
+          page: 'summary',
+          shipmentId: data.shipmentId,
+        }}
       />
     </div>
   );

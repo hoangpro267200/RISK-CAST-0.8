@@ -59,13 +59,15 @@
 
 Nội dung cần có:
 ```
-ANTHROPIC_API_KEY=sk-ant-api03-uSmzVdtNDKst8IEbz2-ROKaY_xAaWHy9nHmE4h700okZQNyFERdARrUXJ5tyDVLzSp7nn5wwXss0Z-cJWsp7iA-wtLB0AAA
+ANTHROPIC_API_KEY=YOUR_API_KEY_HERE
 APP_NAME=RISKCAST_v16
 DEBUG=True
 HOST=0.0.0.0
 PORT=8000
 LOG_LEVEL=info
 ```
+
+⚠️ **IMPORTANT:** Replace `YOUR_API_KEY_HERE` with your actual Anthropic API key from https://console.anthropic.com/
 
 ### ✅ PHẦN 7 - TEST SCRIPTS
 - ✅ `app/test_ai_adviser.py` - Test integration (health + adviser endpoint)
@@ -126,15 +128,6 @@ AI Adviser module đã được fix hoàn toàn và sẵn sàng sử dụng!
 
 
 
-
-
-
-
-
-<<<<<<< HEAD
-=======
-
->>>>>>> d1581b2 (first commit)
 
 
 
