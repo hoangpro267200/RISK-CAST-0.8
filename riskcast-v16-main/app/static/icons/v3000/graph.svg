@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <defs>
+    <linearGradient id="graphGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00f0ff;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#00d4e0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#36e27b;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <path d="M3 20L3 18L7 18L7 15L11 15L11 10L15 10L15 7L19 7L19 4L21 4" stroke="url(#graphGradient)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M3 20L21 20" stroke="url(#graphGradient)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M3 20L3 18" stroke="url(#graphGradient)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <circle cx="7" cy="15" r="1.5" fill="url(#graphGradient)" opacity="0.6"/>
+  <circle cx="11" cy="10" r="1.5" fill="url(#graphGradient)" opacity="0.6"/>
+  <circle cx="15" cy="7" r="1.5" fill="url(#graphGradient)" opacity="0.6"/>
+  <circle cx="19" cy="4" r="1.5" fill="url(#graphGradient)" opacity="0.6"/>
+</svg>
+
+
+
+
+
+

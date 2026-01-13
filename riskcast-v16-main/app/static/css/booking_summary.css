@@ -1,0 +1,514 @@
+/* ======================================================
+   BOOKING SUMMARY DASHBOARD - ULTRA PREMIUM 2025
+   Inspired by Flexport, Maersk, Project44, FourKites
+   Cyber-minimalism + Glassmorphism + Neumorphism Hybrid
+   ====================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=Satoshi:wght@500;600;700;800&display=swap');
+
+:root {
+    /* Premium Color Palette */
+    --bg-deep-charcoal: #0F172A;
+    --bg-card-dark: #1E293B;
+    --accent-neon-emerald: #10B981;
+    --accent-teal-light: #34D399;
+    --text-soft-white: #F1F5F9;
+    --text-off-white: #E2E8F0;
+    --text-muted: #94A3B8;
+    --border-subtle: #1E293B;
+    --border-active: #10B981;
+    
+    /* Gradients */
+    --gradient-emerald: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+    --gradient-card-glow: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+    
+    /* Shadows & Glows */
+    --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(30, 41, 59, 0.5);
+    --shadow-card-hover: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(16, 185, 129, 0.3), 0 0 40px rgba(16, 185, 129, 0.2);
+    --glow-neon: 0 0 20px rgba(16, 185, 129, 0.4), 0 0 40px rgba(16, 185, 129, 0.2);
+    --glow-intense: 0 0 30px rgba(16, 185, 129, 0.6), 0 0 60px rgba(16, 185, 129, 0.3);
+}
+
+/* Base Container */
+.booking-summary-dashboard {
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 24px;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 20px;
+    font-family: 'Inter', 'Satoshi', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.01em;
+    box-shadow: 0 0 40px rgba(16, 185, 129, 0.1);
+}
+
+/* Header Banner */
+.booking-summary-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.booking-summary-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #00ffc3;
+    letter-spacing: -0.01em;
+    margin: 0;
+}
+
+.ai-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.5);
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--accent-neon-emerald);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
+}
+
+.ai-badge::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.2), transparent);
+    animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+.ai-badge::after {
+    content: '●';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: var(--accent-neon-emerald);
+    border-radius: 50%;
+    animation: pulse-dot 2s infinite;
+    box-shadow: 0 0 8px var(--accent-neon-emerald);
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+/* Summary Cards Grid */
+.booking-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+/* Premium Card */
+.booking-summary-card {
+    background: rgba(30, 41, 59, 0.5);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border-subtle);
+    border-radius: 20px;
+    padding: 20px;
+    position: relative;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+}
+
+.booking-summary-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--gradient-emerald);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.booking-summary-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent-neon-emerald);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(16, 185, 129, 0.4), 0 0 30px rgba(16, 185, 129, 0.3);
+}
+
+.booking-summary-card:hover::before {
+    opacity: 1;
+}
+
+.booking-summary-card.active {
+    border-color: var(--accent-neon-emerald);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(16, 185, 129, 0.5), 0 0 40px rgba(16, 185, 129, 0.4);
+    background: rgba(30, 41, 59, 0.6);
+}
+
+.booking-summary-card.active::before {
+    opacity: 1;
+}
+
+/* Card Icon (3D Isometric Style) */
+.card-icon-wrapper {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    border-radius: 10px;
+    transform: perspective(1000px) rotateX(-5deg) rotateY(5deg);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.booking-summary-card:hover .card-icon-wrapper {
+    transform: perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1.1);
+    box-shadow: var(--glow-neon);
+    border-color: var(--accent-neon-emerald);
+}
+
+.card-icon-wrapper svg {
+    width: 20px;
+    height: 20px;
+    stroke: var(--accent-neon-emerald);
+    stroke-width: 2.5;
+    fill: none;
+    filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.5));
+}
+
+/* Card Content */
+.card-content-wrapper {
+    margin-left: 60px;
+    min-height: 40px;
+}
+
+.card-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+}
+
+.card-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-soft-white);
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+}
+
+.card-value.large {
+    font-size: 28px;
+}
+
+.card-value.highlight {
+    background: var(--gradient-emerald);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 12px rgba(16, 185, 129, 0.6));
+    color: var(--accent-neon-emerald);
+}
+
+.card-note {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 8px;
+    line-height: 1.5;
+}
+
+/* Section Titles */
+.booking-section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #00ffc3;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-subtle);
+    letter-spacing: -0.01em;
+}
+
+/* Transport Overview Section */
+.transport-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+}
+
+/* Container & Cargo Section */
+.cargo-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+}
+
+/* Carrier Card (Special) */
+.carrier-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 24px;
+    background: rgba(30, 41, 59, 0.5);
+    border: 1px solid var(--border-subtle);
+    border-radius: 24px;
+    transition: all 0.4s ease;
+}
+
+.carrier-card:hover {
+    border-color: var(--border-active);
+    box-shadow: var(--shadow-card-hover);
+}
+
+.carrier-logo {
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 16px;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--accent-neon-emerald);
+}
+
+.carrier-info {
+    flex: 1;
+}
+
+.carrier-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-soft-white);
+    margin-bottom: 8px;
+}
+
+.carrier-rating {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.star-rating {
+    display: flex;
+    gap: 4px;
+}
+
+.star {
+    width: 16px;
+    height: 16px;
+    color: var(--accent-neon-emerald);
+    fill: currentColor;
+}
+
+.star.empty {
+    color: var(--text-muted);
+    opacity: 0.3;
+}
+
+.rating-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-left: 4px;
+}
+
+.carrier-comment {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+/* Shipment Milestones */
+.milestones-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.transit-time-highlight {
+    color: var(--accent-neon-emerald);
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1.2;
+    filter: drop-shadow(0 0 16px rgba(16, 185, 129, 0.7));
+    text-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+}
+
+/* Parties Section */
+.parties-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+/* Weather & ESG Section */
+.weather-esg-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+/* Risk Score Circular Progress */
+.risk-score-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+.risk-score-ring {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    margin-bottom: 24px;
+}
+
+.risk-score-svg {
+    transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+}
+
+.risk-score-circle-bg {
+    fill: none;
+    stroke: var(--border-subtle);
+    stroke-width: 8;
+}
+
+.risk-score-circle-progress {
+    fill: none;
+    stroke: url(#emeraldGradient);
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.risk-score-value {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 48px;
+    font-weight: 800;
+    background: var(--gradient-emerald);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 12px rgba(16, 185, 129, 0.5));
+}
+
+.risk-score-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Gradient Definition */
+.booking-summary-dashboard svg defs {
+    position: absolute;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .booking-summary-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .booking-summary-dashboard {
+        padding: 20px;
+    }
+    
+    .booking-summary-title {
+        font-size: 24px;
+    }
+    
+    .booking-summary-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    .card-value {
+        font-size: 24px;
+    }
+    
+    .card-value.large {
+        font-size: 32px;
+    }
+    
+    .transit-time-highlight {
+        font-size: 36px;
+    }
+}
+
+/* Micro-animations */
+@keyframes card-lift {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-4px); }
+}
+
+@keyframes glow-pulse {
+    0%, 100% { box-shadow: var(--shadow-card); }
+    50% { box-shadow: var(--shadow-card-hover); }
+}
+
+.booking-summary-card.animate {
+    animation: card-lift 0.4s ease-out;
+}
+
+/* Loading State */
+.booking-summary-card.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.booking-summary-card.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--border-subtle);
+    border-top-color: var(--accent-neon-emerald);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+

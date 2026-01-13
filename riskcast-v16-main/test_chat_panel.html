@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test SystemChatPanel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1e1e1e;
+            color: white;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #2d2d2d;
+            border-radius: 8px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0052a3;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #1a1a1a;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .success { color: #4caf50; }
+        .error { color: #f44336; }
+    </style>
+</head>
+<body>
+    <h1>SystemChatPanel Test</h1>
+    
+    <div class="test-section">
+        <h2>1. Test API Endpoint</h2>
+        <button onclick="testEndpoint()">Test /api/v1/advisor/chat</button>
+        <div id="endpoint-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Test Full Chat Flow</h2>
+        <button onclick="testChatFlow()">Test Complete Chat</button>
+        <div id="chat-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Test Error Handling</h2>
+        <button onclick="testErrorHandling()">Test Error Cases</button>
+        <div id="error-result" class="result"></div>
+    </div>
+
+    <script>
+        async function testEndpoint() {
+            const resultDiv = document.getElementById('endpoint-result');
+            resultDiv.textContent = 'Testing...';
+            
+            try {
+                const response = await fetch('/api/v1/advisor/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: 'Hello, test message',
+                        session_id: 'test-session-123',
+                        context: {
+                            page: 'results',
+                            riskScore: 65
+                        },
+                        options: {
+                            language: 'en',
+                            include_actions: true
+                        }
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.status === 'success') {
+                    resultDiv.innerHTML = `<span class="success">✓ SUCCESS</span>\n\nStatus: ${data.status}\nReply: ${data.data?.reply || 'No reply'}\nSession ID: ${data.data?.session_id || 'N/A'}`;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">✗ ERROR</span>\n\nStatus: ${data.status || 'unknown'}\nError: ${data.error?.message || 'Unknown error'}\nHTTP Status: ${response.status}`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">✗ EXCEPTION</span>\n\n${error.message}\n\nStack: ${error.stack}`;
+            }
+        }
+        
+        async function testChatFlow() {
+            const resultDiv = document.getElementById('chat-result');
+            resultDiv.textContent = 'Testing chat flow...';
+            
+            const sessionId = `test-session-${Date.now()}`;
+            const messages = [
+                'What is the current risk score?',
+                'What are the top risk drivers?',
+                'Can you explain the recommendations?'
+            ];
+            
+            let results = [];
+            
+            for (const message of messages) {
+                try {
+                    const response = await fetch('/api/v1/advisor/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            message: message,
+                            session_id: sessionId,
+                            context: {
+                                page: 'results',
+                                riskScore: 65,
+                                shipmentId: 'SH-001'
+                            }
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    results.push({
+                        message,
+                        success: response.ok && data.status === 'success',
+                        reply: data.data?.reply || data.error?.message || 'No response',
+                        status: data.status
+                    });
+                } catch (error) {
+                    results.push({
+                        message,
+                        success: false,
+                        error: error.message
+                    });
+                }
+            }
+            
+            let output = 'Chat Flow Test Results:\n\n';
+            results.forEach((r, i) => {
+                output += `${i + 1}. Message: "${r.message}"\n`;
+                output += `   ${r.success ? '✓ SUCCESS' : '✗ FAILED'}\n`;
+                output += `   Reply: ${r.reply || r.error || 'N/A'}\n\n`;
+            });
+            
+            resultDiv.textContent = output;
+        }
+        
+        async function testErrorHandling() {
+            const resultDiv = document.getElementById('error-result');
+            resultDiv.textContent = 'Testing error handling...';
+            
+            const tests = [
+                {
+                    name: 'Invalid JSON',
+                    test: async () => {
+                        try {
+                            const response = await fetch('/api/v1/advisor/chat', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: 'invalid json'
+                            });
+                            return { handled: true, status: response.status };
+                        } catch (e) {
+                            return { handled: false, error: e.message };
+                        }
+                    }
+                },
+                {
+                    name: 'Missing message field',
+                    test: async () => {
+                        const response = await fetch('/api/v1/advisor/chat', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ session_id: 'test' })
+                        });
+                        const data = await response.json();
+                        return { handled: true, status: response.status, error: data.error };
+                    }
+                },
+                {
+                    name: 'Empty message',
+                    test: async () => {
+                        const response = await fetch('/api/v1/advisor/chat', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ message: '', session_id: 'test' })
+                        });
+                        const data = await response.json();
+                        return { handled: true, status: response.status, error: data.error };
+                    }
+                }
+            ];
+            
+            let output = 'Error Handling Test Results:\n\n';
+            for (const test of tests) {
+                const result = await test.test();
+                output += `${test.name}:\n`;
+                output += `  Handled: ${result.handled ? '✓' : '✗'}\n`;
+                output += `  Status: ${result.status || 'N/A'}\n`;
+                if (result.error) {
+                    output += `  Error: ${JSON.stringify(result.error)}\n`;
+                }
+                output += '\n';
+            }
+            
+            resultDiv.textContent = output;
+        }
+    </script>
+</body>
+</html>

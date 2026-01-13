@@ -1,0 +1,604 @@
+/**
+ * SCI-FI CINEMATIC RISK VISUALIZATION
+ * 
+ * Design Philosophy:
+ * - One central focus: Risk Score Orb
+ * - All other elements orbit around it
+ * - Hologram / HUD / Sci-fi aesthetic
+ * - Dark space background with neon accents
+ */
+
+/* ============================================
+   CONTAINER & BACKGROUND
+   ============================================ */
+
+.sci-fi-risk-viz {
+    position: relative !important;
+    width: 100% !important;
+    min-height: 420px !important;
+    padding: 4rem 2rem 1rem 2rem !important;
+    margin: 0 auto !important;
+    overflow: visible !important;
+    
+    /* Dark space gradient background - match image 2 */
+    background: 
+        radial-gradient(ellipse at 50% 40%, rgba(0, 255, 200, 0.05) 0%, transparent 60%),
+        radial-gradient(circle at 50% 50%, rgba(0, 100, 200, 0.03) 0%, transparent 80%),
+        linear-gradient(180deg, #050810 0%, #0a0e1a 30%, #0d1117 70%, #050810 100%) !important;
+    
+    /* Particle noise effect - more visible like image 2 */
+    background-image: 
+        repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(0, 255, 200, 0.02) 1px, rgba(0, 255, 200, 0.02) 2px),
+        repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(0, 255, 200, 0.02) 1px, rgba(0, 255, 200, 0.02) 2px),
+        radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(0, 255, 200, 0.02) 0%, transparent 50%) !important;
+    
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+    
+    /* Ensure it's visible and on top - override any other CSS */
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 100 !important;
+}
+
+.sci-fi-container {
+    position: relative;
+    width: 100% !important;
+    max-width: 900px !important;
+    margin: 0 auto !important;
+    display: flex !important;
+    flex-direction: column;
+    align-items: center !important;
+    justify-content: flex-start;
+    min-height: auto !important;
+    padding: 0;
+}
+
+/* Force visibility of all sci-fi elements */
+#sci-fi-risk-viz,
+#sci-fi-risk-viz * {
+    box-sizing: border-box;
+}
+
+#sci-fi-risk-viz .risk-orb-core,
+#sci-fi-risk-viz .orb-inner,
+#sci-fi-risk-viz .orb-score-value {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* ============================================
+   CENTRAL RISK SCORE ORB (CORE)
+   ============================================ */
+
+.risk-orb-core {
+    position: relative;
+    width: 220px;
+    height: 220px;
+    margin: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.orb-inner {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: 
+        radial-gradient(circle at 30% 30%, rgba(0, 255, 200, 0.4), rgba(0, 255, 200, 0.15)),
+        radial-gradient(circle at center, rgba(0, 255, 200, 0.25), transparent 75%);
+    border: 4px solid rgba(0, 255, 200, 0.7);
+    box-shadow: 
+        0 0 50px rgba(0, 255, 200, 0.5),
+        0 0 100px rgba(0, 255, 200, 0.3),
+        0 0 150px rgba(0, 255, 200, 0.1),
+        inset 0 0 50px rgba(0, 255, 200, 0.15);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    z-index: 2;
+    animation: orbInnerPulse 4s ease-in-out infinite;
+}
+
+@keyframes orbInnerPulse {
+    0%, 100% {
+        box-shadow: 
+            0 0 50px rgba(0, 255, 200, 0.5),
+            0 0 100px rgba(0, 255, 200, 0.3),
+            0 0 150px rgba(0, 255, 200, 0.1),
+            inset 0 0 50px rgba(0, 255, 200, 0.15);
+    }
+    50% {
+        box-shadow: 
+            0 0 70px rgba(0, 255, 200, 0.7),
+            0 0 120px rgba(0, 255, 200, 0.4),
+            0 0 180px rgba(0, 255, 200, 0.2),
+            inset 0 0 60px rgba(0, 255, 200, 0.2);
+    }
+}
+
+.orb-score-value {
+    font-size: 4.5rem;
+    font-weight: 900;
+    color: #ffffff;
+    text-shadow: 
+        0 0 30px rgba(0, 255, 200, 1),
+        0 0 60px rgba(0, 255, 200, 0.8),
+        0 0 90px rgba(0, 255, 200, 0.5),
+        0 0 120px rgba(0, 255, 200, 0.3);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.05em;
+    transform: perspective(500px) rotateX(-5deg);
+    animation: scoreGlow 3s ease-in-out infinite;
+}
+
+@keyframes scoreGlow {
+    0%, 100% {
+        text-shadow: 
+            0 0 30px rgba(0, 255, 200, 1),
+            0 0 60px rgba(0, 255, 200, 0.8),
+            0 0 90px rgba(0, 255, 200, 0.5);
+    }
+    50% {
+        text-shadow: 
+            0 0 40px rgba(0, 255, 200, 1),
+            0 0 80px rgba(0, 255, 200, 1),
+            0 0 120px rgba(0, 255, 200, 0.8);
+    }
+}
+
+.orb-score-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: rgba(0, 255, 200, 0.8);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    text-shadow: 0 0 10px rgba(0, 255, 200, 0.5);
+}
+
+/* Orb Glow Pulse Animation */
+.orb-glow-pulse {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0, 255, 200, 0.2), transparent 70%);
+    animation: orbPulse 3s ease-in-out infinite;
+    z-index: 1;
+}
+
+@keyframes orbPulse {
+    0%, 100% {
+        opacity: 0.4;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+        opacity: 0.7;
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+}
+
+/* Orb Rings */
+.orb-rings {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 220px;
+    height: 220px;
+    z-index: 0;
+}
+
+.ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 2px solid rgba(0, 255, 200, 0.4);
+    box-shadow: 
+        0 0 20px rgba(0, 255, 200, 0.3),
+        inset 0 0 20px rgba(0, 255, 200, 0.1);
+    animation: ringRotate 20s linear infinite;
+}
+
+.ring::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    background: rgba(0, 255, 200, 0.8);
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(0, 255, 200, 1);
+}
+
+.ring-1 {
+    width: 190px;
+    height: 190px;
+    animation-duration: 25s;
+    animation-direction: reverse;
+}
+
+.ring-2 {
+    width: 200px;
+    height: 200px;
+    animation-duration: 30s;
+}
+
+.ring-3 {
+    width: 220px;
+    height: 220px;
+    animation-duration: 35s;
+    animation-direction: reverse;
+}
+
+@keyframes ringRotate {
+    from {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+/* ============================================
+   ORBITAL FACTOR CARDS
+   ============================================ */
+
+.factor-orbit {
+    position: relative !important;
+    width: 100% !important;
+    max-width: 900px !important;
+    height: 380px !important;
+    margin: 0 auto !important;
+    min-height: 380px !important;
+    display: block !important;
+    visibility: visible !important;
+    overflow: visible !important;
+    z-index: 5 !important;
+}
+
+/* Connection lines SVG inside orbit */
+.factor-orbit .connection-lines {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    pointer-events: none !important;
+    z-index: 1 !important;
+    opacity: 1 !important;
+    display: block !important;
+    visibility: visible !important;
+}
+
+.factor-card {
+    position: absolute !important;
+    width: 140px !important;
+    height: 160px !important;
+    background: rgba(5, 8, 16, 0.75) !important;
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 2px solid rgba(0, 255, 200, 0.35) !important;
+    border-bottom: 5px solid rgba(0, 255, 200, 0.7) !important;
+    border-radius: 10px;
+    padding: 1rem;
+    display: flex !important;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 0.75rem;
+    box-shadow: 
+        0 10px 40px rgba(0, 0, 0, 0.6),
+        0 0 40px rgba(0, 255, 200, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    z-index: 5 !important;
+    overflow: visible;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.factor-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(0, 255, 200, 0.6), transparent);
+    animation: cardShimmer 3s ease-in-out infinite;
+}
+
+@keyframes cardShimmer {
+    0%, 100% {
+        transform: translateX(-100%);
+    }
+    50% {
+        transform: translateX(100%);
+    }
+}
+
+.factor-card:hover {
+    transform: translateY(-12px) scale(1.08);
+    border-color: rgba(0, 255, 200, 0.8);
+    border-bottom-color: rgba(0, 255, 200, 1);
+    box-shadow: 
+        0 12px 40px rgba(0, 0, 0, 0.6),
+        0 0 50px rgba(0, 255, 200, 0.5),
+        inset 0 0 30px rgba(0, 255, 200, 0.1);
+    background: rgba(5, 8, 16, 0.9);
+}
+
+.factor-badge {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    width: 32px;
+    height: 32px;
+    border: 2px solid rgba(0, 255, 200, 0.6);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: rgba(0, 255, 200, 0.9);
+    background: rgba(0, 255, 200, 0.1);
+    box-shadow: 0 0 10px rgba(0, 255, 200, 0.4);
+    z-index: 1;
+}
+
+.factor-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+    color: rgba(0, 255, 200, 0.9);
+    filter: drop-shadow(0 0 12px rgba(0, 255, 200, 0.8));
+}
+
+.factor-icon svg {
+    width: 40px;
+    height: 40px;
+    stroke: rgba(0, 255, 200, 0.9);
+    filter: drop-shadow(0 0 8px rgba(0, 255, 200, 0.6));
+}
+
+.factor-name {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+    text-transform: none;
+    letter-spacing: 0.05em;
+    text-align: center !important;
+    width: 100%;
+    line-height: 1.4;
+    margin-bottom: auto;
+    padding-top: 0.5rem;
+}
+
+.factor-score {
+    font-size: 1.875rem;
+    font-weight: 900;
+    color: #00ffc8;
+    text-shadow: 
+        0 0 15px rgba(0, 255, 200, 0.8),
+        0 0 30px rgba(0, 255, 200, 0.5);
+    align-self: center !important;
+    text-align: center !important;
+    width: 100% !important;
+    margin-top: auto;
+    line-height: 1;
+}
+
+/* Connection Lines (visible - connect orb to cards) */
+.connection-lines {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 1 !important;
+    display: block !important;
+    visibility: visible !important;
+}
+
+.connection-lines line {
+    stroke: rgba(0, 255, 200, 0.5) !important;
+    stroke-width: 2 !important;
+    stroke-dasharray: 4, 4;
+    animation: linePulse 3s ease-in-out infinite;
+    filter: drop-shadow(0 0 3px rgba(0, 255, 200, 0.6));
+}
+
+@keyframes linePulse {
+    0%, 100% {
+        opacity: 0.8;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+/* ============================================
+   FOOTER: BADGE & CONFIDENCE
+   ============================================ */
+
+.sci-fi-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
+    z-index: 10;
+}
+
+.risk-status-badge {
+    padding: 0.75rem 2rem;
+    background: rgba(0, 255, 200, 0.1);
+    border: 1px solid rgba(0, 255, 200, 0.4);
+    border-radius: 50px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 
+        0 0 20px rgba(0, 255, 200, 0.2),
+        inset 0 0 20px rgba(0, 255, 200, 0.05);
+}
+
+.badge-text {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #00ffc8;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    text-shadow: 0 0 10px rgba(0, 255, 200, 0.5);
+}
+
+.model-confidence {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+}
+
+.confidence-label {
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.confidence-value {
+    color: #00ffc8;
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(0, 255, 200, 0.5);
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 768px) {
+    .sci-fi-risk-viz {
+        padding: 2rem 1rem;
+        min-height: 500px;
+    }
+    
+    .risk-orb-core {
+        width: 220px;
+        height: 220px;
+    }
+    
+    .orb-inner {
+        width: 160px;
+        height: 160px;
+    }
+    
+    .orb-score-value {
+        font-size: 3.5rem;
+    }
+    
+    .factor-card {
+        width: 100px;
+        height: 120px;
+        padding: 0.75rem;
+    }
+    
+    .factor-orbit {
+        height: 400px;
+    }
+}
+
+/* ============================================
+   ACCESSIBILITY: REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    .orb-glow-pulse,
+    .ring,
+    .connection-lines line {
+        animation: none !important;
+    }
+    
+    .factor-card {
+        transition: none !important;
+    }
+    
+    .factor-card:hover {
+        transform: none;
+    }
+}
+
+/* ============================================
+   RISK LEVEL COLOR VARIANTS
+   ============================================ */
+
+/* Low Risk (Green/Cyan) */
+.risk-orb-core.low-risk .orb-inner {
+    border-color: rgba(0, 255, 200, 0.6);
+    box-shadow: 
+        0 0 40px rgba(0, 255, 200, 0.4),
+        0 0 80px rgba(0, 255, 200, 0.2);
+}
+
+.risk-orb-core.low-risk .orb-score-value {
+    color: #00ffc8;
+    text-shadow: 
+        0 0 20px rgba(0, 255, 200, 0.8),
+        0 0 40px rgba(0, 255, 200, 0.4);
+}
+
+/* Moderate Risk (Amber/Yellow) */
+.risk-orb-core.moderate-risk .orb-inner {
+    border-color: rgba(255, 184, 0, 0.6);
+    box-shadow: 
+        0 0 40px rgba(255, 184, 0, 0.4),
+        0 0 80px rgba(255, 184, 0, 0.2);
+}
+
+.risk-orb-core.moderate-risk .orb-score-value {
+    color: #ffb800;
+    text-shadow: 
+        0 0 20px rgba(255, 184, 0, 0.8),
+        0 0 40px rgba(255, 184, 0, 0.4);
+}
+
+/* High Risk (Red/Orange) */
+.risk-orb-core.high-risk .orb-inner {
+    border-color: rgba(255, 59, 48, 0.6);
+    box-shadow: 
+        0 0 40px rgba(255, 59, 48, 0.4),
+        0 0 80px rgba(255, 59, 48, 0.2);
+}
+
+.risk-orb-core.high-risk .orb-score-value {
+    color: #ff3b30;
+    text-shadow: 
+        0 0 20px rgba(255, 59, 48, 0.8),
+        0 0 40px rgba(255, 59, 48, 0.4);
+}
+

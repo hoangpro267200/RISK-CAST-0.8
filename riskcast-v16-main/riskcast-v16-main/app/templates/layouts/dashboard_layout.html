@@ -1,0 +1,47 @@
+{% extends "layouts/base.html" %}
+
+{% block head %}
+    <!-- Chart.js (Lazy load for dashboard charts) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+{% endblock %}
+
+{% block body_class %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/theme/particles.css">
+<link rel="stylesheet" href="/static/css/components/sidebar.css">
+<link rel="stylesheet" href="/static/css/components/stats_card.css">
+<link rel="stylesheet" href="/static/css/pages/dashboard.css">
+<style>
+    .circular-progress__svg defs {
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block navbar %}
+{% include "components/topbar.html" %}
+{% endblock %}
+
+{% block content %}
+<!-- Particles Background -->
+<div class="particles-container"></div>
+
+{% include "components/sidebar.html" %}
+
+<div class="dashboard-container">
+    <main class="dashboard-main">
+        {% block dashboard_content %}{% endblock %}
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/pages/dashboard.js"></script>
+<script src="/static/js/core/translations.js"></script>
+{% endblock %}
+
+{% block ai_panel %}
+<!-- Dashboard may not need AI panel, override if needed -->
+{% endblock %}
+

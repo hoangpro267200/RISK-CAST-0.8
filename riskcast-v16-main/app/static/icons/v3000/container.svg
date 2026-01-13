@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <defs>
+    <linearGradient id="containerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00f0ff;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#00d4e0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#36e27b;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <path d="M3 6L3 18C3 19.1046 3.89543 20 5 20L19 20C20.1046 20 21 19.1046 21 18L21 6" stroke="url(#containerGradient)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M3 9L21 9" stroke="url(#containerGradient)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M3 15L21 15" stroke="url(#containerGradient)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M8 6L8 9" stroke="url(#containerGradient)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M16 6L16 9" stroke="url(#containerGradient)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M8 15L8 18" stroke="url(#containerGradient)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M16 15L16 18" stroke="url(#containerGradient)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>
+
+
+
+
+
+

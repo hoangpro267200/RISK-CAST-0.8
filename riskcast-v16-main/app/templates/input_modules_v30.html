@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="vi" class="rc-theme-dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RISKCAST v30 — Modules Selection | VisionOS Edition</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/static/css/global_visionos.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/input/modules_v30.css') }}">
+</head>
+<body class="visionos has-topbar">
+    {% include "components/topbar.html" %}
+    <div class="topbar-offset">
+    
+    <!-- Ambient Background -->
+    <div class="rc-ambient-bg"></div>
+    
+    <!-- Main Container -->
+    <main class="modules-v30-container">
+        <!-- Header -->
+        <header class="modules-v30-header">
+            <div class="modules-v30-logo">
+                <span class="modules-v30-logo-icon">⚡</span>
+                <span class="modules-v30-logo-text">RISKCAST</span>
+                <span class="modules-v30-logo-version">v30</span>
+            </div>
+            <h1 class="modules-v30-title">Risk Analysis Modules</h1>
+            <p class="modules-v30-subtitle">Chọn các module phân tích rủi ro bạn muốn kích hoạt</p>
+        </header>
+        
+        <!-- Modules Grid -->
+        <div class="modules-v30-grid" id="modulesGrid">
+            <!-- Module cards will be rendered by JS -->
+        </div>
+        
+        <!-- Action Buttons -->
+        <footer class="modules-v30-footer">
+            <button class="modules-v30-btn modules-v30-btn--secondary" id="btnReview">
+                <i data-lucide="eye"></i>
+                <span>Xem lại</span>
+            </button>
+            <button class="modules-v30-btn modules-v30-btn--primary" id="btnContinue">
+                <span>Tiếp tục</span>
+                <i data-lucide="arrow-right"></i>
+            </button>
+        </footer>
+    </main>
+    
+    </div>
+    
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/pages/input/modules_v30.js') }}"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
+

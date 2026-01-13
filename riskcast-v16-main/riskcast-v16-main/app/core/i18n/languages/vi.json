@@ -1,0 +1,113 @@
+{
+  "common": {
+    "risk": "Rủi ro",
+    "score": "Điểm số",
+    "level": "Mức độ",
+    "confidence": "Độ tin cậy",
+    "factors": "Yếu tố",
+    "drivers": "Động lực",
+    "recommendations": "Khuyến nghị",
+    "scenario": "Kịch bản",
+    "baseline": "Cơ bản",
+    "delta": "Thay đổi",
+    "analysis": "Phân tích",
+    "report": "Báo cáo",
+    "export": "Xuất file"
+  },
+  "risk": {
+    "level": {
+      "low": "Thấp",
+      "low_medium": "Thấp-Trung bình",
+      "medium": "Trung bình",
+      "medium_high": "Trung bình-Cao",
+      "high": "Cao",
+      "critical": "Rất cao"
+    },
+    "factors": {
+      "delay": "Rủi ro chậm trễ giao hàng",
+      "port": "Tắc nghẽn cảng",
+      "climate": "Rủi ro thời tiết",
+      "carrier": "Độ tin cậy hãng vận chuyển",
+      "esg": "Rủi ro ESG",
+      "equipment": "Khả năng sẵn có thiết bị",
+      "network": "Phụ thuộc mạng lưới"
+    },
+    "explanations": {
+      "low": "Mức rủi ro thấp cho thấy lô hàng có thể tiếp tục với quy trình vận hành tiêu chuẩn.",
+      "medium": "Mức rủi ro trung bình gợi ý giám sát tăng cường và lập kế hoạch dự phòng vừa phải.",
+      "high": "Mức rủi ro cao yêu cầu chú ý ngay lập tức và chiến lược giảm thiểu toàn diện.",
+      "critical": "Mức rủi ro rất cao đòi hỏi hành động khẩn cấp và xem xét tuyến đường thay thế."
+    },
+    "matrix": {
+      "low_probability": "Xác suất thấp",
+      "medium_probability": "Xác suất trung bình",
+      "high_probability": "Xác suất cao",
+      "low_severity": "Mức độ nghiêm trọng thấp",
+      "medium_severity": "Mức độ nghiêm trọng trung bình",
+      "high_severity": "Mức độ nghiêm trọng cao"
+    },
+    "recommendations": {
+      "operational": "Vận hành (Hành động ngay lập tức)",
+      "tactical": "Chiến thuật (Hành động ngắn hạn)",
+      "strategic": "Chiến lược (Hành động dài hạn)"
+    }
+  },
+  "scenarios": {
+    "heavy_rain_q3": "Mùa mưa lớn Q3",
+    "port_strike": "Đình công cảng",
+    "equipment_shortage": "Thiếu thiết bị",
+    "carrier_drop": "Giảm độ tin cậy hãng vận chuyển",
+    "holiday_peak": "Mùa cao điểm nghỉ lễ",
+    "extreme_weather": "Sự kiện thời tiết cực đoan",
+    "route_disruption": "Gián đoạn tuyến thương mại",
+    "esg_pressure": "Áp lực tuân thủ ESG"
+  },
+  "terminology": {
+    "port": "Cảng",
+    "airport": "Sân bay",
+    "transit": "Quá cảnh",
+    "carrier": "Hãng vận chuyển",
+    "vessel": "Tàu",
+    "container": "Container",
+    "cargo": "Hàng hóa",
+    "route": "Tuyến đường",
+    "origin": "Nơi xuất phát",
+    "destination": "Điểm đến"
+  },
+  "regions": {
+    "vn": "Việt Nam",
+    "sea": "Đông Nam Á",
+    "china": "Trung Quốc",
+    "eu": "Liên minh Châu Âu",
+    "us": "Hoa Kỳ",
+    "global": "Toàn cầu"
+  },
+  "messages": {
+    "loading": "Đang tải...",
+    "analyzing": "Đang phân tích rủi ro...",
+    "generating": "Đang tạo báo cáo...",
+    "exporting": "Đang xuất PDF...",
+    "error": "Đã xảy ra lỗi",
+    "success": "Thành công"
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

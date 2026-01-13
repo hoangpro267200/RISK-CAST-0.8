@@ -1,0 +1,139 @@
+/**
+ * ============================================================
+ * LAYOUT_FRAME.CSS - Page Layout Frames
+ * ============================================================
+ * Main content wrappers and page containers
+ */
+
+/* ============================================
+   MAIN CONTENT WRAPPER
+   ============================================ */
+main {
+    width: 100%;
+    min-height: calc(100vh - var(--nav-height));
+    padding-top: var(--nav-height);
+    position: relative;
+}
+
+body.home-page main {
+    padding-top: 0 !important;
+}
+
+body.input-page main {
+    padding-top: var(--nav-height);
+}
+
+/* ============================================
+   CONTENT WRAPPER
+   ============================================ */
+.content-wrapper {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--space-xl) var(--container-padding);
+    width: 100%;
+}
+
+.page-container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: var(--space-xl);
+    width: 100%;
+    min-height: calc(100vh - var(--nav-height));
+}
+
+/* ============================================
+   SECTION BLOCKS
+   ============================================ */
+.section-block {
+    width: 100%;
+    margin-bottom: var(--space-4xl);
+}
+
+.section {
+    width: 100%;
+    padding: var(--space-5xl) 0;
+    position: relative;
+}
+
+.section-sm {
+    padding: var(--space-4xl) 0;
+}
+
+.section-lg {
+    padding: var(--space-7xl) 0;
+}
+
+/* ============================================
+   PAGE LAYOUTS
+   ============================================ */
+.results-main {
+    display: block !important;
+    visibility: visible !important;
+    width: 100%;
+    min-height: calc(100vh - var(--nav-height));
+}
+
+/* ============================================
+   LAYOUT HELPERS
+   ============================================ */
+.layout-spacer {
+    height: var(--nav-height);
+}
+
+.layout-spacer-lg {
+    height: calc(var(--nav-height) + var(--space-xl));
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+    .content-wrapper,
+    .page-container {
+        padding: var(--space-lg);
+    }
+    
+    .section {
+        padding: var(--space-3xl) 0;
+    }
+    
+    .section-sm {
+        padding: var(--space-2xl) 0;
+    }
+    
+    .section-lg {
+        padding: var(--space-5xl) 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .content-wrapper,
+    .page-container {
+        padding: var(--space-md);
+    }
+    
+    .section {
+        padding: var(--space-2xl) 0;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

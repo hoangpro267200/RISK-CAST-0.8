@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>{% block title %}RISKCAST v15 — AI Logistics Risk Engine{% endblock %}</title>
+
+    <!-- GOOGLE FONT -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet" referrerpolicy="no-referrer">
+
+    {% if is_production %}
+    <!-- ============================================
+         PRODUCTION MODE - Bundled CSS
+         ============================================ -->
+    <!-- HTTP/2 Optimization -->
+    {% if cdn_url %}
+    <link rel="preconnect" href="{{ cdn_url }}">
+    {% endif %}
+    <link rel="preload" as="style" href="{{ get_css_bundle('core') }}">
+    <link rel="preload" as="script" href="{{ get_js_bundle('core') }}">
+    
+    <!-- Core CSS Bundle (base + layout + components) -->
+    <link rel="stylesheet" href="{{ get_css_bundle('core') }}">
+    {% else %}
+    <!-- ============================================
+         DEVELOPMENT MODE - Individual CSS Files
+         ============================================ -->
+    <!-- Preload Critical Resources -->
+    <link rel="preload" href="/static/css/base/variables.css" as="style">
+    <link rel="preload" href="/static/css/base/reset.css" as="style">
+    <link rel="preload" href="/static/css/base/typography.css" as="style">
+    <!-- Translations and Streaming are preloaded only when needed by specific pages -->
+    {% block preload_scripts %}{% endblock %}
+
+    <!-- BASE CSS — Core Foundation -->
+    <link rel="stylesheet" href="/static/css/base/variables.css">
+    <link rel="stylesheet" href="/static/css/base/reset.css">
+    <link rel="stylesheet" href="/static/css/base/typography.css">
+    <link rel="stylesheet" href="/static/css/base/mixins.css">
+
+    <!-- LAYOUT CSS — Structure -->
+    <link rel="stylesheet" href="/static/css/layout/grid.css">
+    <link rel="stylesheet" href="/static/css/layout/navbar.css">
+    <link rel="stylesheet" href="/static/css/layout/sidebar.css">
+    <link rel="stylesheet" href="/static/css/layout/layout_frame.css">
+
+    <!-- COMPONENT CSS — Reusable UI Components -->
+    <link rel="stylesheet" href="/static/css/components/buttons.css">
+    <link rel="stylesheet" href="/static/css/components/cards.css">
+    <link rel="stylesheet" href="/static/css/components/chips.css">
+    <link rel="stylesheet" href="/static/css/components/forms.css">
+    <link rel="stylesheet" href="/static/css/components/stats_card.css">
+    <link rel="stylesheet" href="/static/css/components/ai_panel.css">
+    <link rel="stylesheet" href="/static/css/components/modals.css">
+    <link rel="stylesheet" href="/static/css/components/progress_tracker.css">
+    <link rel="stylesheet" href="/static/css/components/recommendations.css">
+    
+    <!-- UTILITY CSS — Spacing & Helpers -->
+    <link rel="stylesheet" href="/static/css/utilities/spacing.css">
+    {% endif %}
+
+    <link rel="stylesheet" href="/static/css/global_visionos.css">
+    <!-- Floating Language Switcher -->
+    <link rel="stylesheet" href="/static/css/components/floating_lang_switcher.css">
+
+    {% block head %}{% endblock %}
+    {% block page_styles %}{% endblock %}
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body class="visionos has-topbar {% block body_class %}{% endblock %}">
+{% block navbar %}
+        {% include "components/topbar.html" %}
+{% endblock %}
+
+    {% block progress_tracker %}{% endblock %}
+
+    <!-- MAIN CONTENT -->
+    <main class="fade-in">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block ai_panel %}
+        {% include "components/ai_panel.html" %}
+    {% endblock %}
+
+    <!-- ACTIVE LINK SCRIPT -->
+    <script src="{{ url_for('static', filename='js/core/active_link.js') }}"></script>
+
+    {% if is_production %}
+    <!-- ============================================
+         PRODUCTION MODE - Bundled JS
+         ============================================ -->
+    <!-- Core JS Bundle (data_store + utils + translations + streaming) -->
+    <script src="{{ get_js_bundle('core') }}"></script>
+    
+    <!-- Modules JS Bundle (smart_input + ai_chat + progress_tracker + etc.) -->
+    <script src="{{ get_js_bundle('modules') }}"></script>
+    {% else %}
+    <!-- ============================================
+         DEVELOPMENT MODE - Individual JS Files
+         ============================================ -->
+    <!-- CORE UTILITIES (Load early for performance optimizations) -->
+    <script src="/static/js/core/utils.js"></script>
+    {% endif %}
+    
+    {% block extra_js %}{% endblock %}
+    <script src="{{ url_for('static', filename='js/ai_chat.js') }}"></script>
+    <!-- Floating Language Switcher (Global) -->
+    <script src="{{ url_for('static', filename='js/core/floating_lang_switcher.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
+

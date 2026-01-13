@@ -1,0 +1,96 @@
+/* Performance + Accessibility polish (no visual redesign).
+   Imported after base styles to provide safe overrides. */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Responsive container helper (keeps existing max-width identity). */
+.container-responsive {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  overflow-x: hidden;
+  overflow-y: visible;
+}
+
+@media (min-width: 640px) {
+  .container-responsive {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+/* Skip link for keyboard users (hidden until focused). */
+.skip-link {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translateY(-120%);
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.9);
+  z-index: 1000;
+}
+
+.skip-link:focus {
+  transform: translateY(12px);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-accent-primary), 0 0 0 6px rgba(0, 0, 0, 0.5);
+}
+
+/* Slightly reduce expensive blur on mobile where possible. */
+@media (max-width: 640px) {
+  .backdrop-blur-xl {
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+}
+
+/* Focus visible styles */
+:focus-visible {
+  outline: 2px solid var(--color-accent-primary, #3b82f6);
+  outline-offset: 2px;
+}
+
+/* Screen reader only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Reduced motion for animations */
+@media (prefers-reduced-motion: reduce) {
+  .motion-safe\:animate-pulse {
+    animation: none;
+  }
+}
+
+/* High contrast mode adjustments */
+@media (prefers-contrast: high) {
+  :root {
+    --color-bg-primary: #000;
+    --color-text-primary: #fff;
+  }
+}
+
+
+
+

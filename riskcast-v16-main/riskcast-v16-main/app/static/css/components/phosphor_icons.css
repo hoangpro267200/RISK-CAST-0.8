@@ -1,0 +1,41 @@
+/* Phosphor Icons Styles */
+/* Moved from inline style in input.html */
+
+/* Ensure Phosphor Icons are visible */
+.ph {
+    display: inline-block !important;
+    vertical-align: middle !important;
+}
+
+/* Force icons in labels to be visible */
+.form-label .ph,
+label .ph {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 20px !important;
+    height: 20px !important;
+    color: #00FFC8 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

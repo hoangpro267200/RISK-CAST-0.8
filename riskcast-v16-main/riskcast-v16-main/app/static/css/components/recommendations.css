@@ -1,0 +1,33 @@
+/**
+ * Recommendation List Item Styles
+ * Replaces inline styles in ui_updater.js
+ */
+
+.recommendation-item {
+    border-left: 3px solid var(--accent-green);
+    padding-left: 12px;
+    margin-bottom: 8px;
+    padding: 12px 16px;
+    background: rgba(0, 255, 136, 0.05);
+    border-radius: 6px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,59 @@
+@import url("../../css/tokens.css");
+
+.grid-overview {
+  align-items: start;
+}
+
+.overview__risk,
+.overview__quick-grid,
+.overview__pulse,
+.overview__route {
+  padding: var(--space-20);
+}
+
+.risk-score {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: var(--space-16);
+  align-items: center;
+}
+
+.score-value {
+  font: var(--font-display);
+  color: var(--color-primary-neon);
+  text-shadow: 0 0 18px rgba(110, 243, 255, 0.36);
+}
+
+.score-meter {
+  height: 18px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-20);
+  overflow: hidden;
+  position: relative;
+}
+
+.score-meter__fill {
+  position: absolute;
+  inset: 0;
+  width: 82%;
+  background: linear-gradient(90deg, var(--color-primary-neon), var(--status-success));
+  box-shadow: var(--shadow-neon);
+}
+
+.pulse-placeholder {
+  height: 140px;
+  border-radius: var(--radius-16);
+  background: linear-gradient(120deg, rgba(110, 243, 255, 0.12), rgba(139, 123, 255, 0.08));
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+}
+
+.route-list {
+  gap: var(--space-12);
+}
+
+
+
+

@@ -1,0 +1,272 @@
+<!-- ================================================================
+     SECTION 02: CARGO & PACKING (INTERNATIONAL STANDARD)
+     ================================================================ -->
+<section id="section-cargo" class="rc-form-panel" data-section="cargo">
+    <div class="rc-section-header-v20">
+        <div class="rc-section-icon">
+            <i data-lucide="package"></i>
+        </div>
+        <div class="rc-section-title-block">
+            <h2 class="rc-section-title">02 • Cargo & Packing</h2>
+            <p class="rc-section-description">International standard cargo documentation</p>
+        </div>
+        <span class="rc-pill rc-pill-required">Required</span>
+    </div>
+    
+    <div class="rc-glass-card">
+        <div class="rc-form-grid">
+            <!-- Cargo Type -->
+            <div class="rc-form-field">
+                <label class="rc-label">Cargo Type <span class="rc-required">*</span></label>
+                <div class="rc-dropdown-v20" data-field="cargoType" id="cargoType">
+                    <button type="button" class="rc-dropdown-trigger">
+                        <span class="rc-dropdown-value">Select cargo type</span>
+                        <i data-lucide="chevron-down" class="rc-dropdown-arrow"></i>
+                    </button>
+                    <div class="rc-dropdown-menu">
+                        <div class="rc-dropdown-search">
+                            <i data-lucide="search"></i>
+                            <input type="text" placeholder="Search cargo types..." class="rc-search-input">
+                        </div>
+                        <div class="rc-dropdown-items" id="cargoType-menu">
+                            <!-- Dynamic from LOGISTICS_DATA.cargoTypes -->
+                        </div>
+                    </div>
+                </div>
+                <span class="rc-field-hint">Category of goods</span>
+            </div>
+            
+            <!-- HS Code -->
+            <div class="rc-form-field">
+                <label class="rc-label">HS Code</label>
+                <div class="rc-input-wrapper">
+                    <i data-lucide="hash"></i>
+                    <input type="text" class="rc-input" placeholder="e.g., 8504.40" data-field="hsCode" id="hsCode">
+                </div>
+                <span class="rc-field-hint">Harmonized System code (recommended)</span>
+            </div>
+            
+            <!-- Packing Type -->
+            <div class="rc-form-field">
+                <label class="rc-label">Packing Type <span class="rc-required">*</span></label>
+                <div class="rc-dropdown-v20" data-field="packingType" id="packingType">
+                    <button type="button" class="rc-dropdown-trigger">
+                        <span class="rc-dropdown-value">Select packing</span>
+                        <i data-lucide="chevron-down" class="rc-dropdown-arrow"></i>
+                    </button>
+                    <div class="rc-dropdown-menu">
+                        <div class="rc-dropdown-items" id="packingType-menu">
+                            <!-- Dynamic from LOGISTICS_DATA.packingTypes -->
+                        </div>
+                    </div>
+                </div>
+                <span class="rc-field-hint">Type of packaging</span>
+            </div>
+            
+            <!-- Number of Packages -->
+            <div class="rc-form-field">
+                <label class="rc-label">Number of Packages</label>
+                <div class="rc-input-wrapper">
+                    <i data-lucide="layers"></i>
+                    <input type="number" class="rc-input" placeholder="e.g., 120" data-field="packageCount" id="packageCount">
+                </div>
+                <span class="rc-field-hint">Total package count</span>
+            </div>
+            
+            <!-- Gross Weight -->
+            <div class="rc-form-field">
+                <label class="rc-label">Gross Weight (kg) <span class="rc-required">*</span></label>
+                <div class="rc-input-wrapper">
+                    <i data-lucide="weight"></i>
+                    <input type="number" class="rc-input" placeholder="e.g., 20915" data-field="grossWeight" id="grossWeight">
+                </div>
+                <span class="rc-field-hint">Total weight including packaging</span>
+            </div>
+            
+            <!-- Net Weight -->
+            <div class="rc-form-field">
+                <label class="rc-label">Net Weight (kg)</label>
+                <div class="rc-input-wrapper">
+                    <i data-lucide="weight"></i>
+                    <input type="number" class="rc-input" placeholder="e.g., 19500" data-field="netWeight" id="netWeight">
+                </div>
+                <span class="rc-field-hint">Weight without packaging</span>
+            </div>
+            
+            <!-- Volume -->
+            <div class="rc-form-field">
+                <label class="rc-label">Volume (m³)</label>
+                <div class="rc-input-wrapper">
+                    <i data-lucide="box"></i>
+                    <input type="number" step="0.01" class="rc-input" placeholder="e.g., 22.66" data-field="volumeCbm" id="volumeCbm">
+                </div>
+                <span class="rc-field-hint">Cubic meters</span>
+            </div>
+            
+            <!-- Stackability -->
+            <div class="rc-form-field">
+                <label class="rc-label">Stackability</label>
+                <div class="rc-pill-group" data-field="stackable" id="stackableGroup">
+                    <button type="button" class="rc-pill active" data-value="true">
+                        <i data-lucide="layers"></i>
+                        Stackable
+                    </button>
+                    <button type="button" class="rc-pill" data-value="false">
+                        <i data-lucide="ban"></i>
+                        Non-stackable
+                    </button>
+                </div>
+                <span class="rc-field-hint">Can packages be stacked?</span>
+            </div>
+            
+            <!-- Insurance Value -->
+            <div class="rc-form-field">
+                <label class="rc-label">Insurance Value (USD) <span class="rc-required">*</span></label>
+                <div class="rc-input-wrapper">
+                    <i data-lucide="dollar-sign"></i>
+                    <input type="number" class="rc-input" placeholder="e.g., 85000" data-field="insuranceValue" id="insuranceValue">
+                </div>
+                <span class="rc-field-hint">Total insured value</span>
+            </div>
+            
+            <!-- Insurance Coverage Type -->
+            <div class="rc-form-field">
+                <label class="rc-label">Insurance Coverage</label>
+                <div class="rc-dropdown-v20" data-field="insuranceCoverage" id="insuranceCoverage">
+                    <button type="button" class="rc-dropdown-trigger">
+                        <span class="rc-dropdown-value">Select coverage type</span>
+                        <i data-lucide="chevron-down" class="rc-dropdown-arrow"></i>
+                    </button>
+                    <div class="rc-dropdown-menu">
+                        <div class="rc-dropdown-items" id="insuranceCoverage-menu">
+                            <!-- Dynamic from LOGISTICS_DATA.insuranceCoverageTypes -->
+                        </div>
+                    </div>
+                </div>
+                <span class="rc-field-hint">Type of insurance coverage</span>
+            </div>
+            
+            <!-- Cargo Sensitivity -->
+            <div class="rc-form-field rc-span-2">
+                <label class="rc-label">Cargo Sensitivity</label>
+                <div class="rc-pill-group" data-field="cargoSensitivity" id="sensitivityGroup">
+                    <button type="button" class="rc-pill active" data-value="standard">
+                        <i data-lucide="shield"></i>
+                        Standard
+                    </button>
+                    <button type="button" class="rc-pill" data-value="fragile">
+                        <i data-lucide="alert-triangle"></i>
+                        Fragile
+                    </button>
+                    <button type="button" class="rc-pill" data-value="temperature">
+                        <i data-lucide="thermometer"></i>
+                        Temperature Sensitive
+                    </button>
+                    <button type="button" class="rc-pill" data-value="high_value">
+                        <i data-lucide="gem"></i>
+                        High Value
+                    </button>
+                </div>
+                <span class="rc-field-hint">Special handling requirements</span>
+            </div>
+            
+            <!-- Temperature Range (conditionally visible) -->
+            <div class="rc-form-field" id="tempRangeFields" style="display: none;">
+                <label class="rc-label">Min Temperature (°C)</label>
+                <div class="rc-input-wrapper">
+                    <i data-lucide="thermometer-snowflake"></i>
+                    <input type="number" class="rc-input" placeholder="e.g., 2" data-field="tempMin" id="tempMin">
+                </div>
+            </div>
+            
+            <div class="rc-form-field" id="tempRangeFields2" style="display: none;">
+                <label class="rc-label">Max Temperature (°C)</label>
+                <div class="rc-input-wrapper">
+                    <i data-lucide="thermometer-sun"></i>
+                    <input type="number" class="rc-input" placeholder="e.g., 8" data-field="tempMax" id="tempMax">
+                </div>
+            </div>
+            
+            <!-- Dangerous Goods Toggle -->
+            <div class="rc-form-field rc-span-2">
+                <label class="rc-label">Dangerous Goods (DG)</label>
+                <div class="rc-pill-group" data-field="dangerousGoods" id="dgGroup">
+                    <button type="button" class="rc-pill active" data-value="false">
+                        <i data-lucide="check-circle"></i>
+                        Not DG
+                    </button>
+                    <button type="button" class="rc-pill" data-value="true">
+                        <i data-lucide="alert-octagon"></i>
+                        DG Cargo
+                    </button>
+                </div>
+                <span class="rc-field-hint">Hazardous materials declaration</span>
+            </div>
+            
+            <!-- DG Details (conditionally visible) -->
+            <div class="rc-form-field" id="dgFields1" style="display: none;">
+                <label class="rc-label">UN Number</label>
+                <div class="rc-input-wrapper">
+                    <i data-lucide="hash"></i>
+                    <input type="text" class="rc-input" placeholder="e.g., UN1234" data-field="dgUnNumber" id="dgUnNumber">
+                </div>
+            </div>
+            
+            <div class="rc-form-field" id="dgFields2" style="display: none;">
+                <label class="rc-label">DG Class</label>
+                <div class="rc-dropdown-v20" data-field="dgClass" id="dgClass">
+                    <button type="button" class="rc-dropdown-trigger">
+                        <span class="rc-dropdown-value">Select class</span>
+                        <i data-lucide="chevron-down" class="rc-dropdown-arrow"></i>
+                    </button>
+                    <div class="rc-dropdown-menu">
+                        <div class="rc-dropdown-items" id="dgClass-menu">
+                            <!-- Dynamic from LOGISTICS_DATA.dgClasses -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="rc-form-field" id="dgFields3" style="display: none;">
+                <label class="rc-label">Packing Group</label>
+                <div class="rc-dropdown-v20" data-field="dgPackingGroup" id="dgPackingGroup">
+                    <button type="button" class="rc-dropdown-trigger">
+                        <span class="rc-dropdown-value">Select group</span>
+                        <i data-lucide="chevron-down" class="rc-dropdown-arrow"></i>
+                    </button>
+                    <div class="rc-dropdown-menu">
+                        <div class="rc-dropdown-items">
+                            <button class="rc-dropdown-item" data-value="I">Packing Group I</button>
+                            <button class="rc-dropdown-item" data-value="II">Packing Group II</button>
+                            <button class="rc-dropdown-item" data-value="III">Packing Group III</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Loadability Issues -->
+            <div class="rc-form-field rc-span-2">
+                <label class="rc-toggle-label">
+                    <input type="checkbox" class="rc-toggle-input" data-field="loadabilityIssues" id="loadabilityIssues">
+                    <span class="rc-toggle-slider"></span>
+                    <span class="rc-toggle-text">Loadability Issues (oversized, special handling required)</span>
+                </label>
+            </div>
+            
+            <!-- Cargo Description -->
+            <div class="rc-form-field rc-span-2">
+                <label class="rc-label">Cargo Description</label>
+                <textarea class="rc-textarea" rows="3" placeholder="e.g., Electronic components, smartphones with lithium batteries" data-field="cargoDescription" id="cargoDescription"></textarea>
+                <span class="rc-field-hint">Detailed description of cargo</span>
+            </div>
+            
+            <!-- Special Handling Instructions -->
+            <div class="rc-form-field rc-span-2">
+                <label class="rc-label">Special Handling Instructions</label>
+                <textarea class="rc-textarea" rows="2" placeholder="e.g., Keep upright, no stacking, use shock sensors" data-field="specialHandling" id="specialHandling"></textarea>
+                <span class="rc-field-hint">Any special instructions for handling</span>
+            </div>
+        </div>
+    </div>
+</section>
+

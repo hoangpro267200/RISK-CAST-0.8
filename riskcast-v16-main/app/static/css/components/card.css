@@ -1,0 +1,58 @@
+@import url("../futureos_tokens.css");
+
+.rc-shell {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px 24px 32px;
+}
+
+body.rc-body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: radial-gradient(circle at 20% 15%, #0f192e 0%, #0a0f1f 35%, #05070c 80%);
+  color: var(--rc-text-main);
+  -webkit-font-smoothing: antialiased;
+}
+
+.rc-card,
+.rc-panel {
+  background: var(--rc-bg-card);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--rc-radius);
+  box-shadow: var(--rc-shadow);
+  padding: var(--rc-padding);
+}
+
+.rc-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.rc-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 12px;
+}
+
+.rc-panel__title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--rc-text-main);
+  letter-spacing: 0.2px;
+}
+
+.rc-panel__meta {
+  font-size: 13px;
+  color: var(--rc-text-muted);
+}
+
+
+
+
+
+
+

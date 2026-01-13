@@ -1,0 +1,131 @@
+<!-- ================================================================
+     SECTION 03: SELLER DETAILS (RISK-ORIENTED)
+     ================================================================ -->
+<section id="section-seller" class="rc-form-panel" data-section="seller">
+    <div class="rc-section-header-v20">
+        <div class="rc-section-icon">
+            <i data-lucide="building-2"></i>
+        </div>
+        <div class="rc-section-title-block">
+            <h2 class="rc-section-title">03 • Seller Details</h2>
+            <p class="rc-section-description">Exporter/supplier risk information</p>
+        </div>
+    </div>
+    
+    <div class="rc-glass-card">
+        <div class="rc-form-grid">
+            <!-- Company Name -->
+            <div class="rc-form-field">
+                <label class="rc-label">Company Name <span class="rc-required">*</span></label>
+                <div class="rc-input-wrapper">
+                    <i data-lucide="building"></i>
+                    <input type="text" class="rc-input" placeholder="Company Ltd." data-field="sellerCompany" id="sellerCompany">
+                </div>
+            </div>
+            
+            <!-- Business Type -->
+            <div class="rc-form-field">
+                <label class="rc-label">Business Type</label>
+                <div class="rc-dropdown-v20 rc-country-dropdown" data-field="sellerBusinessType" id="sellerBusinessType">
+                    <button type="button" class="rc-dropdown-trigger">
+                        <span class="rc-dropdown-value">Select business type</span>
+                        <i data-lucide="chevron-down" class="rc-dropdown-arrow"></i>
+                    </button>
+                    <div class="rc-dropdown-menu">
+                        <div class="rc-dropdown-items" id="sellerBusinessType-menu">
+                            <!-- Dynamic from LOGISTICS_DATA.businessTypes -->
+                        </div>
+                    </div>
+                </div>
+                <span class="rc-field-hint">Type of business entity</span>
+            </div>
+            
+            <!-- Country (with search) -->
+            <div class="rc-form-field">
+                <label class="rc-label">Country <span class="rc-required">*</span></label>
+                <div class="rc-dropdown-v20 rc-country-dropdown" data-field="sellerCountry" id="sellerCountry">
+                    <button type="button" class="rc-dropdown-trigger">
+                        <span class="rc-dropdown-value">Select country</span>
+                        <i data-lucide="chevron-down" class="rc-dropdown-arrow"></i>
+                    </button>
+                    <div class="rc-dropdown-menu">
+                        <div class="rc-dropdown-search">
+                            <i data-lucide="search"></i>
+                            <input type="text" placeholder="Search country..." class="rc-search-input" id="sellerCountrySearch">
+                        </div>
+                        <div class="rc-dropdown-items rc-country-list" id="sellerCountry-menu">
+                            <!-- Dynamic from LOGISTICS_DATA.countries -->
+                        </div>
+                    </div>
+                </div>
+                <span class="rc-field-hint">Seller's country</span>
+            </div>
+            
+            <!-- City -->
+            <div class="rc-form-field">
+                <label class="rc-label">City</label>
+                <div class="rc-input-wrapper">
+                    <i data-lucide="map"></i>
+                    <input type="text" class="rc-input" placeholder="Shanghai" data-field="sellerCity" id="sellerCity">
+                </div>
+            </div>
+            
+            <!-- Address -->
+            <div class="rc-form-field rc-span-2">
+                <label class="rc-label">Address</label>
+                <div class="rc-input-wrapper">
+                    <i data-lucide="map-pin"></i>
+                    <input type="text" class="rc-input" placeholder="123 Business Street" data-field="sellerAddress" id="sellerAddress">
+                </div>
+            </div>
+            
+            <!-- Contact Person -->
+            <div class="rc-form-field">
+                <label class="rc-label">Contact Person</label>
+                <div class="rc-input-wrapper">
+                    <i data-lucide="user"></i>
+                    <input type="text" class="rc-input" placeholder="John Doe" data-field="sellerContact" id="sellerContact">
+                </div>
+            </div>
+            
+            <!-- Contact Role -->
+            <div class="rc-form-field">
+                <label class="rc-label">Contact Role</label>
+                <div class="rc-input-wrapper">
+                    <i data-lucide="briefcase"></i>
+                    <input type="text" class="rc-input" placeholder="Export Manager" data-field="sellerContactRole" id="sellerContactRole">
+                </div>
+            </div>
+            
+            <!-- Email -->
+            <div class="rc-form-field">
+                <label class="rc-label">Email</label>
+                <div class="rc-input-wrapper">
+                    <i data-lucide="mail"></i>
+                    <input type="email" class="rc-input" placeholder="contact@company.com" data-field="sellerEmail" id="sellerEmail">
+                </div>
+            </div>
+            
+            <!-- Phone -->
+            <div class="rc-form-field">
+                <label class="rc-label">Phone</label>
+                <div class="rc-input-wrapper">
+                    <i data-lucide="phone"></i>
+                    <input type="tel" class="rc-input" placeholder="+1 234 567 8900" data-field="sellerPhone" id="sellerPhone">
+                </div>
+            </div>
+            
+            <!-- Tax ID / VAT -->
+            <div class="rc-form-field">
+                <label class="rc-label">Tax ID / VAT</label>
+                <div class="rc-input-wrapper">
+                    <i data-lucide="file-text"></i>
+                    <input type="text" class="rc-input" placeholder="Tax identification number" data-field="sellerTaxId" id="sellerTaxId">
+                </div>
+                <span class="rc-field-hint">Optional</span>
+            </div>
+            
+        </div>
+    </div>
+</section>
+

@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RISKCAST FutureOS — Hệ điều hành không gian cho rủi ro logistics</title>
+  <meta name="description" content="RISKCAST FutureOS - Dự đoán, mô phỏng, tối ưu vận tải trong vài giây. Nhìn thấy rủi ro trước khi chúng làm tê liệt chuỗi cung ứng.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="/static/css/home_v2000.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js",
+        "three/examples/jsm/controls/OrbitControls.js": "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/controls/OrbitControls.js",
+        "three/examples/jsm/postprocessing/EffectComposer.js": "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/postprocessing/EffectComposer.js",
+        "three/examples/jsm/postprocessing/RenderPass.js": "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/postprocessing/RenderPass.js",
+        "three/examples/jsm/postprocessing/UnrealBloomPass.js": "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/postprocessing/UnrealBloomPass.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <!-- Header Ticker -->
+  <div class="rc-ticker">
+    <div class="rc-ticker-track">
+      <div class="rc-ticker-item">SHIPMENTS MONITORED: <span class="rc-ticker-value">12,483</span></div>
+      <div class="rc-ticker-item">ACTIVE DISRUPTIONS: <span class="rc-ticker-value rc-value-risk">47</span></div>
+      <div class="rc-ticker-item">AVG ETA DEVIATION: <span class="rc-ticker-value rc-value-warning">-2.9 DAYS</span></div>
+      <div class="rc-ticker-item">RISK ALERTS RESOLVED: <span class="rc-ticker-value rc-value-success">1,204</span></div>
+      <!-- Duplicate for seamless loop -->
+      <div class="rc-ticker-item">SHIPMENTS MONITORED: <span class="rc-ticker-value">12,483</span></div>
+      <div class="rc-ticker-item">ACTIVE DISRUPTIONS: <span class="rc-ticker-value rc-value-risk">47</span></div>
+      <div class="rc-ticker-item">AVG ETA DEVIATION: <span class="rc-ticker-value rc-value-warning">-2.9 DAYS</span></div>
+      <div class="rc-ticker-item">RISK ALERTS RESOLVED: <span class="rc-ticker-value rc-value-success">1,204</span></div>
+    </div>
+  </div>
+
+  <!-- Header / Nav -->
+  <header class="rc-header">
+    <div class="rc-header-inner">
+      <div class="rc-logo">
+        <div class="rc-logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+        </div>
+        <div class="rc-logo-text">
+          <div class="rc-logo-title">RISKCAST</div>
+          <div class="rc-logo-subtitle">FutureOS</div>
+        </div>
+      </div>
+      <nav class="rc-nav">
+        <a href="#hero" class="rc-nav-link" data-scroll="hero">HERO</a>
+        <a href="#chaos" class="rc-nav-link" data-scroll="chaos">CHAOS</a>
+        <a href="#futureos" class="rc-nav-link" data-scroll="futureos">FUTUREOS</a>
+        <a href="#engines" class="rc-nav-link" data-scroll="engines">ENGINES</a>
+        <a href="#map" class="rc-nav-link" data-scroll="map">MAP</a>
+        <a href="#simulation" class="rc-nav-link" data-scroll="simulation">SIMULATION</a>
+        <a href="#impact" class="rc-nav-link" data-scroll="impact">IMPACT</a>
+      </nav>
+      <a href="/input" class="rc-btn-primary">KHỞI ĐỘNG MÔ PHỎNG</a>
+    </div>
+  </header>
+
+  <main class="rc-main">
+    <!-- SECTION 1: HERO -->
+    <section id="hero" class="rc-section-hero">
+      <div class="rc-container">
+        <div class="rc-hero-grid">
+          <div class="rc-hero-content">
+            <div class="rc-hero-badge">
+              <span class="rc-badge-dot"></span>
+              Every 4 minutes, a disruption hits global supply chains.
+            </div>
+            <h1 class="rc-hero-title">
+              RISKCAST <span class="rc-title-accent">FutureOS</span>
+            </h1>
+            <h2 class="rc-hero-subtitle">
+              HỆ ĐIỀU HÀNH KHÔNG GIAN CHO RỦI RO LOGISTICS
+            </h2>
+            <p class="rc-hero-description">
+              Dự đoán – Mô phỏng – Tối ưu vận tải trong vài giây. FutureOS nhìn thấy tắc nghẽn cảng, bão cực đoan, cú sốc nhiên liệu và rủi ro địa chính trị trước khi chúng làm tê liệt chuỗi cung ứng.
+            </p>
+            <div class="rc-hero-cta">
+              <a href="/input" class="rc-btn-primary">BẮT ĐẦU MÔ PHỎNG</a>
+              <button class="rc-btn-secondary" data-scroll="map">Xem bản đồ rủi ro realtime</button>
+            </div>
+          </div>
+          
+          <div id="globe-v2200" class="rc-hero-globe-container">
+            <!-- AI Bubbles -->
+            <div class="rc-ai-bubble" style="top: 15%; right: 10%;">
+              <div class="rc-bubble-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+              </div>
+              <div class="rc-bubble-text">
+                <div class="rc-bubble-label">Active Risks</div>
+                <div class="rc-bubble-value">4 Critical Events</div>
+              </div>
+            </div>
+            <div class="rc-ai-bubble" style="top: 60%; left: 5%;">
+              <div class="rc-bubble-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M3 3v18h18M7 16l4-4 4 4 6-6"/>
+                </svg>
+              </div>
+              <div class="rc-bubble-text">
+                <div class="rc-bubble-label">Optimization</div>
+                <div class="rc-bubble-value">+24.5% Efficiency</div>
+              </div>
+            </div>
+            <div class="rc-ai-bubble" style="bottom: 20%; right: 15%;">
+              <div class="rc-bubble-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 6v6l4 2"/>
+                </svg>
+              </div>
+              <div class="rc-bubble-text">
+                <div class="rc-bubble-label">Supply Chain Score</div>
+                <div class="rc-bubble-value">A+</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: THE CHAOS LAYER -->
+    <section id="chaos" class="rc-section-chaos">
+      <div class="rc-container">
+        <h2 class="rc-section-title">LOGISTICS ĐANG HỖN LOẠN</h2>
+        <div class="rc-chaos-grid">
+          <article class="rc-card rc-anim-fade-up">
+            <div class="rc-card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/>
+              </svg>
+            </div>
+            <h3 class="rc-card-title">Tắc nghẽn cảng</h3>
+            <p class="rc-card-metric">312 ports are facing delays today.</p>
+            <p class="rc-card-description">
+              Từ Los Angeles đến Singapore – tàu chờ ngoài khơi hàng tuần, phí lưu container và demurrage tăng từng giờ.
+            </p>
+          </article>
+          
+          <article class="rc-card rc-anim-fade-up">
+            <div class="rc-card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 2v6m0 8v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M2 12h6m8 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"/>
+              </svg>
+            </div>
+            <h3 class="rc-card-title">Thời tiết cực đoan</h3>
+            <p class="rc-card-metric">1,204 regions under severe impact.</p>
+            <p class="rc-card-description">
+              Bão, sóng cao, nắng nóng kỷ lục – phá vỡ lịch trình cảng, đường sắt và kho bãi trên toàn hành tinh.
+            </p>
+          </article>
+          
+          <article class="rc-card rc-anim-fade-up">
+            <div class="rc-card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+            </div>
+            <h3 class="rc-card-title">Nhiên liệu biến động</h3>
+            <p class="rc-card-metric">Fuel index +12.4% in 24 hours.</p>
+            <p class="rc-card-description">
+              Mỗi cú nhảy giá vài phần trăm chuyển hóa ngay lập tức thành hàng triệu USD chi phí ngoài kế hoạch.
+            </p>
+          </article>
+        </div>
+        
+        <p class="rc-chaos-conclusion rc-anim-fade-up">
+          Chuỗi cung ứng đang nhanh hơn, phức tạp hơn, và nguy hiểm hơn mỗi ngày. Con người không thể phân tích kịp – họ cần một bộ não mô phỏng.
+        </p>
+      </div>
+    </section>
+
+    <!-- SECTION 3: INTRODUCE FUTUREOS -->
+    <section id="futureos" class="rc-section-futureos">
+      <div class="rc-container">
+        <h2 class="rc-section-title">GIẢI PHÁP: RISKCAST FUTUREOS</h2>
+        <div class="rc-console rc-anim-fade-up">
+          <div class="rc-console-header">
+            <h3 class="rc-console-title">FutureOS không phải dashboard. Nó là bộ não mô phỏng rủi ro cho chuỗi cung ứng.</h3>
+          </div>
+          <div class="rc-console-content">
+            <ul class="rc-console-list">
+              <li><span class="rc-list-bullet"></span> Dữ liệu vệ tinh & track AIS realtime</li>
+              <li><span class="rc-list-bullet"></span> Dữ liệu thời tiết & cực đoan khí hậu</li>
+              <li><span class="rc-list-bullet"></span> Dữ liệu cảng, dwell time & tắc nghẽn</li>
+              <li><span class="rc-list-bullet"></span> Rủi ro địa chính trị & thương mại</li>
+              <li><span class="rc-list-bullet"></span> Lịch sử hãng tàu & reliability score</li>
+              <li><span class="rc-list-bullet"></span> Chính sách chi phí, SLA & mục tiêu ESG</li>
+            </ul>
+            <div class="rc-console-status">
+              <span class="rc-status-pill rc-status-risk">RISK: HIGH</span>
+              <span class="rc-status-pill rc-status-secondary">WEATHER: CYCLONE</span>
+              <span class="rc-status-pill rc-status-secondary">PORT: DELAY +3.8D</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: THE 3 INTELLIGENCE ENGINES -->
+    <section id="engines" class="rc-section-engines">
+      <div class="rc-container">
+        <h2 class="rc-section-title">3 BỘ NÃO THÔNG MINH CỦA FUTUREOS</h2>
+        <div class="rc-engines-grid">
+          <article class="rc-engine-card rc-anim-fade-up">
+            <div class="rc-engine-header">
+              <div>
+                <h3 class="rc-engine-title">Global Risk Engine</h3>
+                <p class="rc-engine-subtitle">Macro → Micro Risk</p>
+              </div>
+              <div class="rc-engine-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
+              </div>
+            </div>
+            <p class="rc-engine-description">
+              Dự đoán rủi ro bất ổn chính trị, tắc nghẽn cảng, supply shock và đứt gãy logistics theo thời gian thực.
+            </p>
+            <ul class="rc-engine-metrics">
+              <li>98.4% accuracy</li>
+              <li>54,000+ data points / shipment</li>
+              <li>Update realtime</li>
+            </ul>
+          </article>
+
+          <article class="rc-engine-card rc-anim-fade-up">
+            <div class="rc-engine-header">
+              <div>
+                <h3 class="rc-engine-title">AI Pricing Engine</h3>
+                <p class="rc-engine-subtitle">Forward Looking Rates</p>
+              </div>
+              <div class="rc-engine-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+              </div>
+            </div>
+            <p class="rc-engine-description">
+              Dự đoán giá cước 7–14 ngày trước hãng tàu, giúp chốt booking ở thời điểm tối ưu thay vì chạy theo thị trường.
+            </p>
+            <ul class="rc-engine-metrics">
+              <li>Scenario pricing</li>
+              <li>Multi-carrier benchmark</li>
+              <li>Lane-level volatility score</li>
+            </ul>
+          </article>
+
+          <article class="rc-engine-card rc-anim-fade-up">
+            <div class="rc-engine-header">
+              <div>
+                <h3 class="rc-engine-title">Weather Intel</h3>
+                <p class="rc-engine-subtitle">Climate-grade Insight</p>
+              </div>
+              <div class="rc-engine-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M12 2v6m0 8v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M2 12h6m8 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"/>
+                </svg>
+              </div>
+            </div>
+            <p class="rc-engine-description">
+              Nhận diện bão, sóng cao, dòng chảy, ice risk và extreme events trên tuyến vận tải biển & intermodal.
+            </p>
+            <ul class="rc-engine-metrics">
+              <li>Ocean + port + inland overlay</li>
+              <li>7-day & 14-day impact</li>
+              <li>Lane reroute recommendation</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 5: REALTIME MAP NARRATIVE -->
+    <section id="map" class="rc-section-map">
+      <div class="rc-container">
+        <h2 class="rc-section-title">BẢN ĐỒ RỦI RO REALTIME</h2>
+        <div class="rc-map-layout">
+          <div class="rc-map-panel">
+            <canvas id="rc-map-canvas" class="rc-map-canvas"></canvas>
+            
+            <!-- Port Markers -->
+            <div id="rc-marker-klang" class="rc-map-marker rc-marker-risk" style="top: 58%; left: 36%;">
+              <div class="rc-marker-core"></div>
+              <div class="rc-marker-pulse"></div>
+            </div>
+            <div id="rc-label-klang" class="rc-map-label" style="top: calc(58% - 32px); left: calc(36% + 18px);">
+              Port Klang — Congestion detected
+            </div>
+
+            <div id="rc-marker-sin" class="rc-map-marker rc-marker-alt" style="top: 66%; left: 50%;">
+              <div class="rc-marker-core"></div>
+            </div>
+
+            <!-- Routes -->
+            <svg class="rc-map-routes" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+              <path id="rc-route-original" class="rc-route-line rc-route-original" d="M80 200 Q200 150 320 200" />
+              <path id="rc-route-alt" class="rc-route-line rc-route-alt" d="M80 200 Q200 100 320 200" />
+            </svg>
+
+            <!-- AI Bubble -->
+            <div id="rc-map-ai-bubble" class="rc-map-bubble">
+              <p class="rc-bubble-title">Đề xuất lộ trình mới.</p>
+              <ul class="rc-bubble-list">
+                <li>Giảm <span class="rc-value">2.9 ngày</span> transit.</li>
+                <li>Giảm <span class="rc-value">3.2% CO₂</span>.</li>
+                <li>Rủi ro tổng thể giảm <span class="rc-value">41%</span>.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="rc-map-narrative">
+            <div class="rc-narrative-step">
+              <div class="rc-step-label">Step 1</div>
+              <p>Phát hiện tắc nghẽn tại Port Klang</p>
+            </div>
+            <div class="rc-narrative-step">
+              <div class="rc-step-label">Step 2</div>
+              <p>Đề xuất tuyến thay thế qua Singapore</p>
+            </div>
+            <div class="rc-narrative-step">
+              <div class="rc-step-label">Step 3</div>
+              <p>Tối ưu hóa dựa trên rủi ro và thời gian</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 6: SIMULATION ("WHAT-IF ENGINE") -->
+    <section id="simulation" class="rc-section-simulation">
+      <div class="rc-container">
+        <h2 class="rc-section-title">CÔNG CỤ MÔ PHỎNG WHAT-IF</h2>
+        <div class="rc-sim-grid">
+          <article class="rc-sim-card" data-scenario="port-strike">
+            <h3 class="rc-sim-title">Port Strike</h3>
+            <p class="rc-sim-problem"><strong>Vấn đề:</strong> Đình công cảng lớn tại Rotterdam.</p>
+            <p class="rc-sim-detection"><strong>Phát hiện:</strong> Risk Engine cảnh báo trước 7 ngày.</p>
+            <p class="rc-sim-solution"><strong>Đề xuất:</strong> Điều chỉnh booking, chấp nhận cost +12% có kiểm soát.</p>
+            <div class="rc-sim-visual rc-visual-bars">
+              <div class="rc-bar" style="height: 30%"></div>
+              <div class="rc-bar" style="height: 55%"></div>
+              <div class="rc-bar" style="height: 80%"></div>
+              <div class="rc-bar rc-bar-high" style="height: 100%"></div>
+            </div>
+          </article>
+
+          <article class="rc-sim-card" data-scenario="fuel-spike">
+            <h3 class="rc-sim-title">Fuel Spike</h3>
+            <p class="rc-sim-problem"><strong>Vấn đề:</strong> Giá nhiên liệu tăng đột biến 15%.</p>
+            <p class="rc-sim-detection"><strong>Phát hiện:</strong> AI Pricing Engine phát hiện trend ngày hôm qua.</p>
+            <p class="rc-sim-solution"><strong>Đề xuất:</strong> Thay đổi lộ trình tối ưu nhiên liệu.</p>
+            <div class="rc-sim-visual rc-visual-routes">
+              <svg viewBox="0 0 200 100" class="rc-route-mini">
+                <path class="rc-route-old" d="M20 50 Q100 20 180 50" />
+                <path class="rc-route-new" d="M20 50 Q100 80 180 50" />
+              </svg>
+            </div>
+          </article>
+
+          <article class="rc-sim-card" data-scenario="typhoon">
+            <h3 class="rc-sim-title">Typhoon Level 5</h3>
+            <p class="rc-sim-problem"><strong>Vấn đề:</strong> Siêu bão cấp 5 hình thành trên tuyến chính.</p>
+            <p class="rc-sim-detection"><strong>Phát hiện:</strong> Weather Intel cảnh báo trước 5 ngày.</p>
+            <p class="rc-sim-solution"><strong>Đề xuất:</strong> Chuyển một phần volume sang air / rail.</p>
+            <div class="rc-sim-visual rc-visual-mode">
+              <div class="rc-mode-old">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/>
+                </svg>
+              </div>
+              <div class="rc-mode-new">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
+                </svg>
+              </div>
+            </div>
+          </article>
+
+          <article class="rc-sim-card" data-scenario="carrier">
+            <h3 class="rc-sim-title">Carrier Unreliable</h3>
+            <p class="rc-sim-problem"><strong>Vấn đề:</strong> Hãng tàu XYZ liên tục trễ chuyến.</p>
+            <p class="rc-sim-detection"><strong>Phát hiện:</strong> FutureOS phát hiện delay pattern trong 18 tháng lịch sử.</p>
+            <p class="rc-sim-solution"><strong>Đề xuất:</strong> Chuyển sang carrier có on-time > 95%.</p>
+            <div class="rc-sim-visual rc-visual-carrier">
+              <div class="rc-carrier-old">XYZ</div>
+              <div class="rc-carrier-new">ABC</div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 7: BUSINESS IMPACT -->
+    <section id="impact" class="rc-section-impact">
+      <div class="rc-container">
+        <h2 class="rc-section-title">TÁC ĐỘNG KINH DOANH</h2>
+        <div class="rc-impact-grid">
+          <article class="rc-impact-card rc-anim-fade-up">
+            <div class="rc-impact-value" data-target="28">0%</div>
+            <div class="rc-impact-label">↓ Chi phí bất ngờ</div>
+          </article>
+          <article class="rc-impact-card rc-anim-fade-up">
+            <div class="rc-impact-value" data-target="42">0%</div>
+            <div class="rc-impact-label">↑ Tốc độ ra quyết định</div>
+          </article>
+          <article class="rc-impact-card rc-anim-fade-up">
+            <div class="rc-impact-value" data-target="98.4">0%</div>
+            <div class="rc-impact-label">Độ chính xác dự đoán</div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 8: FINAL CTA -->
+    <section id="cta" class="rc-section-cta">
+      <div class="rc-container">
+        <div class="rc-portal">
+          <div class="rc-portal-ring"></div>
+          <div class="rc-portal-content">
+            <p class="rc-portal-title">Sẵn sàng chuyển</p>
+            <p class="rc-portal-subtitle">từ phản ứng → chủ động?</p>
+            <p class="rc-portal-description">
+              Khởi động mô phỏng đầu tiên cùng FutureOS.
+            </p>
+          </div>
+        </div>
+        <div class="rc-cta-buttons">
+          <a href="/input" class="rc-btn-primary">Khởi động mô phỏng đầu tiên</a>
+          <button class="rc-btn-secondary" data-scroll="hero">Xem RISKCAST hoạt động trong 2 phút</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="rc-footer">
+    <div class="rc-container">
+      <div class="rc-footer-inner">
+        <div>© 2024 RISKCAST FutureOS. Built for enterprise logistics.</div>
+        <div class="rc-footer-links">
+          <a href="#">Security</a>
+          <a href="#">Status</a>
+          <a href="#">Contact</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- AI Chat Bubble (Fixed bottom-right) -->
+  <div class="rc-chat-bubble">
+    <button class="rc-chat-trigger" aria-label="Trò chuyện với RISKCAST AI">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+    </button>
+    <div class="rc-chat-tooltip">Trò chuyện với RISKCAST AI</div>
+  </div>
+
+  <!-- JavaScript -->
+  <script src="/static/js/home_v2000.js"></script>
+
+  <!-- FutureOS Globe v2000 Insane -->
+  <script type="module" src="/static/js/futureos_globe_v2200.js"></script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+<!-- Reusable Stats Card Component -->
+<div class="stats-card">
+    <div class="stats-card__icon">{% block icon %}{% endblock %}</div>
+    <div class="stats-card__label">{% block label %}{% endblock %}</div>
+    <div class="stats-card__value">{% block value %}{% endblock %}</div>
+    <div class="stats-card__change {% block change_class %}{% endblock %}">
+        <span>{% block change_arrow %}{% endblock %}</span>
+        <span>{% block change_text %}{% endblock %}</span>
+    </div>
+</div>
+
+

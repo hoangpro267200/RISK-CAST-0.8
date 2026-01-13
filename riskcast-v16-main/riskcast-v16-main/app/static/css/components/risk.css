@@ -1,0 +1,54 @@
+@import url("../futureos_tokens.css");
+
+.rc-risk-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--rc-glass);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+  font-weight: 800;
+  color: var(--rc-text-main);
+}
+
+.rc-dimensions {
+  gap: 12px;
+}
+
+.rc-dimension__label {
+  font-size: 13px;
+  color: var(--rc-text-muted);
+  letter-spacing: 0.2px;
+}
+
+.rc-module {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--rc-glass);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--rc-text-main);
+  text-align: center;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+}
+
+.rc-module.is-active {
+  border-color: var(--rc-primary);
+  box-shadow: 0 0 0 2px rgba(0, 255, 200, 0.2);
+  background: rgba(0, 255, 200, 0.08);
+}
+
+.rc-module:hover {
+  filter: brightness(1.05);
+}
+
+
+
+
+
+
+

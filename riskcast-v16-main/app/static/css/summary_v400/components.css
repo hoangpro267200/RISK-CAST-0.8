@@ -1,0 +1,35 @@
+/* ==========================================================================
+   SUMMARY_V400 - COMPONENTS
+   VisionOS Card Component Overrides
+   ========================================================================== */
+
+/* Override any old border/outline styles on visionos-card */
+.summary-panel__header.visionos-card {
+    border: none !important;
+    outline: none !important;
+    border-bottom: none !important;
+    border-radius: 24px !important;
+    box-shadow:
+        inset 0 0 30px rgba(255, 255, 255, 0.04),
+        0 8px 30px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Soft neon edge glow */
+.summary-panel__header.visionos-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 24px;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(53, 224, 255, 0.1), rgba(123, 77, 255, 0.1));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0.15;
+    transition: opacity 0.25s ease;
+}
+
+.summary-panel__header.visionos-card:hover::before {
+    opacity: 0.2;
+}

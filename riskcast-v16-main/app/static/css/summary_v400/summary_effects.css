@@ -1,0 +1,384 @@
+/* ==========================================================================
+   SUMMARY_V400 - VISUAL EFFECTS (VisionOS v550 Ultra)
+   Neon glows, depth shadows, hover effects, animations
+   ========================================================================== */
+
+/* ===== PARTICLE FIELD ===== */
+.particle-field {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.particle-field::before {
+    content: '';
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    background-image: 
+        radial-gradient(circle at 20% 30%, rgba(53, 224, 255, 0.08) 0%, transparent 30%),
+        radial-gradient(circle at 80% 70%, rgba(123, 77, 255, 0.06) 0%, transparent 35%);
+    animation: particleFloat 45s ease-in-out infinite;
+}
+
+@keyframes particleFloat {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(-10%, -10%); }
+}
+
+/* ===== PANEL DEPTH SHADOWS - VisionOS v550 Layered ===== */
+.summary-topbar {
+    box-shadow: var(--shadow-depth-1);
+}
+
+.mega-summary {
+    box-shadow: var(--shadow-depth-1);
+}
+
+.summary-panel {
+    box-shadow: var(--shadow-depth-1);
+}
+
+.summary-panel:hover {
+    box-shadow: var(--shadow-depth-2), 0 0 25px rgba(53, 224, 255, 0.3);
+}
+
+/* Neon border chỉ khi active - VisionOS v600 Ultra */
+.summary-panel:active {
+    border-color: rgba(53, 224, 255, 0.3);
+    box-shadow: var(--card-shadow), 0 0 20px rgba(53, 224, 255, 0.25);
+}
+
+.advisor-panel {
+    box-shadow: var(--shadow-depth-1);
+}
+
+.risk-row {
+    box-shadow: var(--shadow-depth-1);
+}
+
+.action-strip {
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.4), 
+                0 -2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== MEGA TILE GRADIENT FRAME ===== */
+.mega-tile {
+    position: relative;
+    overflow: visible !important;
+}
+
+.mega-tile::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+        135deg,
+        rgba(53, 224, 255, 0.2),
+        rgba(123, 77, 255, 0.2),
+        rgba(53, 224, 255, 0.2)
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity var(--transition-normal);
+    pointer-events: none;
+}
+
+.mega-tile:hover::before {
+    opacity: 1;
+}
+
+/* ===== MATRIX CARDS GLASSMORPHISM ===== */
+.summary-panel::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(53, 224, 255, 0.1),
+        rgba(123, 77, 255, 0.1),
+        transparent
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    background-size: 200% 100%;
+    animation: glowSweep 3s linear infinite;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-normal);
+}
+
+.summary-panel:hover::after {
+    opacity: 0.4;
+}
+
+@keyframes glowSweep {
+    0% {
+        background-position: 0% 50%;
+    }
+    100% {
+        background-position: 100% 50%;
+    }
+}
+
+/* ===== AI ADVISOR GLOW & PULSE ===== */
+.advisor-panel__icon {
+    position: relative;
+    display: inline-block;
+}
+
+.advisor-panel__icon::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    background: linear-gradient(45deg, var(--accent-purple), var(--accent-cyan)) border-box;
+    -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: neonPulse 4s ease-in-out infinite;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+@keyframes neonPulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 0.7;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 1;
+    }
+}
+
+/* ===== BUTTONS ===== */
+.btn {
+    position: relative;
+    overflow: hidden;
+    transition: all var(--transition-fast);
+}
+
+.btn:active {
+    opacity: 0.9;
+}
+
+.btn--primary:hover {
+    box-shadow: 0 0 30px rgba(53, 224, 255, 0.8);
+}
+
+.btn--secondary:hover {
+    border-color: var(--accent-cyan);
+}
+
+.btn--ghost:hover {
+    color: var(--text-primary);
+    background: var(--surface-glass);
+}
+
+/* ===== FIELD TILE HOVER ===== */
+.field-tile:hover,
+.mega-tile:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 20px rgba(53, 224, 255, 0.2);
+}
+
+.field-tile--error:hover {
+    box-shadow: 0 0 15px rgba(255, 75, 92, 0.3);
+}
+
+.field-tile--warning:hover {
+    box-shadow: 0 0 15px rgba(255, 200, 87, 0.3);
+}
+
+/* ===== ADVISOR ITEM SLIDE IN ===== */
+@keyframes advisorItemSlide {
+    from {
+        opacity: 0;
+        transform: translateX(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.advisor-item {
+    animation: advisorItemSlide 200ms ease-out;
+    animation-fill-mode: both;
+}
+
+.advisor-item:nth-child(1) { animation-delay: 0ms; }
+.advisor-item:nth-child(2) { animation-delay: 50ms; }
+.advisor-item:nth-child(3) { animation-delay: 100ms; }
+.advisor-item:nth-child(4) { animation-delay: 150ms; }
+.advisor-item:nth-child(5) { animation-delay: 200ms; }
+
+/* ===== RISK CARD HOVER ===== */
+.risk-card:hover {
+    box-shadow: var(--card-shadow), 0 0 25px rgba(53, 224, 255, 0.3);
+    border-color: rgba(53, 224, 255, 0.4);
+}
+
+/* ===== ERROR PULSE ANIMATION ===== */
+@keyframes errorPulse {
+    0%, 100% {
+        border-color: var(--card-border);
+        box-shadow: none;
+    }
+    50% {
+        border-color: var(--accent-red);
+        box-shadow: 0 0 15px rgba(255, 75, 92, 0.4);
+    }
+}
+
+.field-tile--error {
+    animation: errorPulse 600ms ease-in-out 2;
+}
+
+/* ===== PAGE ENTER ANIMATION ===== */
+@keyframes pageEnter {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.summary-root {
+    animation: pageEnter 350ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* ===== FADE IN STAGGER ===== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.mega-summary {
+    animation: fadeInUp 400ms ease-out;
+    animation-delay: 50ms;
+    animation-fill-mode: both;
+}
+
+.summary-matrix {
+    animation: fadeInUp 400ms ease-out;
+    animation-delay: 100ms;
+    animation-fill-mode: both;
+}
+
+.advisor-panel {
+    animation: fadeInUp 400ms ease-out;
+    animation-delay: 150ms;
+    animation-fill-mode: both;
+}
+
+.risk-row {
+    animation: fadeInUp 400ms ease-out;
+    animation-delay: 200ms;
+    animation-fill-mode: both;
+}
+
+/* ===== ACTION STRIP SLIDE UP ===== */
+@keyframes actionStripSlideUp {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+.action-strip.action-strip--visible {
+    animation: actionStripSlideUp 260ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* ===== EDITOR BUBBLE OPEN ANIMATION - VisionOS v600 Ultra ===== */
+@keyframes editorBubbleOpen {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+.editor-bubble.editor-bubble--visible {
+    animation: editorBubbleOpen 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* ===== SHAKE ANIMATION (for errors) ===== */
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-4px);
+    }
+    75% {
+        transform: translateX(4px);
+    }
+}
+
+.editor-bubble--error {
+    animation: shake 400ms ease-in-out;
+}
+
+/* ===== BOUNCE IN ===== */
+@keyframes bounceIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.3);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    70% {
+        transform: scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.error-chip {
+    animation: bounceIn 400ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* ===== DISABLE ANIMATIONS FOR REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

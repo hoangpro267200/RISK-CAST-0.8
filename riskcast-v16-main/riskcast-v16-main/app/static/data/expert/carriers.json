@@ -1,0 +1,66 @@
+[
+  {
+    "code": "MAERSK",
+    "name": "Maersk Line",
+    "mode": "SEA",
+    "reliability_score": 85,
+    "region_strength": ["Asia", "Europe", "Transpacific"],
+    "notes": "Top-tier global ocean carrier. Reliable schedule integrity."
+  },
+  {
+    "code": "ONE",
+    "name": "Ocean Network Express",
+    "mode": "SEA",
+    "reliability_score": 78,
+    "region_strength": ["Asia", "US West Coast"],
+    "notes": "Strong intra-Asia and transpacific coverage."
+  },
+  {
+    "code": "COSCO",
+    "name": "COSCO Shipping",
+    "mode": "SEA",
+    "reliability_score": 80,
+    "region_strength": ["Asia", "India", "Mediterranean"],
+    "notes": "High frequency feeder networks. Good for LCL."
+  },
+  {
+    "code": "HPL",
+    "name": "Hapag-Lloyd",
+    "mode": "SEA",
+    "reliability_score": 76,
+    "region_strength": ["Europe", "Asia-Europe"],
+    "notes": "Strong on EU lanes. Some delay risk at major EU ports."
+  },
+  {
+    "code": "VNA",
+    "name": "Vietnam Airlines",
+    "mode": "AIR",
+    "reliability_score": 89,
+    "region_strength": ["Asia"],
+    "notes": "Strong regional airline. Good for SGN/HAN routes."
+  },
+  {
+    "code": "KE",
+    "name": "Korean Air Cargo",
+    "mode": "AIR",
+    "reliability_score": 93,
+    "region_strength": ["Asia", "US", "EU"],
+    "notes": "Premium carrier. Highly reliable for electronics exports."
+  },
+  {
+    "code": "ANA",
+    "name": "All Nippon Airways (ANA)",
+    "mode": "AIR",
+    "reliability_score": 95,
+    "region_strength": ["Japan", "Asia"],
+    "notes": "One of the most reliable air freight carriers globally."
+  },
+  {
+    "code": "LH",
+    "name": "Lufthansa Cargo",
+    "mode": "AIR",
+    "reliability_score": 90,
+    "region_strength": ["EU", "Vietnam-EU"],
+    "notes": "Strong in EU lanes. Stable performance."
+  }
+]

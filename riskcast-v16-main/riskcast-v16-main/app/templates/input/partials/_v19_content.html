@@ -1,0 +1,82 @@
+<div class="rc-page-container">
+
+    <!-- Page Header -->
+
+    <div class="rc-page-header">
+
+        <div>
+
+            <h1 class="rc-page-title">Logistics Risk Input</h1>
+
+            <p class="rc-page-subtitle">
+
+                Configure your shipment details and get real-time risk analysis powered by AI
+
+            </p>
+
+        </div>
+
+        
+
+        <div class="rc-page-header-actions">
+
+            <button class="rc-btn rc-btn-secondary" id="rc-btn-reset">
+
+                <i data-lucide="refresh-ccw" width="18" height="18"></i>
+
+                <span>Reset Form</span>
+
+            </button>
+
+            <button class="rc-btn rc-btn-primary" id="rc-btn-analyze">
+
+                <i data-lucide="zap" width="18" height="18"></i>
+
+                <span>Analyze Risk</span>
+
+            </button>
+
+        </div>
+
+    </div>
+
+    
+
+    <!-- Ultra Auto-Fill Button -->
+    
+    <div style="margin: 20px 0;">
+        <button id="rc-auto-ultra-btn" class="rc-ultra-btn">
+            🧬 Auto-Fill Ultra Shipment (Full Form)
+        </button>
+    </div>
+
+    <!-- Sections Wrapper -->
+
+    <div class="rc-sections-wrapper">
+
+        {% include 'input/partials/_v19_sections.html' %}
+
+    </div>
+
+</div>
+
+
+
+<!--
+
+FILE: app/templates/input/partials/_v19_content.html
+
+PURPOSE: Main content structure for RISKCAST v19
+
+FEATURES:
+
+- Page header with title, subtitle, and action buttons
+
+- Sections wrapper importing all form sections
+
+- Clean separation of concerns
+
+-->
+
+
+

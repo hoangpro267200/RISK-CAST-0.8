@@ -1,0 +1,22 @@
+@import url("../../css/tokens.css");
+
+.kpi-panel {
+  padding: var(--space-16);
+}
+
+.kpi-card {
+  display: grid;
+  gap: 6px;
+}
+
+.kpi-card__value {
+  color: var(--text-strong);
+}
+
+.pill {
+  align-self: start;
+}
+
+
+
+

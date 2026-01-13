@@ -1,0 +1,1876 @@
+<!-- ======================================================================== -->
+
+<!-- SECTION 1: TRANSPORT SETUP v20 (Dynamic from logistics_data.js) -->
+
+<!-- ======================================================================== -->
+
+<section id="rc-section-transport" class="rc-section rc-fade-in-up rc-form-panel" data-section-id="transport">
+
+    <div class="rc-section-header">
+
+        <div>
+
+            <h2 class="rc-section-title">01 • Transport Setup</h2>
+
+            <p class="rc-section-subtitle">Define your core shipping route and mode</p>
+
+        </div>
+
+        <span class="rc-pill rc-pill-required">Required</span>
+
+    </div>
+
+    
+
+    <div class="rc-grid rc-grid-2">
+
+        <!-- Trade Lane -->
+
+        <div class="rc-field">
+
+            <label for="tradeLane" class="rc-label">Trade Lane</label>
+
+            <div class="rc-dropdown" id="tradeLane" data-field="tradeLane">
+
+                <button type="button" class="rc-dropdown-toggle" aria-haspopup="true" aria-expanded="false">
+
+                    <span class="rc-dropdown-label">Select trade lane</span>
+
+                    <i data-lucide="chevron-down" class="rc-dropdown-arrow" width="18" height="18"></i>
+
+                </button>
+
+                <ul class="rc-dropdown-menu" role="listbox" id="tradeLane-menu">
+
+                    <!-- Populated dynamically from logistics_data.js -->
+
+                </ul>
+
+            </div>
+
+            <span class="rc-field-hint">Select origin and destination trade route</span>
+
+        </div>
+
+        
+
+        <!-- Mode of Transport -->
+
+        <div class="rc-field">
+
+            <label for="mode" class="rc-label">Mode of Transport</label>
+
+            <div class="rc-dropdown" id="mode" data-field="mode">
+
+                <button type="button" class="rc-dropdown-toggle" aria-haspopup="true" aria-expanded="false">
+
+                    <span class="rc-dropdown-label">Select mode</span>
+
+                    <i data-lucide="chevron-down" class="rc-dropdown-arrow" width="18" height="18"></i>
+
+                </button>
+
+                <ul class="rc-dropdown-menu" role="listbox" id="mode-menu">
+
+                    <!-- Populated dynamically based on selected trade lane -->
+
+                </ul>
+
+            </div>
+
+            <span class="rc-field-hint">Available modes for selected trade lane</span>
+
+        </div>
+
+        
+
+        <!-- Shipment Type -->
+
+        <div class="rc-field">
+
+            <label for="shipmentType" class="rc-label">Shipment Type</label>
+
+            <div class="rc-dropdown" id="shipmentTypeField" data-field="shipmentType">
+
+                <button type="button" class="rc-dropdown-toggle" aria-haspopup="true" aria-expanded="false">
+
+                    <span class="rc-dropdown-label">Select shipment type</span>
+
+                    <i data-lucide="chevron-down" class="rc-dropdown-arrow" width="18" height="18"></i>
+
+                </button>
+
+                <ul class="rc-dropdown-menu" role="listbox" id="shipmentType-menu">
+
+                    <!-- Populated dynamically based on selected mode -->
+
+                </ul>
+
+            </div>
+
+            <span class="rc-field-hint">Select shipment type based on mode</span>
+
+        </div>
+
+        
+
+        <!-- Service Route -->
+
+        <div class="rc-field">
+
+            <label for="serviceRoute" class="rc-label">Service Route</label>
+
+            <div class="rc-dropdown" id="service-route-dropdown" data-field="serviceRoute">
+
+                <button type="button" class="rc-dropdown-toggle" aria-haspopup="true" aria-expanded="false">
+
+                    <span class="rc-dropdown-label">Select service route</span>
+
+                    <i data-lucide="chevron-down" class="rc-dropdown-arrow" width="18" height="18"></i>
+
+                </button>
+
+                <ul class="rc-dropdown-menu" role="listbox" id="serviceRoute-menu">
+
+                    <!-- Populated dynamically based on trade lane + mode -->
+
+                </ul>
+
+            </div>
+
+            <span class="rc-field-hint">Specific route with carrier information</span>
+
+        </div>
+
+        
+
+        <!-- Carrier -->
+
+        <div class="rc-field">
+
+            <label for="carrier" class="rc-label">Carrier</label>
+
+            <div class="rc-dropdown" id="carrier-dropdown" data-type="carrier" data-field="carrier">
+
+                <div class="rc-dropdown-selected" id="carrier-selected">Select carrier</div>
+
+                <div class="rc-dropdown-menu" id="carrier-menu"></div>
+
+            </div>
+
+            <span class="rc-field-hint">Choose carrier for this shipment</span>
+
+        </div>
+
+        
+
+        <!-- Pickup Location / POL -->
+
+        <div class="rc-field" id="rc-field-origin">
+
+            <label for="pol" class="rc-label" id="label-origin" data-mode-label>POL (Port of Loading)</label>
+
+            <div class="rc-dropdown" id="pickup-location-dropdown" data-type="location" data-field="pol">
+
+                <div class="rc-dropdown-selected" id="pickup-location-selected">Select…</div>
+
+                <div class="rc-dropdown-menu" id="pickup-location-menu"></div>
+
+            </div>
+
+            <span class="rc-field-hint">Port of loading from origin country</span>
+
+        </div>
+
+        
+
+        <!-- Delivery Location / POD -->
+
+        <div class="rc-field" id="rc-field-destination">
+
+            <label for="pod" class="rc-label" id="label-destination" data-mode-label>POD (Port of Discharge)</label>
+
+            <div class="rc-dropdown" id="delivery-location-dropdown" data-type="location" data-field="pod">
+
+                <div class="rc-dropdown-selected" id="delivery-location-selected">Select…</div>
+
+                <div class="rc-dropdown-menu" id="delivery-location-menu"></div>
+
+            </div>
+
+            <span class="rc-field-hint">Port of discharge in destination country</span>
+
+        </div>
+
+        
+
+        <!-- Container Type -->
+
+        <div class="rc-field">
+
+            <label for="containerType" class="rc-label" id="label-container">Container Type</label>
+
+            <div class="rc-dropdown" id="container-type-dropdown" data-type="container" data-field="containerType">
+
+                <div class="rc-dropdown-selected" id="container-selected">Select…</div>
+
+                <div class="rc-dropdown-menu" id="container-menu"></div>
+
+            </div>
+
+            <span class="rc-field-hint">Choose container type for this shipment</span>
+
+        </div>
+
+        
+
+        <!-- ETD (Estimated Time of Departure) -->
+
+        <div class="rc-field">
+
+            <label for="etd" class="rc-label">ETD (Estimated Time of Departure)</label>
+
+            <input 
+
+                type="date" 
+
+                id="etd" 
+
+                name="etd" 
+
+                class="rc-input"
+
+            >
+
+            <span class="rc-field-hint">Expected departure date</span>
+
+        </div>
+
+        
+
+        <!-- Schedule (Readonly) -->
+
+        <div class="rc-field">
+
+            <label for="schedule" class="rc-label">Schedule</label>
+
+            <input 
+
+                type="text" 
+
+                id="schedule" 
+
+                name="schedule" 
+
+                class="rc-input rc-field-readonly" 
+
+                readonly
+
+                placeholder="Auto-filled from service route"
+
+            >
+
+            <span class="rc-field-hint">Service schedule frequency</span>
+
+        </div>
+
+        
+
+        <!-- Base Transit (Readonly) -->
+
+        <div class="rc-field">
+
+            <label for="transitDays" class="rc-label">Base Transit Time (days)</label>
+
+            <input 
+
+                type="text" 
+
+                id="transitDays" 
+
+                name="transitDays" 
+
+                class="rc-input rc-field-readonly" 
+
+                readonly
+
+                placeholder="Auto-calculated"
+
+            >
+
+            <span class="rc-field-hint">Base transit time from service route</span>
+
+        </div>
+
+        
+
+        <!-- Seasonality Index (Readonly) -->
+
+        <div class="rc-field">
+
+            <label for="seasonality" class="rc-label">Seasonality Index</label>
+
+            <input 
+
+                type="text" 
+
+                id="seasonality" 
+
+                name="seasonality" 
+
+                class="rc-input rc-field-readonly" 
+
+                readonly
+
+                placeholder="Auto-calculated from ETD"
+
+            >
+
+            <span class="rc-field-hint">Seasonal adjustment factor</span>
+
+        </div>
+
+        
+
+        <!-- ETA (Readonly) -->
+
+        <div class="rc-field">
+
+            <label for="eta" class="rc-label">ETA (Estimated Time of Arrival)</label>
+
+            <input 
+
+                type="text" 
+
+                id="eta" 
+
+                name="eta" 
+
+                class="rc-input rc-field-readonly" 
+
+                readonly
+
+                placeholder="Auto-calculated: ETD + Transit + Seasonality"
+
+            >
+
+            <span class="rc-field-hint">Calculated arrival date</span>
+
+        </div>
+
+        
+
+        <!-- Reliability Score (Readonly) -->
+
+        <div class="rc-field">
+
+            <label for="reliability" class="rc-label">Reliability Score</label>
+
+            <input 
+
+                type="text" 
+
+                id="reliability" 
+
+                name="reliability" 
+
+                class="rc-input rc-field-readonly" 
+
+                readonly
+
+                placeholder="Auto-calculated: Carrier - Seasonality"
+
+            >
+
+            <span class="rc-field-hint">Carrier reliability adjusted for seasonality</span>
+
+        </div>
+
+    </div>
+
+    <!-- Priority Selection (4 Cards) -->
+
+    <div class="rc-field rc-grid-span-2">
+
+        <label class="rc-label">Priority Selection</label>
+
+        <div id="priorityContainer" class="priority-row">
+
+            <div class="priority-card" data-priority="fastest">⚡ Fastest</div>
+
+            <div class="priority-card" data-priority="cheapest">💲 Cheapest</div>
+
+            <div class="priority-card" data-priority="reliable">🛡 Most Reliable</div>
+
+            <div class="priority-card" data-priority="balanced">🎯 Balanced</div>
+
+        </div>
+
+        <span class="rc-field-hint">Select your priority to filter service routes</span>
+
+    </div>
+
+    <!-- Route Quality Score Panel -->
+    <div id="priorityScorePanel" class="priority-score-panel hidden">
+        <h4 class="score-title">Route Quality Breakdown</h4>
+        <div class="score-grid">
+            <div class="score-box">
+                <span class="score-label">Speed</span>
+                <span id="scoreSpeed" class="score-value">0%</span>
+            </div>
+            <div class="score-box">
+                <span class="score-label">Cost</span>
+                <span id="scoreCost" class="score-value">0%</span>
+            </div>
+            <div class="score-box">
+                <span class="score-label">Reliability</span>
+                <span id="scoreReliability" class="score-value">0%</span>
+            </div>
+            <div class="score-box">
+                <span class="score-label">Balanced</span>
+                <span id="scoreBalanced" class="score-value">0%</span>
+            </div>
+        </div>
+        <!-- Radar Chart -->
+        <div class="chart-wrapper">
+            <canvas id="priorityRadarChart"></canvas>
+        </div>
+        <!-- Route Suggestion Panel -->
+        <div id="routeSuggestionPanel" class="route-suggestion hidden">
+            <h4 class="route-title">Recommended Service Route</h4>
+            <div class="route-box">
+                <span id="routeSuggestionText" class="route-text">No suggestion</span>
+                <small id="routeSuggestionReason" class="route-reason">Select a priority to see recommendation</small>
+            </div>
+        </div>
+    </div>
+
+</section>
+
+
+
+<!-- ======================================================================== -->
+
+<!-- ======================================================================== -->
+<!-- SECTION 2: CARGO & PACKING — v20 International Standard -->
+<!-- ======================================================================== -->
+
+<section id="rc-section-cargo" class="rc-section rc-fade-in-up" data-section-id="cargo">
+
+    <div class="rc-section-header">
+
+        <div>
+
+            <h2 class="rc-section-title">02 • Cargo & Packing</h2>
+
+            <p class="rc-section-subtitle">
+
+                Describe your cargo with international-standard details for accurate risk calculation
+
+            </p>
+
+        </div>
+
+        <span class="rc-pill rc-pill-required">Required</span>
+
+    </div>
+
+
+
+    <div class="rc-grid rc-grid-2 rc-card-acrylic">
+
+        <!-- ========================= A. CARGO IDENTITY ========================= -->
+
+        <div class="rc-field rc-grid-span-2">
+
+            <div class="rc-subsection-label">A • Cargo Identity</div>
+
+        </div>
+
+
+
+        <!-- Cargo Type -->
+
+        <div class="rc-field">
+
+            <label for="cargoType" class="rc-label">Cargo Type</label>
+
+            <div class="rc-dropdown" id="cargoType" data-field="cargoType">
+
+                <button type="button" class="rc-dropdown-toggle">
+
+                    <span class="rc-dropdown-label">Select cargo type</span>
+
+                    <i data-lucide="chevron-down" class="rc-dropdown-arrow" width="18" height="18"></i>
+
+                </button>
+
+                <ul class="rc-dropdown-menu">
+
+                    <li data-value="general"><i data-lucide="box" width="18" height="18"></i> General Cargo</li>
+
+                    <li data-value="electronics"><i data-lucide="cpu" width="18" height="18"></i> Electronics / High-value</li>
+
+                    <li data-value="pharma"><i data-lucide="pill" width="18" height="18"></i> Pharma / Temperature-sensitive</li>
+
+                    <li data-value="perishable"><i data-lucide="apple" width="18" height="18"></i> Perishable / Food</li>
+
+                    <li data-value="chemical"><i data-lucide="flask-conical" width="18" height="18"></i> Chemicals / Hazardous</li>
+
+                    <li data-value="project"><i data-lucide="package" width="18" height="18"></i> Project / Oversized Cargo</li>
+
+                </ul>
+
+            </div>
+
+            <span class="rc-field-hint">High-level cargo category</span>
+
+        </div>
+
+
+
+        <!-- Commodity Description -->
+
+        <div class="rc-field">
+
+            <label for="cargoDescription" class="rc-label">Commodity Description</label>
+
+            <textarea
+
+                id="cargoDescription"
+
+                name="cargoDescription"
+
+                class="rc-textarea"
+
+                placeholder="e.g., Electronic components, smartphones with lithium batteries"
+
+                rows="3"
+
+            ></textarea>
+
+            <span class="rc-field-hint">Commercial description used on invoice / packing list</span>
+
+        </div>
+
+
+
+        <!-- HS Code -->
+
+        <div class="rc-field">
+
+            <label for="hsCode" class="rc-label">HS Code</label>
+
+            <input
+
+                type="text"
+
+                id="hsCode"
+
+                name="hsCode"
+
+                class="rc-input"
+
+                placeholder="e.g., 8517.12"
+
+            >
+
+            <span class="rc-field-hint">6–10 digit Harmonized System code</span>
+
+        </div>
+
+
+
+        <!-- Dangerous Goods Toggle -->
+
+        <div class="rc-field">
+
+            <label class="rc-label">Dangerous Goods (DG)</label>
+
+            <div class="rc-pill-group" id="dgToggleGroup">
+
+                <button type="button" class="rc-pill-option active" data-field="isDG" data-value="no">
+
+                    Not DG
+
+                </button>
+
+                <button type="button" class="rc-pill-option" data-field="isDG" data-value="yes">
+
+                    DG / Hazardous
+
+                </button>
+
+            </div>
+
+            <span class="rc-field-hint">Select if cargo is classified as Dangerous Goods</span>
+
+        </div>
+
+
+
+        <!-- DG Details (conditional) -->
+
+        <div class="rc-field rc-grid-span-2 dg-details-panel hidden" id="dgDetailsPanel">
+
+            <div class="rc-grid rc-grid-3">
+
+                <div class="rc-field">
+
+                    <label for="unNumber" class="rc-label">UN Number</label>
+
+                    <input type="text" id="unNumber" name="unNumber" class="rc-input" placeholder="e.g., UN3480">
+
+                </div>
+
+                <div class="rc-field">
+
+                    <label for="dgClass" class="rc-label">DG Class</label>
+
+                    <input type="text" id="dgClass" name="dgClass" class="rc-input" placeholder="e.g., Class 9">
+
+                </div>
+
+                <div class="rc-field">
+
+                    <label for="packGroup" class="rc-label">Packing Group</label>
+
+                    <input type="text" id="packGroup" name="packGroup" class="rc-input" placeholder="e.g., II">
+
+                </div>
+
+            </div>
+
+            <span class="rc-field-hint">Dangerous Goods details for compliance and risk scoring</span>
+
+        </div>
+
+
+
+        <!-- =================== B. QUANTITY & PACKAGING =================== -->
+
+        <div class="rc-field rc-grid-span-2">
+
+            <div class="rc-subsection-label">B • Quantity & Packaging</div>
+
+        </div>
+
+
+
+        <!-- Packing Type -->
+
+        <div class="rc-field">
+
+            <label for="packingType" class="rc-label">Packing Type</label>
+
+            <div class="rc-dropdown" id="packingType" data-field="packingType">
+
+                <button type="button" class="rc-dropdown-toggle">
+
+                    <span class="rc-dropdown-label">Select packing type</span>
+
+                    <i data-lucide="chevron-down" class="rc-dropdown-arrow" width="18" height="18"></i>
+
+                </button>
+
+                <ul class="rc-dropdown-menu">
+
+                    <li data-value="pallet"><i data-lucide="layout-grid" width="18" height="18"></i> Pallet</li>
+
+                    <li data-value="carton"><i data-lucide="package" width="18" height="18"></i> Carton / Box</li>
+
+                    <li data-value="crate"><i data-lucide="archive" width="18" height="18"></i> Crate / Wooden Box</li>
+
+                    <li data-value="drum"><i data-lucide="beaker" width="18" height="18"></i> Drum / Barrel</li>
+
+                    <li data-value="bulk"><i data-lucide="package-search" width="18" height="18"></i> Bulk (loose)</li>
+
+                </ul>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- Number of Packages -->
+
+        <div class="rc-field">
+
+            <label for="packageCount" class="rc-label">Number of Packages</label>
+
+            <input
+
+                type="number"
+
+                id="packageCount"
+
+                name="packageCount"
+
+                class="rc-input"
+
+                min="0"
+
+                step="1"
+
+                placeholder="e.g., 120"
+
+            >
+
+        </div>
+
+
+
+        <!-- Stackability -->
+
+        <div class="rc-field">
+
+            <label class="rc-label">Stackable</label>
+
+            <div class="rc-pill-group" id="stackableGroup">
+
+                <button type="button" class="rc-pill-option active" data-field="stackable" data-value="yes">Stackable</button>
+
+                <button type="button" class="rc-pill-option" data-field="stackable" data-value="no">Non-stackable</button>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- Palletization -->
+
+        <div class="rc-field">
+
+            <label class="rc-label">Palletization</label>
+
+            <div class="rc-grid rc-grid-2 rc-inline-grid">
+
+                <div class="rc-field">
+
+                    <input
+
+                        type="number"
+
+                        id="palletCount"
+
+                        name="palletCount"
+
+                        class="rc-input"
+
+                        min="0"
+
+                        step="1"
+
+                        placeholder="Pallet count"
+
+                    >
+
+                </div>
+
+                <div class="rc-field">
+
+                    <input
+
+                        type="text"
+
+                        id="palletType"
+
+                        name="palletType"
+
+                        class="rc-input"
+
+                        placeholder="e.g., EUR / ISO"
+
+                    >
+
+                </div>
+
+            </div>
+
+            <span class="rc-field-hint">If applicable, specify pallet type & count</span>
+
+        </div>
+
+
+
+        <!-- =================== C. DIMENSIONS & WEIGHT =================== -->
+
+        <div class="rc-field rc-grid-span-2">
+
+            <div class="rc-subsection-label">C • Dimensions & Weight</div>
+
+        </div>
+
+
+
+        <!-- Per-package dimensions -->
+
+        <div class="rc-field">
+
+            <label class="rc-label">Package Dimensions (cm)</label>
+
+            <div class="rc-grid rc-grid-3 rc-inline-grid">
+
+                <div class="rc-field">
+
+                    <input type="number" id="lengthCm" name="lengthCm" class="rc-input" min="0" step="0.1" placeholder="Length">
+
+                </div>
+
+                <div class="rc-field">
+
+                    <input type="number" id="widthCm" name="widthCm" class="rc-input" min="0" step="0.1" placeholder="Width">
+
+                </div>
+
+                <div class="rc-field">
+
+                    <input type="number" id="heightCm" name="heightCm" class="rc-input" min="0" step="0.1" placeholder="Height">
+
+                </div>
+
+            </div>
+
+            <span class="rc-field-hint">Single package outer dimensions</span>
+
+        </div>
+
+
+
+        <!-- Unit Weight -->
+
+        <div class="rc-field">
+
+            <label for="unitWeight" class="rc-label">Unit Weight (kg)</label>
+
+            <input
+
+                type="number"
+
+                id="unitWeight"
+
+                name="unitWeight"
+
+                class="rc-input"
+
+                min="0"
+
+                step="0.01"
+
+                placeholder="e.g., 12.5"
+
+            >
+
+        </div>
+
+
+
+        <!-- Total Gross Weight -->
+
+        <div class="rc-field">
+
+            <label for="grossWeight" class="rc-label">Total Gross Weight (kg)</label>
+
+            <input
+
+                type="number"
+
+                id="grossWeight"
+
+                name="grossWeight"
+
+                class="rc-input"
+
+                min="0"
+
+                step="0.01"
+
+                placeholder="e.g., 15000"
+
+            >
+
+        </div>
+
+
+
+        <!-- Auto Volume / Chargeable -->
+
+        <div class="rc-field">
+
+            <label for="totalVolume" class="rc-label">Total Volume (cbm)</label>
+
+            <input
+
+                type="text"
+
+                id="totalVolume"
+
+                name="totalVolume"
+
+                class="rc-input rc-field-readonly"
+
+                readonly
+
+                placeholder="Auto-calculated from dimensions × package count"
+
+            >
+
+        </div>
+
+
+
+        <div class="rc-field">
+
+            <label for="chargeableWeight" class="rc-label">Chargeable Weight (kg)</label>
+
+            <input
+
+                type="text"
+
+                id="chargeableWeight"
+
+                name="chargeableWeight"
+
+                class="rc-input rc-field-readonly"
+
+                readonly
+
+                placeholder="Auto-calculated vs volume weight"
+
+            >
+
+        </div>
+
+
+
+        <!-- =================== D. SPECIAL REQUIREMENTS =================== -->
+
+        <div class="rc-field rc-grid-span-2">
+
+            <div class="rc-subsection-label">D • Special Requirements</div>
+
+        </div>
+
+
+
+        <!-- Temperature -->
+
+        <div class="rc-field">
+
+            <label class="rc-label">Temperature Control</label>
+
+            <div class="rc-grid rc-grid-2 rc-inline-grid">
+
+                <div class="rc-field">
+
+                    <input
+
+                        type="number"
+
+                        id="tempMin"
+
+                        name="tempMin"
+
+                        class="rc-input"
+
+                        step="0.1"
+
+                        placeholder="Min °C"
+
+                    >
+
+                </div>
+
+                <div class="rc-field">
+
+                    <input
+
+                        type="number"
+
+                        id="tempMax"
+
+                        name="tempMax"
+
+                        class="rc-input"
+
+                        step="0.1"
+
+                        placeholder="Max °C"
+
+                    >
+
+                </div>
+
+            </div>
+
+            <span class="rc-field-hint">Leave blank if ambient temperature is acceptable</span>
+
+        </div>
+
+
+
+        <!-- Sensitivity -->
+
+        <div class="rc-field">
+
+            <label class="rc-label">Cargo Sensitivity</label>
+
+            <div class="rc-pill-group">
+
+                <button type="button" class="rc-pill-option active" data-field="cargoSensitivity" data-value="standard">
+
+                    Standard
+
+                </button>
+
+                <button type="button" class="rc-pill-option" data-field="cargoSensitivity" data-value="fragile">
+
+                    Fragile
+
+                </button>
+
+                <button type="button" class="rc-pill-option" data-field="cargoSensitivity" data-value="temperature">
+
+                    Temperature Sensitive
+
+                </button>
+
+                <button type="button" class="rc-pill-option" data-field="cargoSensitivity" data-value="high_value">
+
+                    High-value
+
+                </button>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- Insurance -->
+
+        <div class="rc-field">
+
+            <label for="insuranceValue" class="rc-label">Insurance Value (USD)</label>
+
+            <input
+
+                type="number"
+
+                id="insuranceValue"
+
+                name="insuranceValue"
+
+                class="rc-input"
+
+                min="0"
+
+                step="1"
+
+                placeholder="e.g., 250000"
+
+            >
+
+            <span class="rc-field-hint">Total declared value for insurance</span>
+
+        </div>
+
+
+
+        <!-- Risk Tag (readonly, AI) -->
+
+        <div class="rc-field">
+
+            <label for="cargoRiskTag" class="rc-label">Cargo Risk Tag</label>
+
+            <input
+
+                type="text"
+
+                id="cargoRiskTag"
+
+                name="cargoRiskTag"
+
+                class="rc-input rc-field-readonly"
+
+                readonly
+
+                placeholder="Auto-generated (e.g., High-value DG, Reefer, Fragile)"
+
+            >
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- ======================================================================== -->
+
+<!-- SECTION 3: SELLER INFORMATION -->
+
+<!-- ======================================================================== -->
+
+<section id="rc-section-seller" class="rc-section rc-fade-in-up" data-section-id="seller">
+
+    <div class="rc-section-header">
+
+        <div>
+
+            <h2 class="rc-section-title">03 • Seller Information</h2>
+
+            <p class="rc-section-subtitle">Details about the cargo seller/shipper</p>
+
+        </div>
+
+        <span class="rc-pill rc-pill-required">Required</span>
+
+    </div>
+
+    
+
+    <div class="rc-grid rc-grid-2">
+
+        <!-- Seller Name -->
+
+        <div class="rc-field">
+
+            <label for="sellerName" class="rc-label">Seller / Shipper Name</label>
+
+            <input 
+
+                type="text" 
+
+                id="sellerName" 
+
+                name="sellerName" 
+
+                class="rc-input" 
+
+                placeholder="e.g., ABC Manufacturing Ltd."
+
+            >
+
+        </div>
+
+        
+
+        <!-- Seller Country -->
+
+        <div class="rc-field">
+
+            <label for="seller-country" class="rc-label">Quốc gia / Vị trí của người bán</label>
+
+            <div class="rc-dropdown rc-dropdown--country" id="seller-country-dropdown" data-field="sellerCountry">
+
+                <button type="button" class="rc-dropdown-toggle" id="seller-country-toggle" aria-haspopup="true" aria-expanded="false">
+
+                    <span class="rc-dropdown-label" id="seller-country-label">Chọn quốc gia</span>
+
+                    <i data-lucide="chevron-down" class="rc-dropdown-arrow" width="18" height="18"></i>
+
+                </button>
+
+                <ul class="rc-dropdown-menu" id="seller-country-menu" role="listbox"></ul>
+
+            </div>
+
+            <input type="hidden" id="seller-country" name="sellerCountry" />
+
+        </div>
+
+        
+
+        <!-- Seller Experience -->
+
+        <div class="rc-field">
+
+            <label class="rc-label">Seller Experience Level</label>
+
+            <div class="rc-pill-group">
+
+                <button 
+
+                    type="button" 
+
+                    class="rc-pill-option" 
+
+                    data-field="sellerExperience" 
+
+                    data-value="new"
+
+                >
+
+                    New (0-1 years)
+
+                </button>
+
+                <button 
+
+                    type="button" 
+
+                    class="rc-pill-option active" 
+
+                    data-field="sellerExperience" 
+
+                    data-value="growing"
+
+                >
+
+                    Growing (2-5 years)
+
+                </button>
+
+                <button 
+
+                    type="button" 
+
+                    class="rc-pill-option" 
+
+                    data-field="sellerExperience" 
+
+                    data-value="experienced"
+
+                >
+
+                    Experienced (5+ years)
+
+                </button>
+
+            </div>
+
+        </div>
+
+        
+
+        <!-- Incoterm -->
+
+        <div class="rc-field">
+
+            <label for="incoterm" class="rc-label">Incoterm</label>
+
+            <div class="rc-dropdown" id="incoterm-dropdown" data-field="incoterm">
+
+                <button type="button" class="rc-dropdown-toggle" aria-haspopup="true" aria-expanded="false">
+
+                    <span class="rc-dropdown-label" id="incoterm-label">Select incoterm</span>
+
+                    <i data-lucide="chevron-down" class="rc-dropdown-arrow" width="18" height="18"></i>
+
+                </button>
+
+                <ul class="rc-dropdown-menu" id="incoterm-menu" role="listbox"></ul>
+
+            </div>
+
+            <input type="hidden" id="incoterm" name="incoterm" />
+
+            <span class="rc-field-hint">Defines responsibility transfer point</span>
+
+        </div>
+
+        
+
+        <!-- Seller Contact -->
+
+        <div class="rc-field rc-grid-span-2">
+
+            <label for="sellerContact" class="rc-label">
+
+                Seller Contact 
+
+                <span class="rc-label-optional">(Optional)</span>
+
+            </label>
+
+            <input 
+
+                type="text" 
+
+                id="sellerContact" 
+
+                name="sellerContact" 
+
+                class="rc-input" 
+
+                placeholder="Email or phone number"
+
+            >
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- ======================================================================== -->
+
+<!-- SECTION 4: BUYER INFORMATION -->
+
+<!-- ======================================================================== -->
+
+<section id="rc-section-buyer" class="rc-section rc-fade-in-up" data-section-id="buyer">
+
+    <div class="rc-section-header">
+
+        <div>
+
+            <h2 class="rc-section-title">04 • Buyer Information</h2>
+
+            <p class="rc-section-subtitle">Details about the cargo buyer/consignee</p>
+
+        </div>
+
+        <span class="rc-pill rc-pill-optional">Optional</span>
+
+    </div>
+
+    
+
+    <div class="rc-grid rc-grid-2">
+
+        <!-- Buyer Name -->
+
+        <div class="rc-field">
+
+            <label for="buyerName" class="rc-label">Buyer / Consignee Name</label>
+
+            <input 
+
+                type="text" 
+
+                id="buyerName" 
+
+                name="buyerName" 
+
+                class="rc-input" 
+
+                placeholder="e.g., XYZ Imports Corp."
+
+            >
+
+        </div>
+
+        
+
+        <!-- Buyer Country -->
+
+        <div class="rc-field">
+
+            <label for="buyer-country" class="rc-label">Quốc gia / Vị trí của người mua</label>
+
+            <div class="rc-dropdown rc-dropdown--country" id="buyer-country-dropdown" data-field="buyerCountry">
+
+                <button type="button" class="rc-dropdown-toggle" id="buyer-country-toggle" aria-haspopup="true" aria-expanded="false">
+
+                    <span class="rc-dropdown-label" id="buyer-country-label">Chọn quốc gia</span>
+
+                    <i data-lucide="chevron-down" class="rc-dropdown-arrow" width="18" height="18"></i>
+
+                </button>
+
+                <ul class="rc-dropdown-menu" id="buyer-country-menu" role="listbox"></ul>
+
+            </div>
+
+            <input type="hidden" id="buyer-country" name="buyerCountry" />
+
+        </div>
+
+        
+
+        <!-- Buyer Segment -->
+
+        <div class="rc-field">
+
+            <label for="buyerSegment" class="rc-label">Buyer Segment</label>
+
+            <div class="rc-dropdown" id="buyerSegment" data-field="buyerSegment">
+
+                <button type="button" class="rc-dropdown-toggle">
+
+                    <span class="rc-dropdown-label">Select buyer segment</span>
+
+                    <i data-lucide="chevron-down" class="rc-dropdown-arrow" width="18" height="18"></i>
+
+                </button>
+
+                <ul class="rc-dropdown-menu">
+
+                    <li data-value="retail">
+
+                        <i data-lucide="shopping-cart" width="18" height="18"></i>
+
+                        Retail
+
+                    </li>
+
+                    <li data-value="manufacturer">
+
+                        <i data-lucide="factory" width="18" height="18"></i>
+
+                        Manufacturer
+
+                    </li>
+
+                    <li data-value="distributor">
+
+                        <i data-lucide="truck" width="18" height="18"></i>
+
+                        Distributor
+
+                    </li>
+
+                    <li data-value="ecommerce">
+
+                        <i data-lucide="shopping-bag" width="18" height="18"></i>
+
+                        E-commerce
+
+                    </li>
+
+                    <li data-value="other">
+
+                        <i data-lucide="building" width="18" height="18"></i>
+
+                        Other
+
+                    </li>
+
+                </ul>
+
+            </div>
+
+        </div>
+
+        
+
+        <!-- Priority Level -->
+
+        <div class="rc-field">
+
+            <label class="rc-label">Priority Level</label>
+
+            <div class="rc-pill-group">
+
+                <button 
+
+                    type="button" 
+
+                    class="rc-pill-option active" 
+
+                    data-field="buyerPriority" 
+
+                    data-value="normal"
+
+                >
+
+                    Normal
+
+                </button>
+
+                <button 
+
+                    type="button" 
+
+                    class="rc-pill-option" 
+
+                    data-field="buyerPriority" 
+
+                    data-value="high"
+
+                >
+
+                    High
+
+                </button>
+
+                <button 
+
+                    type="button" 
+
+                    class="rc-pill-option" 
+
+                    data-field="buyerPriority" 
+
+                    data-value="critical"
+
+                >
+
+                    Critical
+
+                </button>
+
+            </div>
+
+        </div>
+
+        
+
+        <!-- Buyer Contact -->
+
+        <div class="rc-field rc-grid-span-2">
+
+            <label for="buyerContact" class="rc-label">
+
+                Buyer Contact 
+
+                <span class="rc-label-optional">(Optional)</span>
+
+            </label>
+
+            <input 
+
+                type="text" 
+
+                id="buyerContact" 
+
+                name="buyerContact" 
+
+                class="rc-input" 
+
+                placeholder="Email or phone number"
+
+            >
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- ======================================================================== -->
+
+<!-- SECTION 5: ALGORITHM MODULES -->
+
+<!-- ======================================================================== -->
+
+<section id="rc-section-modules" class="rc-section rc-fade-in-up" data-section-id="modules">
+
+    <div class="rc-section-header">
+
+        <div>
+
+            <h2 class="rc-section-title">05 • Algorithm Modules</h2>
+
+            <p class="rc-section-subtitle">Enable risk analysis modules for comprehensive assessment</p>
+
+        </div>
+
+        <span class="rc-pill rc-pill-optional">Optional</span>
+
+    </div>
+
+    
+
+    <div class="rc-modules-grid">
+
+        <!-- Weather Module -->
+
+        <div class="rc-module-card">
+
+            <div class="rc-module-header">
+
+                <div class="rc-module-icon">
+
+                    <i data-lucide="cloud-rain" width="20" height="20"></i>
+
+                </div>
+
+                <div class="rc-module-info">
+
+                    <h4>Weather & Climate Risk</h4>
+
+                    <p>Analyze seasonal weather patterns, storm risks, and climate impact on transit</p>
+
+                </div>
+
+            </div>
+
+            <label class="rc-toggle">
+
+                <input type="checkbox" id="moduleWeather" data-module="weather" checked>
+
+                <span class="rc-toggle-slider"></span>
+
+            </label>
+
+            <span class="rc-badge rc-badge-recommended">Recommended</span>
+
+        </div>
+
+        
+
+        <!-- Port Congestion Module -->
+
+        <div class="rc-module-card">
+
+            <div class="rc-module-header">
+
+                <div class="rc-module-icon">
+
+                    <i data-lucide="anchor" width="20" height="20"></i>
+
+                </div>
+
+                <div class="rc-module-info">
+
+                    <h4>Port Congestion & Capacity</h4>
+
+                    <p>Real-time port congestion data and capacity constraints analysis</p>
+
+                </div>
+
+            </div>
+
+            <label class="rc-toggle">
+
+                <input type="checkbox" id="moduleCongestion" data-module="congestion" checked>
+
+                <span class="rc-toggle-slider"></span>
+
+            </label>
+
+            <span class="rc-badge rc-badge-recommended">Recommended</span>
+
+        </div>
+
+        
+
+        <!-- Geopolitical Module -->
+
+        <div class="rc-module-card">
+
+            <div class="rc-module-header">
+
+                <div class="rc-module-icon">
+
+                    <i data-lucide="globe" width="20" height="20"></i>
+
+                </div>
+
+                <div class="rc-module-info">
+
+                    <h4>Geopolitical & Regulatory</h4>
+
+                    <p>Political stability, trade regulations, and customs compliance risk</p>
+
+                </div>
+
+            </div>
+
+            <label class="rc-toggle">
+
+                <input type="checkbox" id="moduleGeo" data-module="geo">
+
+                <span class="rc-toggle-slider"></span>
+
+            </label>
+
+        </div>
+
+        
+
+        <!-- Carrier Reliability Module -->
+
+        <div class="rc-module-card">
+
+            <div class="rc-module-header">
+
+                <div class="rc-module-icon">
+
+                    <i data-lucide="ship" width="20" height="20"></i>
+
+                </div>
+
+                <div class="rc-module-info">
+
+                    <h4>Carrier Reliability & Schedule</h4>
+
+                    <p>Carrier performance history, schedule adherence, and service quality</p>
+
+                </div>
+
+            </div>
+
+            <label class="rc-toggle">
+
+                <input type="checkbox" id="moduleCarrier" data-module="carrier" checked>
+
+                <span class="rc-toggle-slider"></span>
+
+            </label>
+
+        </div>
+
+        
+
+        <!-- Network Disruption Module -->
+
+        <div class="rc-module-card">
+
+            <div class="rc-module-header">
+
+                <div class="rc-module-icon">
+
+                    <i data-lucide="network" width="20" height="20"></i>
+
+                </div>
+
+                <div class="rc-module-info">
+
+                    <h4>Network Disruption / Intermodal</h4>
+
+                    <p>Supply chain network risks, intermodal connection points, handover delays</p>
+
+                </div>
+
+            </div>
+
+            <label class="rc-toggle">
+
+                <input type="checkbox" id="moduleNetwork" data-module="network">
+
+                <span class="rc-toggle-slider"></span>
+
+            </label>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- ======================================================================== -->
+
+<!-- SECTION 6: SUMMARY & VISUAL RISK OVERVIEW (v19 ULTRA) -->
+
+<!-- ======================================================================== -->
+
+{% include 'input/partials/_summary.html' %}
+
+
+
+<!-- ======================================================================== -->
+
+<!-- SECTION 7: PACKING LIST UPLOAD -->
+
+<!-- ======================================================================== -->
+
+<section id="rc-section-packing-upload" class="rc-section rc-fade-in-up" data-section-id="packing-upload">
+
+    <div class="rc-section-header">
+
+        <div>
+
+            <h2 class="rc-section-title">07 • Packing List Upload</h2>
+
+            <p class="rc-section-subtitle">Upload your packing list for detailed SKU analysis</p>
+
+        </div>
+
+        <span class="rc-pill rc-pill-optional">Optional</span>
+
+    </div>
+
+    
+
+    <!-- Dropzone -->
+
+    <div class="rc-dropzone" id="rc-packing-dropzone">
+
+        <input 
+
+            type="file" 
+
+            id="rc-packing-file-input" 
+
+            accept=".csv,.xls,.xlsx" 
+
+            hidden
+
+        >
+
+        <div class="rc-dropzone-icon">
+
+            <i data-lucide="upload-cloud" width="48" height="48"></i>
+
+        </div>
+
+        <div class="rc-dropzone-text">
+
+            <strong>Drop your packing list here</strong> or click to upload
+
+        </div>
+
+        <div class="rc-dropzone-subtext">
+
+            Supported formats: .csv, .xls, .xlsx • Max 10MB
+
+        </div>
+
+    </div>
+
+    
+
+    <!-- File Info (shown after upload) -->
+
+    <div id="rc-packing-file-info" class="rc-file-info"></div>
+
+</section>
+
+
+
+<!--
+
+FILE: app/templates/input/partials/_v19_sections.html
+
+PURPOSE: All 7 form sections for RISKCAST v19
+
+SECTIONS:
+
+1. Transport Setup - Origin, destination, mode, transit time, route code
+
+2. Cargo & Packing - Type, weight, volume, insurance, sensitivity, packing
+
+3. Seller Information - Name, country, experience, incoterm, contact
+
+4. Buyer Information - Name, country, segment, priority, contact
+
+5. Algorithm Modules - Weather, congestion, geopolitical, carrier, network toggles
+
+6. Summary & Visual Risk - Risk orb, gauge, metrics, narrative
+
+7. Packing List Upload - Drag & drop file upload with preview
+
+
+
+FEATURES:
+
+- Semantic HTML structure
+
+- Accessible form controls
+
+- Auto-suggestion for ports
+
+- Custom dropdowns with icons
+
+- Toggle switches for modules
+
+- Risk visualization components
+
+- Drag & drop file upload
+
+- Responsive grid layout
+
+-->

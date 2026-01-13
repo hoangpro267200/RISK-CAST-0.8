@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Loss Distribution Adapter</title>
+    <script type="module">
+        // Test adapter với sample data
+        const sampleBackendData = {
+            loss: {
+                p95: 15000,
+                p99: 20000,
+                expectedLoss: 10000,
+                tailContribution: 15.5
+            },
+            // Test case 1: Có loss_histogram
+            distribution_shapes: {
+                loss_histogram: {
+                    bin_centers: [5000, 10000, 15000, 20000, 25000],
+                    counts: [10, 20, 15, 8, 2]
+                }
+            }
+        };
+
+        // Test case 2: Có loss_distribution array
+        const sampleBackendData2 = {
+            loss: {
+                p95: 15000,
+                p99: 20000,
+                expectedLoss: 10000
+            },
+            loss_distribution: [8000, 9000, 10000, 11000, 12000, 13000, 14000, 15000, 16000, 17000]
+        };
+
+        // Test case 3: Chỉ có loss metrics (sẽ generate synthetic)
+        const sampleBackendData3 = {
+            loss: {
+                p95: 15000,
+                p99: 20000,
+                expectedLoss: 10000
+            }
+        };
+
+        console.log("=== Testing Loss Distribution Adapter ===");
+        console.log("Sample 1 (with histogram):", sampleBackendData);
+        console.log("Sample 2 (with distribution array):", sampleBackendData2);
+        console.log("Sample 3 (metrics only):", sampleBackendData3);
+        console.log("\nNote: Adapter code is in src/adapters/adaptResultV2.ts");
+        console.log("Check browser console for adapter output when ResultsPage loads");
+    </script>
+</head>
+<body>
+    <h1>Loss Distribution Adapter Test</h1>
+    <p>Open browser console to see test data.</p>
+    <p>Then navigate to <a href="http://127.0.0.1:8000/results">http://127.0.0.1:8000/results</a> and check console for adapter logs.</p>
+</body>
+</html>

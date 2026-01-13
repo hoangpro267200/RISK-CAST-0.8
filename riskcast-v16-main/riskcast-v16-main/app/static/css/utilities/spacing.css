@@ -1,0 +1,77 @@
+/**
+ * Utility Classes for Spacing
+ * Replaces inline style attributes
+ */
+
+/* Margin Top */
+.mt-12 { margin-top: 12px; }
+.mt-24 { margin-top: 24px; }
+.mt-32 { margin-top: 32px; }
+
+/* Margin Bottom */
+.mb-32 { margin-bottom: 32px; }
+
+/* Loading Overlay - Emergency Hide */
+.loading-overlay.hidden {
+    display: none !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    z-index: -1 !important;
+}
+
+/* Brand Header Styles */
+.brand-title-compact {
+    font-size: 20px;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.brand-subtitle-compact {
+    font-size: 11px;
+    margin: 2px 0 0 0;
+    opacity: 0.7;
+}
+
+/* Header Progress */
+.header-progress-spaced {
+    margin-top: 12px;
+    padding: 0 60px;
+}
+
+/* Grid Spacing */
+.grid-4-spaced { margin-top: 24px; }
+.grid-3-spaced { margin-bottom: 32px; }
+
+/* Insight List */
+.insight-list-spaced { margin-top: 24px; }
+
+/* Recommendations List Item */
+.recommendation-item {
+    border-left: 3px solid var(--accent-green);
+    padding-left: 12px;
+    margin-bottom: 8px;
+    padding: 12px 16px;
+    background: rgba(0, 255, 136, 0.05);
+    border-radius: 6px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

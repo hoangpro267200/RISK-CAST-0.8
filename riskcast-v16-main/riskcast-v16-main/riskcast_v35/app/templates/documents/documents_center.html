@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documents Center - RISKCAST v35</title>
+    <link rel="stylesheet" href="/static/css/global_visionos.css">
+    <link rel="stylesheet" href="/static/css/documents_center.css">
+</head>
+<body class="page visionos has-topbar">
+    <nav class="vision-topbar glass-panel">
+        <div class="vision-topbar__brand">
+            <div class="vision-topbar__logo">
+                <svg width="26" height="26" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="rcNeonDocs" x1="2" y1="2" x2="30" y2="30">
+                            <stop offset="0%" stop-color="#00FFC8"/>
+                            <stop offset="100%" stop-color="#00D4FF"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M16 3L27.5 9.5V22.5L16 29L4.5 22.5V9.5L16 3Z" stroke="url(#rcNeonDocs)" stroke-width="2.2" stroke-linejoin="round"/>
+                    <path d="M16 8L23 12V20L16 24L9 20V12L16 8Z" stroke="url(#rcNeonDocs)" stroke-width="1.6" stroke-linejoin="round" opacity="0.7"/>
+                    <path d="M16 11L20 13.5V18.5L16 21L12 18.5V13.5L16 11Z" fill="url(#rcNeonDocs)" opacity="0.9"/>
+                </svg>
+            </div>
+            <div class="vision-topbar__title">
+                <span>RISKCAST</span>
+                <span class="vision-topbar__version">v35 FutureOS</span>
+            </div>
+        </div>
+
+        <div class="vision-topbar__nav">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/shipments" class="nav-link">Shipments</a>
+            <a href="/pricing" class="nav-link">Pricing</a>
+            <a href="/consolidation" class="nav-link">Consolidation</a>
+            <a href="/documents" class="nav-link active">Documents</a>
+            <a href="/customs" class="nav-link">Customs</a>
+            <a href="/tracking" class="nav-link">Tracking</a>
+        </div>
+    </nav>
+
+    <main class="container glass fade-in topbar-offset">
+        <div class="tabs">
+            <button class="tab active" data-tab="si">SI Generator</button>
+            <button class="tab" data-tab="bl">Draft B/L Generator</button>
+            <button class="tab" data-tab="validate">SI vs B/L Validator</button>
+            <div class="underline"></div>
+        </div>
+
+        <section id="tab-si" class="tab-panel active">
+            <div class="panel-grid">
+                <div class="panel glass card">
+                    <h2>Generate Shipping Instruction</h2>
+                    <label>
+                        <span>Shipment ID</span>
+                        <input id="si-shipment-id" type="text" placeholder="Enter shipment UUID" />
+                    </label>
+                    <button id="btn-generate-si" class="cta">Generate SI</button>
+                </div>
+                <div class="panel glass card result-card">
+                    <h3>SI Result</h3>
+                    <pre id="si-result" class="json-box">Waiting for generation...</pre>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-bl" class="tab-panel">
+            <div class="panel-grid">
+                <div class="panel glass card">
+                    <h2>Generate Draft B/L</h2>
+                    <label>
+                        <span>Shipment ID</span>
+                        <input id="bl-shipment-id" type="text" placeholder="Enter shipment UUID" />
+                    </label>
+                    <button id="btn-generate-bl" class="cta">Generate Draft B/L</button>
+                </div>
+                <div class="panel glass card result-card">
+                    <h3>Draft B/L Result</h3>
+                    <pre id="bl-draft-result" class="json-box">Waiting for generation...</pre>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-validate" class="tab-panel">
+            <div class="panel-grid">
+                <div class="panel glass card">
+                    <h2>Validate SI vs Draft B/L</h2>
+                    <label>
+                        <span>Shipment ID</span>
+                        <input id="validate-shipment-id" type="text" placeholder="Enter shipment UUID" />
+                    </label>
+                    <button id="btn-validate" class="cta">Validate</button>
+                </div>
+                <div class="panel glass card result-card">
+                    <h3>Validation Result</h3>
+                    <div id="bl-validate-result" class="json-box">Waiting for validation...</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="/static/js/documents_center.js"></script>
+</body>
+</html>
+
