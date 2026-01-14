@@ -7,6 +7,7 @@ import { IntelligenceModules } from './IntelligenceModules';
 import { ActionFooter } from './ActionFooter';
 import { SmartInlineEditor } from './SmartInlineEditor';
 import { AiAdvisorDock, AiAdvisorTrigger } from '../AiAdvisorDock';
+import { AiDockProvider } from '../../hooks/useAiDockState';
 import type { ShipmentData, ModulesState, SaveState } from './types';
 import { getValidationIssues, type ValidationIssue } from '../../lib/validation';
 
@@ -347,7 +348,7 @@ export function RiskcastSummary({ initialData }: RiskcastSummaryProps) {
   ];
   const filledCount = requiredFields.filter(f => f.value && f.value !== 0).length;
   const completeness = Math.round((filledCount / requiredFields.length) * 100);
-  const canAnalyze = completeness >= 50; // More lenient for testing
+  const canAnalyze = completeness >= 20; // Allow analysis with partial data for testing
 
   // Handlers
   const handleFieldClick = useCallback((path: string, event?: MouseEvent | React.MouseEvent) => {
@@ -765,6 +766,7 @@ export function RiskcastSummary({ initialData }: RiskcastSummaryProps) {
   const fieldConfig = FIELD_CONFIG[editor.field] ?? { type: 'text', label: editor.field };
 
   return (
+    <AiDockProvider>
     <div className="min-h-screen bg-gradient-to-br from-[#0a1628] via-[#0d1f35] to-[#0a1628]">
       <Header 
         saveState={saveState} 
@@ -903,6 +905,7 @@ export function RiskcastSummary({ initialData }: RiskcastSummaryProps) {
         }}
       />
     </div>
+    </AiDockProvider>
   );
 }
 

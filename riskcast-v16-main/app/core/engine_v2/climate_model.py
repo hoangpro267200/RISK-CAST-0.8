@@ -167,16 +167,21 @@ class ClimateRiskModel:
         
         return min(1.0, max(0.0, base_wind))
     
-    def compute_temperature_deviation(self, route: str, month: int) -> float:
+    def compute_temperature_deviation(self, route: str, month: int, 
+                                       random_seed: int = None) -> float:
         """
         Compute temperature deviation from normal
         
         Args:
             route: Route identifier
             month: Month number (1-12)
+            random_seed: Optional seed for reproducibility
             
         Returns:
             Temperature deviation score (0-1, higher = more extreme)
+        
+        CRITICAL: Uses deterministic seeding for reproducibility.
+        Same route + month + seed = same output.
         """
         # Simplified: assume normal variation is low, extreme is high
         # In production, would use actual climate data
@@ -187,8 +192,18 @@ class ClimateRiskModel:
         if month in [1, 2, 7, 8]:
             base_deviation = 0.6
         
-        # Add some randomness (simulating climate variability)
-        variation = np.random.normal(0, 0.1)
+        # DETERMINISTIC: Generate seed from inputs if not provided
+        if random_seed is None:
+            # Create deterministic seed from route + month
+            import hashlib
+            route_str = str(route) if route else ""
+            seed_str = f"{route_str}_{month}"
+            seed_hash = int(hashlib.md5(seed_str.encode()).hexdigest(), 16)
+            random_seed = seed_hash % (2**31)
+        
+        # Use deterministic random generator
+        rng = np.random.RandomState(random_seed)
+        variation = rng.normal(0, 0.1)
         deviation = base_deviation + variation
         
         return min(1.0, max(0.0, deviation))

@@ -1,183 +1,334 @@
-# 🚀 RISKCAST DEPLOYMENT CHECKLIST
+# RISKCAST v17 - Production Deployment Checklist
 
-**Production Readiness: 9.0/10**  
-**Last Updated:** 2025-01-11
+## Overview
+
+This checklist ensures a smooth, safe deployment of RISKCAST v17 to production.
+Complete all items before and after deployment.
 
 ---
 
-## ✅ PRE-DEPLOYMENT CHECKLIST
+## 🔒 Pre-Deployment Checklist
 
-### Code Quality
-- [x] All P0 bugs fixed
-- [x] No TODOs or FIXMEs in critical paths
-- [x] All functions have docstrings
-- [x] Type hints on all functions
-- [x] No console.log in production code
-- [x] No commented-out code
+### Environment Configuration
 
-### Testing
-- [x] Unit tests created (5 files)
-- [x] Integration tests created (6 files)
-- [x] Test coverage: ~35-40% (target: 70%+)
-- [ ] All tests pass (run: `pytest tests/ -v`)
-- [ ] E2E tests for critical paths work
-- [ ] Load testing completed (100 req/s)
+- [ ] Production `.env` file configured
+- [ ] All secrets rotated (no development secrets in production)
+- [ ] `ENVIRONMENT=production` set
+- [ ] `DEBUG=false` set
+- [ ] `ANTHROPIC_API_KEY` configured (for AI advisor)
+- [ ] `REQUEST_SIGNING_SECRET` set (for request signing)
+- [ ] `REDIS_URL` configured (for rate limiting)
+- [ ] Database connection string updated
+
+### Dependencies
+
+- [ ] `requirements.txt` frozen with exact versions
+- [ ] `package-lock.json` committed (frontend)
+- [ ] No development dependencies in production
+- [ ] All security updates applied
+- [ ] Vulnerability scan passed (pip-audit, npm audit)
+
+### Database
+
+- [ ] Database backup created
+- [ ] Migrations tested on staging
+- [ ] Run migrations: `alembic upgrade head`
+- [ ] Indexes created: `python -m app.database.indexes create`
+- [ ] Connection pool sized appropriately (default: 5, max: 10)
+- [ ] Query performance verified
 
 ### Security
-- [x] Secrets validation (fail-fast in production)
-- [x] Rate limiting configured
-- [x] CSP hardened (production mode)
-- [x] CORS properly configured
-- [ ] Dependency audit passed (`npm audit`, `pip-audit`)
-- [ ] No high/critical vulnerabilities
-- [ ] API keys rotated (if needed)
 
-### Observability
-- [x] Metrics endpoint (`/metrics`)
-- [x] Health check endpoint (`/health`)
-- [x] Request ID propagation
-- [x] Structured logging (JSON)
-- [x] Alerting configured
-- [ ] Prometheus scraping configured
-- [ ] Grafana dashboard setup
-- [ ] Alerts tested
+- [ ] CSP headers enabled
+- [ ] Rate limiting active (verify with test request)
+- [ ] API keys generated for production services
+- [ ] Request signing configured for sensitive endpoints
+- [ ] HTTPS enforced (redirect HTTP → HTTPS)
+- [ ] CORS configured correctly (only allowed origins)
+- [ ] Secrets not exposed in logs
 
 ### Performance
-- [x] Code splitting implemented
-- [x] Lazy loading implemented
-- [x] Web Vitals monitoring
-- [ ] Bundle size <500KB (check with `npm run analyze`)
-- [ ] LCP <2.5s (verify with Lighthouse)
-- [ ] CLS <0.1 (verify with Lighthouse)
-- [ ] API p95 latency <2s
 
-### Configuration
-- [x] Environment variables documented
-- [x] `.env.example` file created
-- [ ] Production `.env` configured
-- [ ] `ENVIRONMENT=production` set
-- [ ] `DEBUG=False` set
-- [ ] `SESSION_SECRET_KEY` set (strong random)
-- [ ] `ANTHROPIC_API_KEY` set
-- [ ] `ALLOWED_ORIGINS` set (production domains)
+- [ ] Redis connected and operational
+- [ ] Caching enabled and tested
+- [ ] CDN configured for static assets
+- [ ] Service worker registered
+- [ ] Bundle size verified (<500KB initial)
+- [ ] Images optimized
+
+### Monitoring
+
+- [ ] Prometheus metrics endpoint `/metrics` working
+- [ ] Alerts configured (high error rate, latency, etc.)
+- [ ] Log aggregation setup (ELK/Datadog/CloudWatch)
+- [ ] Error tracking configured (Sentry)
+- [ ] Uptime monitoring active (Pingdom/StatusCake)
+- [ ] Dashboard created for key metrics
+
+### Testing
+
+- [ ] All unit tests passing: `pytest tests/unit/`
+- [ ] All integration tests passing: `pytest tests/integration/`
+- [ ] E2E tests passing
+- [ ] Load testing completed
+- [ ] Security scan completed
+- [ ] Performance benchmarks meet targets
+
+### Documentation
+
+- [ ] API documentation updated (`docs/API_V2.md`)
+- [ ] Deployment guide updated
+- [ ] Runbook created for on-call
+- [ ] Changelog updated (`CHANGELOG.md`)
+- [ ] Migration guide for v1→v2 users
 
 ---
 
-## 🚀 DEPLOYMENT STEPS
+## 🚀 Deployment Steps
 
-### 1. Pre-Deployment
+### Step 1: Prepare Release
+
 ```bash
-# Run tests
+# 1. Ensure clean state
+git status  # Should be clean
+
+# 2. Run final tests
+pytest tests/ -v
+
+# 3. Build frontend
 cd riskcast-v16-main
-pytest tests/ -v --cov=app --cov-report=html
-
-# Check for vulnerabilities
-npm audit --audit-level=high
-pip-audit
-
-# Build frontend
 npm run build
 
-# Check bundle size
-npm run analyze
+# 4. Tag release
+git tag -a v17.0.0 -m "RISKCAST v17 - Production Excellence"
 ```
 
-### 2. Environment Setup
-```bash
-# Create production .env
-cp .env.example .env.production
+### Step 2: Database Migration
 
-# Set required variables
-export ENVIRONMENT=production
-export SESSION_SECRET_KEY=$(openssl rand -hex 32)
-export ANTHROPIC_API_KEY=your_key_here
-export ALLOWED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
+```bash
+# 1. Backup database (CRITICAL!)
+pg_dump -h $DB_HOST -U $DB_USER -d riskcast > backup_$(date +%Y%m%d_%H%M%S).sql
+
+# 2. Run migrations
+alembic upgrade head
+
+# 3. Create indexes
+python -m app.database.indexes create
+
+# 4. Verify migration
+alembic current
 ```
 
-### 3. Start Services
+### Step 3: Deploy Backend
+
 ```bash
-# Start backend
+# Option A: Docker deployment
+docker build -t riskcast:v17 .
+docker push registry.example.com/riskcast:v17
+
+# Option B: Direct deployment
+pip install -r requirements.txt
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
-
-# Or use production server (gunicorn)
-gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
 ```
 
-### 4. Verify Deployment
+### Step 4: Deploy Frontend
+
 ```bash
-# Health check
-curl http://localhost:8000/health
+# Build is already done in Step 1
+# Deploy dist/ folder to CDN or static hosting
 
-# Metrics
-curl http://localhost:8000/metrics
+# If using nginx
+cp -r dist/* /var/www/riskcast/
+nginx -s reload
+```
 
-# Test API
-curl -X POST http://localhost:8000/api/v1/risk/v2/analyze \
-  -H "Content-Type: application/json" \
-  -d '{"transport_mode": "ocean_fcl", ...}'
+### Step 5: Blue-Green Deployment (Recommended)
+
+```bash
+# 1. Deploy to "green" environment
+kubectl apply -f k8s/deployment-green.yaml
+
+# 2. Verify green is healthy
+curl https://green.riskcast.io/health
+
+# 3. Switch traffic
+kubectl patch service riskcast -p '{"spec":{"selector":{"version":"green"}}}'
+
+# 4. Monitor for issues (keep blue running)
+# ...
+
+# 5. If all good, scale down blue
+kubectl scale deployment riskcast-blue --replicas=0
 ```
 
 ---
 
-## 📊 POST-DEPLOYMENT MONITORING
+## ✅ Post-Deployment Verification
 
-### First 24 Hours
-- [ ] Monitor error rate (<5%)
-- [ ] Monitor latency (p95 <2s)
-- [ ] Check alert notifications
-- [ ] Verify metrics collection
-- [ ] Test critical user flows
-- [ ] Check Web Vitals (LCP, CLS, FID)
+### Smoke Tests (Immediate)
 
-### Weekly Checks
-- [ ] Review error logs
-- [ ] Check dependency updates
-- [ ] Review performance metrics
-- [ ] Verify backup procedures
-- [ ] Test disaster recovery
+Run these tests immediately after deployment:
 
----
+- [ ] Health check: `curl https://api.riskcast.io/health`
+- [ ] Risk analysis works:
+  ```bash
+  curl -X POST https://api.riskcast.io/api/v1/risk/v2/analyze \
+    -H "Content-Type: application/json" \
+    -d '{"origin_port":"CNSHA","destination_port":"USLAX","cargo_value":50000}'
+  ```
+- [ ] AI advisor responds (if applicable)
+- [ ] Frontend loads correctly
+- [ ] Authentication works
+- [ ] Rate limiting active (check headers)
 
-## 🔧 TROUBLESHOOTING
+### Metrics Verification (First Hour)
 
-### Common Issues
+- [ ] Error rate < 0.1%
+- [ ] p95 latency < 1s
+- [ ] No memory leaks (stable memory usage)
+- [ ] Database connections stable
+- [ ] Redis connections stable
+- [ ] No unusual CPU spikes
 
-**1. Static files return 404**
-- Check: `ASSETS_DIR` exists and is mounted correctly
-- Verify: Error handler excludes `/assets/` paths
+### Performance Verification
 
-**2. Rate limiting too strict**
-- Adjust: `app/middleware/rate_limiter.py` limits
-- Check: IP whitelist for internal services
+- [ ] Lighthouse score > 90
+- [ ] Web Vitals green (LCP < 2.5s, FID < 100ms, CLS < 0.1)
+- [ ] Bundle size < 500KB
+- [ ] API response time < 500ms (p95)
+- [ ] Cache hit rate > 70%
 
-**3. CSP blocking scripts**
-- Check: Nonce generation in `security_headers.py`
-- Verify: Inline scripts have nonce attribute
+### 24-Hour Monitoring
 
-**4. Metrics not collecting**
-- Check: `prometheus-client` installed
-- Verify: `/metrics` endpoint accessible
-
-**5. Secrets validation failing**
-- Check: `ENVIRONMENT=production` is set
-- Verify: All required secrets in `.env`
-
----
-
-## 📝 MAINTENANCE
-
-### Regular Tasks
-- [ ] Weekly dependency updates
-- [ ] Monthly security audit
-- [ ] Quarterly performance review
-- [ ] Annual architecture review
-
-### Backup
-- [ ] Database backups configured
-- [ ] Log rotation configured
-- [ ] Configuration backups
+- [ ] Continuous error rate monitoring
+- [ ] Latency tracking
+- [ ] Resource usage trends
+- [ ] User feedback (if any issues reported)
 
 ---
 
-**Ready for Production:** ✅  
-**Last Verified:** 2025-01-11
+## 🔙 Rollback Plan
+
+### Quick Rollback (< 5 minutes)
+
+If critical issues are detected:
+
+```bash
+# Kubernetes
+kubectl rollout undo deployment/riskcast
+
+# Docker
+docker stop riskcast-v17
+docker start riskcast-v16
+
+# Direct
+git checkout v16.x
+pip install -r requirements.txt
+supervisorctl restart riskcast
+```
+
+### Database Rollback
+
+If database migration caused issues:
+
+```bash
+# 1. Rollback migration
+alembic downgrade -1
+
+# 2. If needed, restore from backup
+psql -h $DB_HOST -U $DB_USER -d riskcast < backup_YYYYMMDD_HHMMSS.sql
+```
+
+### Rollback Decision Criteria
+
+Rollback immediately if:
+- Error rate > 5%
+- p95 latency > 5s
+- Complete service outage
+- Data corruption detected
+- Security vulnerability discovered
+
+---
+
+## 📋 Sign-Off
+
+### Approvals Required
+
+| Role | Name | Approved | Date |
+|------|------|----------|------|
+| Engineering Lead | | ☐ | |
+| QA Lead | | ☐ | |
+| Product Manager | | ☐ | |
+| Security Team | | ☐ | |
+
+### Deployment Record
+
+| Field | Value |
+|-------|-------|
+| Version | v17.0.0 |
+| Deployed By | |
+| Deployment Started | |
+| Deployment Completed | |
+| Rollback Performed | ☐ Yes / ☐ No |
+| Notes | |
+
+---
+
+## 📞 Emergency Contacts
+
+| Role | Name | Contact |
+|------|------|---------|
+| On-Call Engineer | | |
+| Engineering Lead | | |
+| DevOps | | |
+| Database Admin | | |
+
+---
+
+## 📊 Key Metrics Dashboard
+
+After deployment, monitor these dashboards:
+
+1. **System Health**: Error rates, latency, throughput
+2. **Infrastructure**: CPU, Memory, Disk, Network
+3. **Application**: Risk analyses/hour, AI requests/hour
+4. **Business**: Active users, API key usage
+
+---
+
+## 🎉 Success Criteria
+
+The deployment is considered successful when:
+
+✅ All smoke tests pass
+✅ Error rate < 0.1% for 24 hours
+✅ No critical bugs reported
+✅ Performance targets met
+✅ All monitoring alerts configured
+✅ Documentation updated
+
+---
+
+## Changelog
+
+### v17.0.0 (2026-01)
+
+**New Features:**
+- Advanced rate limiting with Redis
+- API key authentication system
+- Request signing for sensitive operations
+- AI advisor streaming responses
+- Excel export for recommendations
+- Multi-language support (EN, VI, ZH, JA, KO)
+- Database indexes for performance
+
+**Improvements:**
+- Legacy v1 → v2 adapters for backward compatibility
+- Enhanced error handling
+- Comprehensive integration tests
+- Performance benchmarking suite
+
+**Security:**
+- Distributed rate limiting
+- API key scoping
+- Request signature verification

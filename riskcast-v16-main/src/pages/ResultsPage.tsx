@@ -1,11 +1,17 @@
 /**
- * Results Page Component - COMPETITION-READY v4
+ * Results Page Component - COMPETITION-READY v5
  * 
  * ARCHITECTURE: ENGINE-FIRST with strict data integrity
  * - NO fake/random data generation
  * - Clear visual hierarchy (Executive → Analytical → Technical)
  * - Enterprise-level UI/UX polish
  * - Maintainable, scalable structure
+ * 
+ * v5 ENHANCEMENTS:
+ * - Breadcrumb navigation for context
+ * - URL-synced tab state (shareable links)
+ * - Skeleton loading states for perceived performance
+ * - Keyboard shortcuts for power users
  */
 
 import { useEffect, useState, useMemo, lazy, Suspense } from 'react';
@@ -30,6 +36,21 @@ import { BadgeRisk } from '@/components/BadgeRisk';
 import { LayersTable } from '@/components/LayersTable';
 import { PrimaryRecommendationCard } from '@/components/PrimaryRecommendationCard';
 import { SecondaryRecommendationCard } from '@/components/SecondaryRecommendationCard';
+
+// UI Primitives
+import { ResultsBreadcrumb } from '@/components/ui/Breadcrumb';
+import { SkeletonResultsPage } from '@/components/ui/Skeleton';
+import { Tabs } from '@/components/ui/Tabs';
+import { ExportMenu } from '@/components/ui/ExportMenu';
+import { ChangeIndicator } from '@/components/ui/ChangeIndicator';
+import { KeyboardShortcutsHelp } from '@/components/ui/KeyboardShortcutsHelp';
+
+// Hooks
+import { useUrlTabState } from '@/hooks/useUrlTabState';
+import { useExportResults } from '@/hooks/useExportResults';
+import { useResultsKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { useChangeDetection } from '@/hooks/useChangeDetection';
+import { useAiDockState } from '@/hooks/useAiDockState';
 
 // Lazy load heavy chart components (Phase 5 - Performance optimization)
 const RiskRadar = lazy(() => import('@/components/RiskRadar').then(m => ({ default: m.RiskRadar })));
@@ -125,32 +146,90 @@ function extractKeyTakeaways(
   return takeaways.slice(0, 3); // Max 3 takeaways for clarity
 }
 
+// Tab type definition
+type ResultsTab = 'overview' | 'analytics' | 'decisions';
+const VALID_TABS = ['overview', 'analytics', 'decisions'] as const;
+
 export default function ResultsPage() {
   const [viewModel, setViewModel] = useState<ResultsViewModel | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'analytics' | 'decisions'>('overview');
+  
+  // URL-synced tab state (P0 - #4)
+  const { activeTab, setActiveTab } = useUrlTabState<ResultsTab>({
+    defaultTab: 'overview',
+    validTabs: VALID_TABS,
+    paramName: 'tab'
+  });
+  
   const { t } = useTranslation();
+  
+  // Export functionality (P0 - #3)
+  const { 
+    exportPDF, 
+    exportCSV, 
+    exportExcel, 
+    copyShareLink, 
+    isExporting 
+  } = useExportResults(viewModel);
 
-  const fetchResults = async (showLoading = true) => {
+  // Change detection (P1 - #9)
+  const { hasChanges, changes, clearChanges } = useChangeDetection(viewModel);
+  
+  // Keyboard shortcuts help state
+  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
+  
+  // AI Dock state (from context)
+  const { toggle: toggleAiDock } = useAiDockState();
+
+  // Keyboard shortcuts (P1 - #8)
+  useResultsKeyboardShortcuts({
+    onTabOverview: () => setActiveTab('overview'),
+    onTabAnalytics: () => setActiveTab('analytics'),
+    onTabDecisions: () => setActiveTab('decisions'),
+    onRefresh: () => fetchResults(true, true),
+    onToggleCommandPalette: () => toggleAiDock(),
+    onEscape: () => setShowShortcutsHelp(false)
+  }, !loading && !showShortcutsHelp);
+
+  // Show shortcuts help with ? key
+  useEffect(() => {
+    const handleQuestionMark = (e: KeyboardEvent) => {
+      if (e.key === '?' && !loading) {
+        e.preventDefault();
+        setShowShortcutsHelp(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleQuestionMark);
+    return () => window.removeEventListener('keydown', handleQuestionMark);
+  }, [loading]);
+
+  const fetchResults = async (showLoading = true, forceRefresh = false) => {
     try {
       if (showLoading) setLoading(true);
       setError(null);
 
       // First try localStorage for RISKCAST_RESULTS_V2 (saved by Summary page)
-      const savedResults = localStorage.getItem('RISKCAST_RESULTS_V2');
-      if (savedResults) {
-        try {
-          const parsed = JSON.parse(savedResults);
-          console.log('[ResultsPage] Loaded results from localStorage:', parsed);
-          const normalized = adaptResultV2(parsed);
-          console.log('[ResultsPage] Normalized from localStorage:', normalized);
-          setViewModel(normalized);
-          setLoading(false);
-          return;
-        } catch (parseErr) {
-          console.warn('[ResultsPage] Failed to parse localStorage results:', parseErr);
+      // Skip localStorage if forceRefresh is true (user clicked refresh button)
+      if (!forceRefresh) {
+        const savedResults = localStorage.getItem('RISKCAST_RESULTS_V2');
+        if (savedResults) {
+          try {
+            const parsed = JSON.parse(savedResults);
+            console.log('[ResultsPage] Loaded results from localStorage:', parsed);
+            const normalized = adaptResultV2(parsed);
+            console.log('[ResultsPage] Normalized from localStorage:', normalized);
+            setViewModel(normalized);
+            setLoading(false);
+            return;
+          } catch (parseErr) {
+            console.warn('[ResultsPage] Failed to parse localStorage results:', parseErr);
+          }
         }
+      } else {
+        // Clear localStorage when force refreshing to get fresh data from API
+        console.log('[ResultsPage] Force refresh - clearing localStorage and fetching from API');
+        localStorage.removeItem('RISKCAST_RESULTS_V2');
       }
 
       // Fallback: try API endpoint
@@ -241,19 +320,24 @@ export default function ResultsPage() {
   const confidence = viewModel ? viewModel.overview.riskScore.confidence / 100 : 0;
   const riskScore = viewModel?.overview?.riskScore?.score ?? 0;
 
-  // Build layers data with validation
+  // Build layers data with validation - use adapter-provided status/notes
   const layersData: LayerData[] = useMemo(() => {
     if (!viewModel?.breakdown?.layers || !Array.isArray(viewModel.breakdown.layers)) {
+      console.log('[ResultsPage] No layers data available');
       return [];
     }
+    console.log(`[ResultsPage] Processing ${viewModel.breakdown.layers.length} layers`);
     return viewModel.breakdown.layers.map(l => ({
+      id: (l as any).id || l.name.toLowerCase().replace(/\s+/g, '_'),
       name: l.name,
       score: l.score,
       contribution: l.contribution,
+      weight: (l as any).weight || 0,
       category: l.category || 'UNKNOWN',
+      color: (l as any).color || '#6B7280',
       enabled: l.enabled !== false,
-      status: l.score >= 70 ? 'ALERT' : l.score >= 40 ? 'WARNING' : 'NORMAL',
-      notes: `Contributing ${l.contribution.toFixed(1)}% to overall risk`,
+      status: (l as any).status || (l.score >= 70 ? 'ALERT' : l.score >= 40 ? 'WARNING' : 'OK'),
+      notes: (l as any).notes || `Contributing ${l.contribution.toFixed(1)}% to overall risk`,
       confidence: viewModel.overview.riskScore.confidence,
     }));
   }, [viewModel]);
@@ -439,23 +523,48 @@ export default function ResultsPage() {
     return 'from-emerald-500 to-green-500';
   }, [riskScore]);
 
-  // Beautiful Loading State
+  // Loading State with Skeleton (P0 - #2)
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-center min-h-[80vh]">
-            <div className="text-center">
-              <div className="relative w-32 h-32 mx-auto mb-8">
-                <div className="absolute inset-0 rounded-full border-4 border-blue-500/20"></div>
-                <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-500 animate-spin"></div>
-                <div className="absolute inset-4 rounded-full border-4 border-transparent border-t-purple-500 animate-spin" style={{ animationDuration: '1.5s', animationDirection: 'reverse' }}></div>
-                <div className="absolute inset-8 rounded-full border-4 border-transparent border-t-cyan-500 animate-spin" style={{ animationDuration: '2s' }}></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+        {/* Animated Background */}
+        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-purple-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        </div>
+        
+        <div className="relative z-10 max-w-[1600px] mx-auto p-6 lg:p-8 space-y-8">
+          {/* Skeleton Header */}
+          <header className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                  <Activity className="w-6 h-6 text-white" />
+                </div>
+                <h1 className="text-3xl lg:text-4xl font-bold text-white tracking-tight">
+                  RISKCAST<span className="text-blue-400">.</span>
+                </h1>
               </div>
-              <h2 className="text-2xl font-bold text-white mb-2">Analyzing Risk Data</h2>
-              <p className="text-white/50">Processing shipment intelligence...</p>
+              <p className="text-white/50 mt-1 ml-15">Loading risk analysis...</p>
             </div>
+            
+            <div className="flex items-center gap-3">
+              <div className="w-64 h-10 bg-white/5 rounded-xl animate-pulse" />
+              <div className="w-24 h-10 bg-white/5 rounded-xl animate-pulse" />
+            </div>
+          </header>
+
+          {/* Breadcrumb skeleton */}
+          <div className="flex items-center gap-2">
+            <div className="w-20 h-4 bg-white/5 rounded animate-pulse" />
+            <div className="w-4 h-4 bg-white/5 rounded animate-pulse" />
+            <div className="w-24 h-4 bg-white/5 rounded animate-pulse" />
+            <div className="w-4 h-4 bg-white/5 rounded animate-pulse" />
+            <div className="w-28 h-4 bg-white/5 rounded animate-pulse" />
           </div>
+
+          {/* Skeleton content */}
+          <SkeletonResultsPage />
         </div>
       </div>
     );
@@ -472,7 +581,7 @@ export default function ResultsPage() {
           <h2 className="text-2xl font-bold text-white mb-2">Analysis Error</h2>
           <p className="text-white/60 mb-6">{error}</p>
           <button
-            onClick={() => fetchResults(true)}
+            onClick={() => fetchResults(true, true)}
             className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-xl font-medium transition-all flex items-center gap-2 mx-auto shadow-lg shadow-blue-500/25"
           >
             <RefreshCw className="w-5 h-5" />
@@ -533,57 +642,94 @@ export default function ResultsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      {/* Skip Link for Accessibility */}
+      <a 
+        href="#main-content" 
+        className="skip-link"
+      >
+        Skip to main content
+      </a>
+
       {/* Animated Background */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+      <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
         <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-purple-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
         <div className="absolute top-1/2 left-1/2 w-[400px] h-[400px] bg-cyan-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      <div className="relative z-10 max-w-[1600px] mx-auto p-6 lg:p-8 space-y-8">
-        {/* Header */}
-        <header className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl lg:text-4xl font-bold text-white tracking-tight flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                <Activity className="w-6 h-6 text-white" />
+      <main 
+        id="main-content" 
+        className="relative z-10 max-w-[1600px] mx-auto p-4 sm:p-6 lg:p-8 space-y-6 safe-area-inset"
+        role="main"
+        aria-label="Risk analysis results"
+      >
+        {/* Header - Mobile Responsive */}
+        <header className="space-y-4">
+          {/* Logo and Actions Row */}
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                <Activity className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              RISKCAST<span className="text-blue-400">.</span>
-            </h1>
-            <p className="text-white/50 mt-1 ml-15">Enterprise Risk Intelligence Platform</p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* Tab Navigation */}
-            <div className="flex bg-white/5 rounded-xl p-1 border border-white/10">
-              {(['overview', 'analytics', 'decisions'] as const).map(tab => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    activeTab === tab 
-                      ? 'bg-white/10 text-white' 
-                      : 'text-white/50 hover:text-white/80'
-                  }`}
-                >
-                  {t(tab)}
-                </button>
-              ))}
+              <div>
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white tracking-tight">
+                  RISKCAST<span className="text-blue-400">.</span>
+                </h1>
+                <p className="text-white/50 text-xs sm:text-sm hidden sm:block">Enterprise Risk Intelligence Platform</p>
+              </div>
             </div>
 
-            {/* Language Switcher */}
-            <HeaderLangSwitcher />
+            {/* Action Buttons - Always visible */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* Export Menu (P0 - #3) */}
+              <ExportMenu
+                onExportPDF={exportPDF}
+                onExportCSV={exportCSV}
+                onExportExcel={exportExcel}
+                onCopyLink={copyShareLink}
+                isExporting={isExporting}
+                disabled={!viewModel}
+              />
 
-            <button
-              onClick={() => fetchResults(true)}
-              disabled={loading}
-              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-xl font-medium transition-all flex items-center gap-2 shadow-lg shadow-blue-500/25 disabled:opacity-50"
-            >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              {t('refresh')}
-            </button>
+              {/* Language Switcher - Hidden on mobile */}
+              <div className="hidden sm:block">
+                <HeaderLangSwitcher />
+              </div>
+
+              <button
+                onClick={() => fetchResults(true, true)}
+                disabled={loading}
+                className="px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-xl font-medium transition-all flex items-center gap-2 shadow-lg shadow-blue-500/25 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+                aria-label="Refresh analysis data"
+              >
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">{t('refresh')}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Tab Navigation - Scrollable on mobile (P0 - #4, P1 - #21) */}
+          <div className="tabs-scroll-container -mx-4 sm:mx-0 px-4 sm:px-0">
+            <Tabs
+              tabs={[
+                { id: 'overview' as ResultsTab, label: t('overview') },
+                { id: 'analytics' as ResultsTab, label: t('analytics') },
+                { id: 'decisions' as ResultsTab, label: t('decisions') }
+              ]}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              size="md"
+              variant="default"
+              className="w-fit min-w-full sm:min-w-0"
+            />
           </div>
         </header>
+
+        {/* Breadcrumb Navigation (P0 - #1) */}
+        <ResultsBreadcrumb 
+          shipmentId={viewModel?.overview?.shipment?.id?.replace('SHIP-', '') || 'Unknown'}
+          className="mb-2"
+        />
 
         {/* Shipment Header */}
         <ShipmentHeader data={shipmentData} />
@@ -596,10 +742,15 @@ export default function ResultsPage() {
             {/* Executive Summary Card - Dominant Visual */}
             <GlassCard variant="hero" className="border-2 border-blue-500/20">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
-                {/* Risk Orb - Primary Focal Point */}
+                {/* Risk Orb - Primary Focal Point (P1 - #5 Responsive) */}
                 <div className="flex flex-col items-center justify-center">
                   <div className={`absolute inset-0 bg-gradient-to-br ${riskColor} opacity-5 rounded-2xl`}></div>
-                  <RiskOrbPremium score={Math.round(riskScore)} riskLevel={riskLevel} />
+                  <RiskOrbPremium 
+                    score={Math.round(riskScore)} 
+                    riskLevel={riskLevel}
+                    size="responsive"
+                    collapsible
+                  />
                   <div className="mt-6 text-center relative z-10">
                     <div className="flex items-center justify-center gap-2 mb-3">
                       {riskLevel ? (
@@ -712,58 +863,76 @@ export default function ResultsPage() {
               </GlassCard>
             </div>
 
-            {/* Quick Stats Bar - Supporting Metrics */}
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              <GlassCard variant="compact" className="text-center">
-                <Target className="w-6 h-6 text-blue-400 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-white">{Math.round(riskScore)}</p>
-                <p className="text-xs text-white/50">Risk Score</p>
-                <p className="text-xs text-white/30 mt-1">0-100 scale</p>
+            {/* Quick Stats Bar - Supporting Metrics (P1 - #7 Responsive Grid) */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
+              <GlassCard 
+                variant="compact" 
+                className="text-center hover:bg-white/10 transition-colors group min-w-0"
+              >
+                <Target className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400 mx-auto mb-1.5 sm:mb-2 group-hover:scale-110 transition-transform" />
+                <p className="text-xl sm:text-2xl font-bold text-white tabular-nums">{Math.round(riskScore)}</p>
+                <p className="text-[10px] sm:text-xs text-white/50 truncate">Risk Score</p>
+                <p className="text-[10px] text-white/30 mt-0.5 sm:mt-1 hidden sm:block">0-100 scale</p>
               </GlassCard>
 
               {viewModel.loss && viewModel.loss.expectedLoss > 0 && (
                 <>
-                  <GlassCard variant="compact" className="text-center">
-                    <DollarSign className="w-6 h-6 text-emerald-400 mx-auto mb-2" />
-                    <p className="text-2xl font-bold text-white">
+                  <GlassCard 
+                    variant="compact" 
+                    className="text-center hover:bg-white/10 transition-colors group min-w-0"
+                  >
+                    <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-400 mx-auto mb-1.5 sm:mb-2 group-hover:scale-110 transition-transform" />
+                    <p className="text-xl sm:text-2xl font-bold text-white tabular-nums">
                       ${(viewModel.loss.expectedLoss / 1000).toFixed(1)}K
                     </p>
-                    <p className="text-xs text-white/50">Expected Loss</p>
-                    <p className="text-xs text-white/30 mt-1">Most likely outcome</p>
+                    <p className="text-[10px] sm:text-xs text-white/50 truncate">Expected Loss</p>
+                    <p className="text-[10px] text-white/30 mt-0.5 sm:mt-1 hidden sm:block">Most likely outcome</p>
                   </GlassCard>
 
-                  <GlassCard variant="compact" className="text-center">
-                    <AlertTriangle className="w-6 h-6 text-amber-400 mx-auto mb-2" />
-                    <p className="text-2xl font-bold text-white">
+                  <GlassCard 
+                    variant="compact" 
+                    className="text-center hover:bg-white/10 transition-colors group min-w-0"
+                  >
+                    <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 mx-auto mb-1.5 sm:mb-2 group-hover:scale-110 transition-transform" />
+                    <p className="text-xl sm:text-2xl font-bold text-white tabular-nums">
                       ${(viewModel.loss.p95 / 1000).toFixed(1)}K
                     </p>
-                    <p className="text-xs text-white/50">VaR 95%</p>
-                    <p className="text-xs text-white/30 mt-1">95th percentile</p>
+                    <p className="text-[10px] sm:text-xs text-white/50 truncate">VaR 95%</p>
+                    <p className="text-[10px] text-white/30 mt-0.5 sm:mt-1 hidden sm:block">95th percentile</p>
                   </GlassCard>
 
-                  <GlassCard variant="compact" className="text-center">
-                    <Shield className="w-6 h-6 text-red-400 mx-auto mb-2" />
-                    <p className="text-2xl font-bold text-white">
+                  <GlassCard 
+                    variant="compact" 
+                    className="text-center hover:bg-white/10 transition-colors group min-w-0"
+                  >
+                    <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-red-400 mx-auto mb-1.5 sm:mb-2 group-hover:scale-110 transition-transform" />
+                    <p className="text-xl sm:text-2xl font-bold text-white tabular-nums">
                       ${(viewModel.loss.p99 / 1000).toFixed(1)}K
                     </p>
-                    <p className="text-xs text-white/50">CVaR 99%</p>
-                    <p className="text-xs text-white/30 mt-1">Worst case (99%)</p>
+                    <p className="text-[10px] sm:text-xs text-white/50 truncate">CVaR 99%</p>
+                    <p className="text-[10px] text-white/30 mt-0.5 sm:mt-1 hidden sm:block">Worst case (99%)</p>
                   </GlassCard>
                 </>
               )}
 
-              <GlassCard variant="compact" className="text-center">
-                <Layers className="w-6 h-6 text-purple-400 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-white">{layersData.length}</p>
-                <p className="text-xs text-white/50">Risk Layers</p>
-                <p className="text-xs text-white/30 mt-1">Analyzed</p>
+              <GlassCard 
+                variant="compact" 
+                className="text-center hover:bg-white/10 transition-colors group min-w-0"
+              >
+                <Layers className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400 mx-auto mb-1.5 sm:mb-2 group-hover:scale-110 transition-transform" />
+                <p className="text-xl sm:text-2xl font-bold text-white tabular-nums">{layersData.length}</p>
+                <p className="text-[10px] sm:text-xs text-white/50 truncate">Risk Layers</p>
+                <p className="text-[10px] text-white/30 mt-0.5 sm:mt-1 hidden sm:block">Analyzed</p>
               </GlassCard>
 
-              <GlassCard variant="compact" className="text-center">
-                <Brain className="w-6 h-6 text-cyan-400 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-white">{Math.round(confidence * 100)}%</p>
-                <p className="text-xs text-white/50">Confidence</p>
-                <p className="text-xs text-white/30 mt-1">Data quality</p>
+              <GlassCard 
+                variant="compact" 
+                className="text-center hover:bg-white/10 transition-colors group min-w-0"
+              >
+                <Brain className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400 mx-auto mb-1.5 sm:mb-2 group-hover:scale-110 transition-transform" />
+                <p className="text-xl sm:text-2xl font-bold text-white tabular-nums">{Math.round(confidence * 100)}%</p>
+                <p className="text-[10px] sm:text-xs text-white/50 truncate">Confidence</p>
+                <p className="text-[10px] text-white/30 mt-0.5 sm:mt-1 hidden sm:block">Data quality</p>
               </GlassCard>
             </div>
 
@@ -1151,14 +1320,14 @@ export default function ResultsPage() {
         {/* Footer */}
         <footer className="text-center py-8 border-t border-white/10">
           <div className="flex items-center justify-center gap-2 text-white/30 text-sm mb-2">
-            <Activity className="w-4 h-4" />
+            <Activity className="w-4 h-4" aria-hidden="true" />
             RISKCAST Enterprise Risk Intelligence
           </div>
           <p className="text-white/20 text-xs">
             Engine v2 • Last updated: {new Date().toLocaleString()} • Data Confidence: {Math.round(confidence * 100)}%
           </p>
         </footer>
-      </div>
+      </main>
 
       {/* AI System Chat Panel */}
       <Suspense fallback={null}>
@@ -1171,6 +1340,21 @@ export default function ResultsPage() {
           }}
         />
       </Suspense>
+
+      {/* Change Indicator Toast (P1 - #9) */}
+      <ChangeIndicator
+        hasChanges={hasChanges}
+        changes={changes}
+        onDismiss={clearChanges}
+        autoHideMs={8000}
+        position="top"
+      />
+
+      {/* Keyboard Shortcuts Help (P1 - #8) */}
+      <KeyboardShortcutsHelp
+        isOpen={showShortcutsHelp}
+        onClose={() => setShowShortcutsHelp(false)}
+      />
     </div>
   );
 }

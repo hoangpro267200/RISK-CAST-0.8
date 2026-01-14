@@ -274,16 +274,43 @@ export function adaptResultV2(raw: unknown): ResultsViewModel {
   };
 
   // ============================================================
-  // LAYERS
+  // LAYERS - Include all 16 risk layers with full metadata
   // ============================================================
-  const layers = toArray<{ name?: unknown; score?: unknown; contribution?: unknown; category?: unknown; enabled?: unknown; [key: string]: unknown }>(data.layers, []);
-  const normalizedLayers = layers.map((layer) => ({
-    name: toString(layer?.name, 'Unknown Layer'),
-    score: round(toPercent(layer?.score), 1),
-    contribution: round(toPercent(layer?.contribution), 0),
-    category: toString(layer?.category, 'UNKNOWN'),
-    enabled: layer?.enabled !== false, // Default to true if not specified
-  }));
+  const layers = toArray<{ 
+    name?: unknown; 
+    score?: unknown; 
+    contribution?: unknown; 
+    category?: unknown; 
+    enabled?: unknown;
+    id?: unknown;
+    weight?: unknown;
+    color?: unknown;
+    description?: unknown;
+    [key: string]: unknown 
+  }>(data.layers, []);
+  
+  const normalizedLayers = layers.map((layer) => {
+    const score = round(toPercent(layer?.score), 1);
+    // Derive status from score
+    const status = score >= 70 ? 'ALERT' : score >= 40 ? 'WARNING' : 'OK';
+    // Use description as notes, or generate from category
+    const category = toString(layer?.category, 'UNKNOWN');
+    const description = toString(layer?.description, '');
+    const notes = description || `${category} risk factor`;
+    
+    return {
+      id: toString(layer?.id, slugify(toString(layer?.name, 'unknown'))),
+      name: toString(layer?.name, 'Unknown Layer'),
+      score,
+      contribution: round(toPercent(layer?.contribution), 0),
+      category,
+      enabled: layer?.enabled !== false, // Default to true if not specified
+      weight: round(toNumber(layer?.weight, 0), 1),
+      color: toString(layer?.color, '#6B7280'),
+      status,
+      notes,
+    };
+  });
 
   // ============================================================
   // TIMELINE (Risk Scenario Projections)

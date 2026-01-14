@@ -1,181 +1,224 @@
 # RISKCAST Deprecation Guide
 
-This document lists all deprecated routes, pages, and APIs, along with their migration timeline and guides.
+## Overview
+
+This document tracks deprecated features, APIs, and components in RISKCAST.
+Please migrate to the recommended alternatives before the removal date.
 
 ---
 
-## 🚨 Deprecated Endpoints
+## API Deprecations
 
-### `/api/v1/risk/analyze` (v14 Engine)
+### v1 API Endpoints (Deprecated v17, Remove v18)
 
-**Status:** ⚠️ DEPRECATED  
-**Deprecated Since:** 2024  
-**Removal Target:** v17.0 (TBD)
+| Old Endpoint | New Endpoint | Migration Notes |
+|--------------|--------------|-----------------|
+| `POST /api/v1/risk/analyze` | `POST /api/v2/risk/analyze` | See [Request Format Changes](#request-format-changes) |
+| `GET /api/v1/shipments` | `GET /api/v2/shipments` | Response includes pagination |
+| `POST /api/v1/ai/chat` | `POST /api/v2/ai/advisor/chat` | Supports streaming |
 
-**Description:**  
-Legacy endpoint using v14 engine format. Still functional but uses adapter to call canonical v16 engine.
+#### Request Format Changes
 
-**Migration:**
-- **New Endpoint:** `/api/v1/risk/v2/analyze`
-- **Format:** Same request format, but uses canonical engine internally
-- **Action Required:** Update clients to use `/api/v1/risk/v2/analyze` or continue using deprecated endpoint (will be removed in v17)
-
-**Example:**
-```python
-# Old (deprecated)
-POST /api/v1/risk/analyze
+**v1 Format (Deprecated):**
+```json
 {
-  "transport_mode": "ocean_fcl",
-  "cargo_type": "electronics",
-  ...
+  "cargo_type": "GENERAL",
+  "mode": "sea",
+  "value": 50000,
+  "from_port": "CNSHA",
+  "to_port": "USLAX"
 }
+```
 
-# New (recommended)
-POST /api/v1/risk/v2/analyze
+**v2 Format (Current):**
+```json
 {
+  "cargo_type": "general_merchandise",
   "transport_mode": "ocean_fcl",
-  "cargo_type": "electronics",
-  ...
+  "cargo_value": 50000,
+  "origin_port": "CNSHA",
+  "destination_port": "USLAX"
+}
+```
+
+#### Field Mapping
+
+| v1 Field | v2 Field |
+|----------|----------|
+| `value` | `cargo_value` |
+| `from_port` | `origin_port` |
+| `to_port` | `destination_port` |
+| `mode` | `transport_mode` |
+| `ship_date` | `departure_date` |
+| `arrive_date` | `arrival_date` |
+
+#### Enum Value Changes
+
+**Cargo Types:**
+| v1 Value | v2 Value |
+|----------|----------|
+| `GENERAL` | `general_merchandise` |
+| `ELECTRONICS` | `electronics_high_value` |
+| `PERISHABLE` | `perishables_refrigerated` |
+| `HAZMAT` | `hazardous_materials` |
+
+**Transport Modes:**
+| v1 Value | v2 Value |
+|----------|----------|
+| `sea` | `ocean_fcl` |
+| `air` | `air_freight` |
+| `truck` | `road_ftl` |
+| `rail` | `rail` |
+
+---
+
+## Response Format Changes
+
+**v1 Response (Deprecated):**
+```json
+{
+  "score": 67.5,
+  "level": "MEDIUM",
+  "var": 15000,
+  "expectedLoss": 8000,
+  "factors": [...]
+}
+```
+
+**v2 Response (Current):**
+```json
+{
+  "risk_score": 67.5,
+  "risk_level": "medium",
+  "var_95": 15000,
+  "cvar_95": 22000,
+  "expected_loss": 8000,
+  "confidence": 0.95,
+  "risk_factors": [...],
+  "recommendations": [...],
+  "metadata": {
+    "engine_version": "v17",
+    "calculation_time_ms": 150
+  }
 }
 ```
 
 ---
 
-### `/api/analyze` (Legacy API)
+## Frontend Components (Vue.js → React)
 
-**Status:** ⚠️ DEPRECATED  
-**Deprecated Since:** 2024  
-**Removal Target:** v17.0 (TBD)
+### Deprecated Components (Remove v18)
 
-**Description:**  
-Legacy API endpoint in `app/api.py`. Uses v14 engine via adapter.
+| Vue Component | React Replacement | Status |
+|---------------|-------------------|--------|
+| `RiskGauge.vue` | `RiskGaugePremium.tsx` | Deprecated |
+| `ShipmentForm.vue` | `ShipmentWizard.tsx` | Deprecated |
+| `Dashboard.vue` | `DashboardPage.tsx` | Deprecated |
+| `AIChat.vue` | `AiAdvisorDock.tsx` | Deprecated |
 
-**Migration:**
-- **New Endpoint:** `/api/v1/risk/v2/analyze`
-- **Action Required:** Update clients to use `/api/v1/risk/v2/analyze`
+### Migration Steps
 
----
-
-## 📄 Deprecated Pages
-
-### `/input_v19`
-
-**Status:** ⚠️ DEPRECATED  
-**Deprecated Since:** 2024  
-**Removal Target:** v17.0 (TBD)
-
-**Description:**  
-Legacy input page v19. Replaced by v20.
-
-**Migration:**
-- **New Page:** `/input_v20` (current)
-- **Action Required:** Update bookmarks/links to use `/input_v20`
-- **Archive Location:** `archive/pages/input_v19/`
+1. Replace Vue component imports with React equivalents
+2. Update state management from Vuex to React hooks
+3. Replace Vue Router with React Router
+4. Update event handlers from `@click` to `onClick`
 
 ---
 
-### `/overview` (Legacy)
+## Backend Components
 
-**Status:** ⚠️ DEPRECATED  
-**Deprecated Since:** 2024  
-**Removal Target:** v17.0 (TBD)
+### Deprecated Modules (Remove v18)
 
-**Description:**  
-Legacy overview page. Now redirects to `/summary`.
+| Module | Replacement | Notes |
+|--------|-------------|-------|
+| `app/risk_engine.py` | `app/core/engine/risk_engine_v16.py` | Old monolithic engine |
+| `app/memory.py` | `app/database/` | Use SQLAlchemy models |
+| `app/api.py` | `app/api/v2/` | Use versioned API routes |
 
-**Migration:**
-- **New Page:** `/summary` (summary_v400)
-- **Action Required:** Update bookmarks/links to use `/summary`
+### Deprecated Functions
 
----
-
-## 🔧 Deprecated Functions
-
-### `run_risk_engine_v14()`
-
-**Status:** ⚠️ DEPRECATED  
-**Deprecated Since:** 2024  
-**Location:** `app/core/services/risk_service.py`
-
-**Description:**  
-Legacy v14 engine wrapper. Now uses adapter to call canonical v16 engine.
-
-**Migration:**
-- **New Function:** Use canonical engine interface directly
-- **Action Required:** Update imports to use canonical engine
-- **Note:** Function still works but logs deprecation warnings
-
-**Example:**
 ```python
-# Old (deprecated)
-from app.core.services.risk_service import run_risk_engine_v14
-result = run_risk_engine_v14(payload)
+# DEPRECATED: Use calculate_risk_v2() instead
+def calculate_risk(shipment):
+    pass
 
-# New (recommended)
-from app.core.engine.risk_engine_v16 import calculate_enterprise_risk
-result = calculate_enterprise_risk(payload)
+# DEPRECATED: Use RiskEngine.analyze() instead
+def run_analysis(data):
+    pass
+
+# DEPRECATED: Use StateStorage class instead
+def save_to_memory(key, value):
+    pass
 ```
 
 ---
 
-## 📦 Deprecated Modules
+## Configuration Changes
 
-### `app/core/legacy/`
+### Environment Variables
 
-**Status:** ⚠️ DEPRECATED  
-**Deprecated Since:** 2024  
-**Removal Target:** v17.0 (TBD)
-
-**Description:**  
-Legacy engine code (v14/v15). Moved to archive.
-
-**Migration:**
-- **Archive Location:** `archive/engines/v14/`, `archive/engines/v15/`
-- **Action Required:** Do not import directly. Use adapters instead.
+| Old Variable | New Variable | Default |
+|--------------|--------------|---------|
+| `DB_URL` | `DATABASE_URL` | - |
+| `AI_KEY` | `ANTHROPIC_API_KEY` | - |
+| `CACHE_HOST` | `REDIS_URL` | `redis://localhost:6379/0` |
 
 ---
 
-## 🗓️ Timeline
+## Using the Legacy Adapter
 
-### Phase 1: Deprecation (Current)
-- ✅ Legacy code moved to archive
-- ✅ Adapters created for backward compatibility
-- ✅ Deprecation warnings logged
-- ✅ Documentation created
+During migration, you can use the legacy adapter for backward compatibility:
 
-### Phase 2: Migration Period (v16.x)
-- ⏳ Clients migrate to new endpoints
-- ⏳ Monitor usage of deprecated endpoints
-- ⏳ Update documentation
+```python
+from app.core.adapters.legacy_adapter import RequestAdapter, ResponseAdapter
 
-### Phase 3: Removal (v17.0)
-- ⏳ Remove deprecated endpoints
-- ⏳ Remove legacy code from archive (optional)
-- ⏳ Final migration guide published
+# Convert v1 request to v2
+v2_request = RequestAdapter.v1_to_v2_risk(v1_request)
 
----
+# Call v2 handler
+v2_response = await analyze_risk(v2_request)
 
-## 📝 Migration Checklist
+# Convert back to v1 for old clients
+v1_response = ResponseAdapter.v2_to_v1_risk(v2_response)
+```
 
-For each deprecated endpoint/function you use:
+### Deprecation Decorator
 
-- [ ] Identify all usages in your codebase
-- [ ] Update to use new endpoint/function
-- [ ] Test thoroughly
-- [ ] Update documentation
-- [ ] Remove old code after migration complete
+```python
+from app.core.adapters.legacy_adapter import deprecated
+
+@deprecated("Use /api/v2/risk/analyze instead")
+async def old_endpoint():
+    pass
+```
 
 ---
 
-## ❓ Questions?
+## Deprecation Timeline
 
-If you have questions about migration:
-1. Check `docs/UPGRADE_ROADMAP.md` for detailed migration steps
-2. Review `docs/STATE_OF_THE_REPO.md` for architecture overview
-3. Check adapter code in `app/core/adapters/` for format conversion examples
+| Version | Date | Changes |
+|---------|------|---------|
+| v17 | 2026-01 | APIs marked deprecated, adapters added |
+| v17.1 | 2026-02 | Deprecation warnings in logs |
+| v18 | 2026-06 | v1 APIs removed |
 
 ---
 
-**Last Updated:** 2024  
-**Maintained By:** RISKCAST Engineering Team
+## Getting Help
 
+- **Migration Guide**: See `docs/MIGRATION_V16_TO_V17.md`
+- **API Documentation**: See `docs/API_V2.md`
+- **Support**: Contact support@riskcast.io
+
+---
+
+## Changelog
+
+### v17.0.0 (2026-01)
+- Marked v1 API endpoints as deprecated
+- Added legacy adapters for backward compatibility
+- Created migration documentation
+
+### v16.5.0 (2025-12)
+- Added v2 API endpoints (beta)
+- Started deprecation process for Vue components

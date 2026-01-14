@@ -151,5 +151,29 @@
     overflow-x: hidden;
     overflow-y: visible;
   }
+  
+  /* Improved contrast text - use instead of text-white/60 */
+  .text-accessible {
+    @apply text-white/80;
+  }
+  
+  .text-accessible-muted {
+    @apply text-white/65;
+  }
+  
+  /* Mobile-friendly tabs container */
+  .tabs-scroll-container {
+    @apply overflow-x-auto scrollbar-thin;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  @media (max-width: 640px) {
+    .tabs-scroll-container {
+      margin-left: -1rem;
+      margin-right: -1rem;
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+  }
 }
 

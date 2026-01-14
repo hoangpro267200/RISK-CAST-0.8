@@ -193,13 +193,7 @@ if ASSETS_DIR and ASSETS_DIR.exists():
     # html=False ensures it doesn't try to serve index.html for missing files
     app.mount("/assets", StaticFiles(directory=str(ASSETS_DIR), html=False), name="assets")
     print(f"[INFO] Mounted /assets from {ASSETS_DIR}")
-    print(f"[INFO] Assets directory exists: {ASSETS_DIR.exists()}")
-    print(f"[INFO] Assets directory contains: {list(ASSETS_DIR.iterdir())[:10]}")
-    # Verify key files exist
-    key_files = ["index-TYO6GW1p.js", "index-vfG_beiV.css", "vendor-react-BoEpX7VO.js", "vendor-charts-CurshXyw.js"]
-    for key_file in key_files:
-        file_path = ASSETS_DIR / key_file
-        print(f"[INFO] {key_file} exists: {file_path.exists()}")
+    print(f"[INFO] Assets directory contains {len(list(ASSETS_DIR.iterdir()))} files")
 else:
     print(f"[WARNING] ASSETS_DIR not found! DIST_DIR: {DIST_DIR}, exists: {DIST_DIR.exists() if DIST_DIR else False}")
 

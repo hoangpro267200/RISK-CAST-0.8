@@ -91,6 +91,230 @@
   }
 }
 
+/* =============================================================================
+   PRINT STYLES (for PDF export)
+   ============================================================================= */
+
+@media print {
+  /* Hide non-essential elements */
+  .no-print,
+  [data-no-print],
+  .ai-advisor-dock,
+  .system-chat-panel {
+    display: none !important;
+  }
+
+  /* Reset backgrounds for print */
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt;
+  }
+
+  /* Make cards print-friendly */
+  .glass-card,
+  .backdrop-blur-xl,
+  .backdrop-blur-lg {
+    background: white !important;
+    backdrop-filter: none !important;
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+  }
+
+  /* Text color reset */
+  .text-white,
+  .text-white\/90,
+  .text-white\/80,
+  .text-white\/70,
+  .text-white\/60,
+  .text-white\/50 {
+    color: #1a1a1a !important;
+  }
+
+  /* Gradient text fix */
+  .bg-clip-text {
+    background: none !important;
+    -webkit-background-clip: border-box !important;
+    color: inherit !important;
+  }
+
+  /* Page breaks */
+  .page-break-before {
+    page-break-before: always;
+  }
+
+  .page-break-after {
+    page-break-after: always;
+  }
+
+  .avoid-break {
+    page-break-inside: avoid;
+  }
+
+  /* Chart containers */
+  .recharts-wrapper {
+    page-break-inside: avoid;
+  }
+}
+
+/* Print mode class (added by JS before print) */
+body.print-mode {
+  /* Temporarily adjust for print preview */
+}
+
+/* =============================================================================
+   MOBILE-SPECIFIC FIXES
+   ============================================================================= */
+
+/* Touch-friendly tap targets */
+@media (max-width: 640px) {
+  button,
+  a,
+  [role="button"],
+  [role="tab"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Larger touch targets for interactive elements */
+  .touch-target {
+    min-height: 48px;
+    min-width: 48px;
+  }
+}
+
+/* Horizontal scroll containers on mobile */
+.scroll-x-mobile {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.scroll-x-mobile::-webkit-scrollbar {
+  display: none;
+}
+
+/* Safe area padding for notch devices */
+.safe-area-inset {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* =============================================================================
+   ENHANCED FOCUS STATES
+   ============================================================================= */
+
+/* Custom focus ring for dark backgrounds */
+.focus-ring {
+  outline: none;
+}
+
+.focus-ring:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: inherit;
+}
+
+/* Focus ring offset for dark theme */
+.focus-ring-offset-dark:focus-visible {
+  box-shadow: 0 0 0 2px rgb(15, 23, 42), 0 0 0 4px #3b82f6;
+}
+
+/* Button focus states */
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Tab focus states */
+[role="tab"]:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: -2px;
+  border-radius: 0.5rem;
+}
+
+/* Link focus states */
+a:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+/* =============================================================================
+   CONTRAST IMPROVEMENTS
+   ============================================================================= */
+
+/* Improved text contrast classes */
+.text-contrast-high {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.text-contrast-medium {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.text-contrast-low {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* Override low contrast text with better visibility */
+.a11y-text {
+  /* Minimum 4.5:1 contrast ratio */
+  color: rgba(255, 255, 255, 0.87);
+}
+
+/* =============================================================================
+   ANIMATION UTILITIES
+   ============================================================================= */
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Slide in from top */
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in-top {
+  animation: slideInFromTop 0.3s ease-out;
+}
+
+/* Scale in */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s ease-out;
+}
+
 
 
 

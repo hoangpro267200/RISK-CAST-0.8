@@ -45,7 +45,7 @@ export function ActionFooter({ data, modules, onRunAnalysis, onSaveDraft, onBack
   const enabledModules = Object.values(modules).filter(Boolean).length;
 
   // Allow analysis even with some issues - just warn user
-  const canAnalyze = completeness >= 50; // More lenient for testing
+  const canAnalyze = completeness >= 20; // Allow analysis with partial data for testing
 
   const getTimeSince = (date: Date) => {
     const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);

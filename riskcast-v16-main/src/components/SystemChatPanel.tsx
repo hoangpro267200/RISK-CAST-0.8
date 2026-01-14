@@ -358,15 +358,20 @@ export function SystemChatPanel({ sessionId, context, onClose }: SystemChatPanel
           >
             <Minimize2 size={18} />
           </button>
-          {onClose && (
-            <button
-              onClick={onClose}
-              className="text-slate-400 hover:text-white hover:bg-red-500/20 hover:text-red-400 rounded-lg p-2 transition-all duration-200"
-              title="Đóng"
-            >
-              <X size={18} />
-            </button>
-          )}
+          {/* Close button - always visible, calls onClose if provided or minimizes */}
+          <button
+            onClick={() => {
+              if (onClose) {
+                onClose();
+              } else {
+                setIsMinimized(true);
+              }
+            }}
+            className="text-slate-400 hover:text-white hover:bg-red-500/20 hover:text-red-400 rounded-lg p-2 transition-all duration-200"
+            title="Đóng"
+          >
+            <X size={18} />
+          </button>
         </div>
       </div>
 

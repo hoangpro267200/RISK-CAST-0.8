@@ -60,13 +60,17 @@ export interface RiskScoreData {
 export type LayerStatus = 'NORMAL' | 'OK' | 'WARNING' | 'ALERT';
 
 export interface LayerData {
+  id?: string; // Unique identifier
   name: string;
   score: number; // 0-100
   contribution: number; // 0-100
+  weight?: number; // Layer weight in % (0-100)
   category?: string; // TRANSPORT, CARGO, COMMERCIAL, COMPLIANCE, EXTERNAL
+  color?: string; // Hex color for visualization
   enabled?: boolean;
   status?: LayerStatus;
   notes?: string;
+  description?: string; // Layer description
   confidence?: number; // 0-100 (layer-specific confidence)
   dataSource?: string;
   lastUpdated?: string;

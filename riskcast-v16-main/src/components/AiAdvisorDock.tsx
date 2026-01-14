@@ -165,12 +165,8 @@ export function AiAdvisorDock({ sessionId, context, onClose }: AiAdvisorDockProp
     }
   };
 
-  // Don't render if closed
-  if (!isOpen) {
-    return null;
-  }
-
   // Responsive: Desktop = dock, Mobile = bottom sheet
+  // IMPORTANT: This hook must be BEFORE the early return to follow Rules of Hooks
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window === 'undefined') return false;
     return window.innerWidth < 768;
@@ -183,6 +179,14 @@ export function AiAdvisorDock({ sessionId, context, onClose }: AiAdvisorDockProp
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Don't render if closed
+  if (!isOpen) {
+    return null;
+  }
+
+  // Use isMobile variable (already declared above) for responsive logic
+  void isMobile; // Prevent unused variable warning
 
   return (
     <>
