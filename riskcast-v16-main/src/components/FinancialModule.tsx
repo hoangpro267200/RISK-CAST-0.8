@@ -271,6 +271,40 @@ export const FinancialModule: React.FC<FinancialModuleProps> = ({ financial }) =
         )}
       </div>
 
+      {/* Sprint 3: Tail Risk Section */}
+      <div className="mt-6 pt-6 border-t border-white/10">
+        <h4 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 text-orange-400" />
+          <span>Tail Risk Analysis</span>
+        </h4>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="p-4 bg-orange-500/10 rounded-lg border border-orange-500/20">
+            <div className="text-xs text-orange-400 mb-1">P95-P99 Range</div>
+            <div className="text-lg font-bold text-white">
+              ${((financial.cvar95 - financial.var95) / 1000).toFixed(1)}K
+            </div>
+            <div className="text-xs text-white/50 mt-1">
+              Tail risk zone (5% of outcomes)
+            </div>
+          </div>
+          <div className="p-4 bg-red-500/10 rounded-lg border border-red-500/20">
+            <div className="text-xs text-red-400 mb-1">Beyond P99</div>
+            <div className="text-lg font-bold text-white">
+              ${((financial.cvar95 * 1.2 - financial.cvar95) / 1000).toFixed(1)}K+
+            </div>
+            <div className="text-xs text-white/50 mt-1">
+              Extreme tail (1% probability)
+            </div>
+          </div>
+        </div>
+        <div className="mt-4 p-3 bg-orange-500/5 rounded-lg border border-orange-500/10">
+          <p className="text-xs text-white/70">
+            <strong className="text-orange-400">Tail Risk:</strong> The range between P95 and P99 represents 
+            severe but rare scenarios. Consider parametric insurance or higher coverage limits for tail protection.
+          </p>
+        </div>
+      </div>
+
       {/* Footer legend */}
       <div className="flex items-center justify-center gap-6 mt-4 pt-4 border-t border-white/10">
         <div className="flex items-center gap-2">

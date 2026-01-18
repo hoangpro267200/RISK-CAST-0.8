@@ -55,6 +55,9 @@ export function LayersTable({ layers, onSelectLayer }: LayersTableProps) {
               <th className="text-left py-3 px-4 text-sm font-medium text-[var(--color-text-muted)]">Contribution</th>
               <th className="text-left py-3 px-4 text-sm font-medium text-[var(--color-text-muted)]">Status</th>
               <th className="text-left py-3 px-4 text-sm font-medium text-[var(--color-text-muted)]">Score</th>
+              {/* Sprint 3: Add FAHP Weight and TOPSIS Score columns */}
+              <th className="text-left py-3 px-4 text-sm font-medium text-[var(--color-text-muted)]">FAHP Weight</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-[var(--color-text-muted)]">TOPSIS Score</th>
               <th className="text-left py-3 px-4 text-sm font-medium text-[var(--color-text-muted)]">Notes</th>
             </tr>
           </thead>
@@ -62,7 +65,7 @@ export function LayersTable({ layers, onSelectLayer }: LayersTableProps) {
           <tbody>
             {sortedLayers.length === 0 ? (
               <tr>
-                <td colSpan={5} className="py-8 text-center text-white/40">
+                <td colSpan={7} className="py-8 text-center text-white/40">
                   <div className="text-sm">No layer data available</div>
                   <div className="text-xs text-white/30 mt-1">Layer data is required for this table</div>
                 </td>
@@ -70,6 +73,10 @@ export function LayersTable({ layers, onSelectLayer }: LayersTableProps) {
             ) : (
               sortedLayers.map((layer) => {
               const clickable = Boolean(onSelectLayer);
+              // Sprint 3: Extract FAHP weight and TOPSIS score
+              const fahpWeight = (layer as any).fahpWeight ?? (layer.weight ? layer.weight / 100 : undefined);
+              const topsisScore = (layer as any).topsisScore ?? (layer as any).topsis_score ?? undefined;
+              
               return (
                 <tr
                   key={layer.name}
@@ -106,6 +113,14 @@ export function LayersTable({ layers, onSelectLayer }: LayersTableProps) {
                   <td className="py-4 px-4 flex items-center">
                     <BadgeRisk level={getRiskLevel(layer.score)} size="sm" />
                     <span className="ml-2 text-sm">{layer.score}</span>
+                  </td>
+                  {/* Sprint 3: FAHP Weight column */}
+                  <td className="py-4 px-4 text-sm text-purple-400">
+                    {fahpWeight !== undefined ? `${(fahpWeight * 100).toFixed(1)}%` : '—'}
+                  </td>
+                  {/* Sprint 3: TOPSIS Score column */}
+                  <td className="py-4 px-4 text-sm text-cyan-400">
+                    {topsisScore !== undefined ? topsisScore.toFixed(3) : '—'}
                   </td>
                   <td className="py-4 px-4 text-sm text-[var(--color-text-secondary)]">{layer.notes}</td>
                 </tr>

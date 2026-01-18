@@ -410,58 +410,10 @@ async def shipment_summary_page_default(request: Request, react: str = None):
     )
 
 
-@router.get("/results", response_class=HTMLResponse)
-async def results_page(request: Request):
-    """
-    Results Page - Serves React Results app from dist/index.html
-    This is where users are redirected after running analysis
-    """
-    from pathlib import Path
-    
-    # Serve React app from dist/index.html
-    dist_index = Path(__file__).parent.parent.parent / "dist" / "index.html"
-    if dist_index.exists():
-        with open(dist_index, 'r', encoding='utf-8') as f:
-            html_content = f.read()
-        return HTMLResponse(content=html_content)
-    
-    # Fallback HTML if React build not available
-    return HTMLResponse(content="""
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>RISKCAST Results - Build Required</title>
-        <style>
-            body { 
-                font-family: system-ui, sans-serif; 
-                background: linear-gradient(135deg, #0a1628 0%, #1a2942 100%);
-                color: white;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                min-height: 100vh;
-                margin: 0;
-            }
-            .container { text-align: center; padding: 40px; }
-            code { 
-                background: rgba(255,255,255,0.1); 
-                padding: 8px 16px; 
-                border-radius: 8px;
-                display: block;
-                margin: 16px 0;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>⚠️ React Build Required</h1>
-            <p>Please build the React app:</p>
-            <code>cd riskcast-v16-main && npm run build</code>
-            <p>Then restart the server.</p>
-        </div>
-    </body>
-    </html>
-    """)
+# REMOVED: Duplicate /results route - handled by app/main.py
+# This route was causing conflicts. The /results route is now handled
+# exclusively by app/main.py to ensure proper React app serving.
+# @router.get("/results", response_class=HTMLResponse)
+# async def results_page(request: Request):
+#     ... (removed to avoid route conflict)
 

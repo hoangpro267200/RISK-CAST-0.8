@@ -10,7 +10,7 @@ interface RiskRadarProps {
   layers: LayerData[];
 }
 
-// Custom tooltip for radar
+// Custom tooltip for radar (Sprint 3: Enhanced with contribution % and FAHP weight)
 const CustomTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
@@ -19,7 +19,7 @@ const CustomTooltip = ({ active, payload }: any) => {
     const riskColor = score >= 70 ? 'text-red-400' : score >= 40 ? 'text-amber-400' : 'text-emerald-400';
     
     return (
-      <div className="bg-black/95 backdrop-blur-xl border border-white/20 rounded-xl p-4 shadow-2xl min-w-[180px]">
+      <div className="bg-black/95 backdrop-blur-xl border border-white/20 rounded-xl p-4 shadow-2xl min-w-[220px]">
         <div className="font-medium text-white mb-2 pb-2 border-b border-white/10">
           {data.name}
         </div>
@@ -32,6 +32,20 @@ const CustomTooltip = ({ active, payload }: any) => {
             <span className="text-white/60 text-sm">Risk Level</span>
             <span className={`text-sm font-medium ${riskColor}`}>{riskLevel}</span>
           </div>
+          {/* Sprint 3: Contribution % */}
+          {data.contribution !== undefined && (
+            <div className="flex justify-between items-center">
+              <span className="text-white/60 text-sm">Contribution</span>
+              <span className="text-cyan-400 font-semibold">{data.contribution.toFixed(1)}%</span>
+            </div>
+          )}
+          {/* Sprint 3: FAHP Weight */}
+          {data.fahpWeight !== undefined && (
+            <div className="flex justify-between items-center">
+              <span className="text-white/60 text-sm">FAHP Weight</span>
+              <span className="text-purple-400 font-semibold">{(data.fahpWeight * 100).toFixed(1)}%</span>
+            </div>
+          )}
           {data.category && (
             <div className="flex justify-between items-center">
               <span className="text-white/60 text-sm">Category</span>
@@ -39,6 +53,17 @@ const CustomTooltip = ({ active, payload }: any) => {
             </div>
           )}
         </div>
+        {/* Interpretation */}
+        {(data.contribution !== undefined || data.fahpWeight !== undefined) && (
+          <div className="mt-3 pt-2 border-t border-white/10 text-xs text-white/70">
+            {data.contribution !== undefined && (
+              <p>This layer contributes {data.contribution.toFixed(1)}% to your overall risk score.</p>
+            )}
+            {data.fahpWeight !== undefined && (
+              <p className="mt-1">FAHP weight: {(data.fahpWeight * 100).toFixed(1)}% determines this layer's importance.</p>
+            )}
+          </div>
+        )}
         {/* Mini progress bar */}
         <div className="mt-3 pt-2 border-t border-white/10">
           <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
@@ -98,6 +123,9 @@ export const RiskRadar: React.FC<RiskRadarProps> = ({ layers }) => {
       value: layer.score ?? 0,
       fullMark: 100,
       category: (layer as any).category || 'Unknown',
+      // Sprint 3: Add contribution and FAHP weight for enhanced tooltip
+      contribution: layer.contribution ?? 0,
+      fahpWeight: (layer as any).fahpWeight ?? (layer.weight ? layer.weight / 100 : undefined),
     }));
 
   // Calculate statistics

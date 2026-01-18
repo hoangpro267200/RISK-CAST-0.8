@@ -96,8 +96,8 @@ export const ResultsBreadcrumb: React.FC<ResultsBreadcrumbProps> = ({
       icon: <Home className="w-3.5 h-3.5" />
     },
     {
-      label: 'Shipments',
-      href: '/shipments'
+      label: 'Summary',
+      href: '/summary'  // UPDATED: Link back to Summary page (PR #4)
     },
     {
       label: `SH-${shipmentId}`,
@@ -105,6 +105,33 @@ export const ResultsBreadcrumb: React.FC<ResultsBreadcrumbProps> = ({
     },
     {
       label: 'Risk Analysis',
+      current: true
+    }
+  ];
+
+  return <Breadcrumb items={items} className={className} />;
+};
+
+/**
+ * Summary Breadcrumb (Input → Summary → Results)
+ */
+export interface SummaryBreadcrumbProps {
+  className?: string;
+}
+
+export const SummaryBreadcrumb: React.FC<SummaryBreadcrumbProps> = ({ className = '' }) => {
+  const items: BreadcrumbItem[] = [
+    {
+      label: 'Dashboard',
+      href: '/',
+      icon: <Home className="w-3.5 h-3.5" />
+    },
+    {
+      label: 'Input',
+      href: '/input_v20'
+    },
+    {
+      label: 'Summary',
       current: true
     }
   ];

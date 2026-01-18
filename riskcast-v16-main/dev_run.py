@@ -10,6 +10,18 @@ import sys
 from pathlib import Path
 from dotenv import load_dotenv
 
+# Fix Windows console encoding for emoji support
+if sys.platform == "win32":
+    try:
+        # Try to set UTF-8 encoding for Windows console
+        if sys.stdout.encoding != 'utf-8':
+            sys.stdout.reconfigure(encoding='utf-8')
+        if sys.stderr.encoding != 'utf-8':
+            sys.stderr.reconfigure(encoding='utf-8')
+    except (AttributeError, LookupError):
+        # Fallback: use ASCII-safe output
+        pass
+
 # Load .env first
 root_dir = Path(__file__).resolve().parent
 env_file = root_dir / ".env"
@@ -20,7 +32,7 @@ if env_file.exists():
     # Verify API key
     api_key = os.getenv("ANTHROPIC_API_KEY")
     if api_key and len(api_key) > 20 and api_key != "dummy":
-        print("[INFO] ANTHROPIC_API_KEY configured ✓")
+        print("[INFO] ANTHROPIC_API_KEY configured")
     else:
         print("[WARNING] ANTHROPIC_API_KEY not found or invalid")
 
@@ -34,19 +46,28 @@ if __name__ == "__main__":
         os.chdir(root_dir)
         sys.path.insert(0, str(root_dir))
         
-        print("\n" + "="*60)
-        print("🚀 Starting RISKCAST Development Server")
-        print("="*60)
-        print(f"📍 Server will run at: http://127.0.0.1:8000")
-        print(f"📁 Working directory: {root_dir}")
-        print(f"📦 PYTHONPATH: {os.environ.get('PYTHONPATH', 'Not set')}")
-        print(f"📦 sys.path[0]: {sys.path[0]}")
-        print("="*60 + "\n")
+        # Safe print function that handles encoding errors
+        def safe_print(text):
+            try:
+                print(text)
+            except UnicodeEncodeError:
+                # Fallback: remove emojis and print ASCII-safe version
+                safe_text = text.encode('ascii', 'ignore').decode('ascii')
+                print(safe_text)
+        
+        safe_print("\n" + "="*60)
+        safe_print("Starting RISKCAST Development Server")
+        safe_print("="*60)
+        safe_print(f"Server will run at: http://127.0.0.1:8000")
+        safe_print(f"Working directory: {root_dir}")
+        safe_print(f"PYTHONPATH: {os.environ.get('PYTHONPATH', 'Not set')}")
+        safe_print(f"sys.path[0]: {sys.path[0]}")
+        safe_print("="*60 + "\n")
         
         # Test import first
         try:
             from app.main import app
-            print("[INFO] App imported successfully ✓")
+            safe_print("[INFO] App imported successfully")
         except Exception as e:
             print(f"[ERROR] Failed to import app: {e}")
             print(f"[DEBUG] Current directory: {os.getcwd()}")

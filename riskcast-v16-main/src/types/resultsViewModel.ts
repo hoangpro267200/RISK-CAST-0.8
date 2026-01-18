@@ -100,16 +100,19 @@ export type RiskLevel = 'Low' | 'Medium' | 'High' | 'Critical' | 'Unknown';
 export interface ShipmentViewModel {
   id: string;
   route: string;
-  pol: string;
-  pod: string;
+  pol: string | { code: string; name: string };
+  pod: string | { code: string; name: string };
   carrier: string;
   etd: string | undefined; // ISO date string or undefined if invalid
   eta: string | undefined; // ISO date string or undefined if invalid
   transitTime: number; // days
   container: string;
   cargo: string;
+  cargoType?: string;  // [MUST DISPLAY] - e.g., "Electronics", "Perishable"
+  containerType?: string;  // [MUST DISPLAY] - e.g., "40DV", "20RF"
+  packaging?: string | null;
   incoterm: string;
-  cargoValue: number; // USD
+  cargoValue: number | { amount: number; currency: 'USD' | 'VND' }; // USD or currency object
 }
 
 /**
@@ -119,6 +122,7 @@ export interface RiskScoreViewModel {
   score: number; // 0-100, rounded to 1 decimal
   level: RiskLevel;
   confidence: number; // 0-100 (percentage), rounded to 0 decimals
+  confidenceSource?: string;  // "Based on X data points"
 }
 
 /**
@@ -268,6 +272,9 @@ export interface ResultsMetaViewModel {
   engineVersion: string;
   language: string;
   timestamp: string | undefined;
+  analysisId?: string;
+  dataFreshness?: 'fresh' | 'stale';  // stale if > 5 minutes
+  dataQuality?: 'real' | 'synthetic' | 'partial';
 }
 
 /**
@@ -291,6 +298,17 @@ export interface BreakdownViewModel {
 }
 
 /**
+ * Narrative data with personalization
+ */
+export interface NarrativeViewModel {
+  personalizedSummary: string;     // [MUST BE PERSONALIZED]
+  whyThisScore: string;
+  topRiskFactors: Array<{ factor: string; contribution: number }>;
+  actionItems: Array<{ action: string; priority: 'immediate' | 'short-term' | 'long-term' }>;
+  sourceAttribution: string;       // "Based on X data points from Y sources"
+}
+
+/**
  * Complete Results View Model
  * 
  * This is the canonical type that Results page UI must consume.
@@ -299,21 +317,31 @@ export interface BreakdownViewModel {
  * STRUCTURE: Slice-based architecture
  * - overview: Shipment, risk score, profile
  * - breakdown: Layers and factors
+ * - algorithm: Algorithm explainability (FAHP, TOPSIS, Monte Carlo) [NEW]
  * - timeline: Timeline projections
  * - decisions: Insurance, timing, routing decisions
  * - loss: Financial loss metrics
+ * - insurance: Insurance underwriting data [NEW]
+ * - logistics: Logistics realism data [NEW]
+ * - riskDisclosure: Risk disclosure data [NEW]
  * - scenarios: Mitigation scenarios
  * - drivers: Risk drivers
+ * - narrative: Personalized narrative [NEW]
  * - meta: Metadata and warnings
  */
 export interface ResultsViewModel {
   overview: OverviewViewModel;
   breakdown: BreakdownViewModel;
+  algorithm?: import('./algorithmTypes').AlgorithmExplainabilityData;  // [NEW]
   timeline: TimelineViewModel;
   decisions: DecisionsViewModel;
   loss: LossViewModel | null;
+  insurance?: import('./insuranceTypes').InsuranceUnderwritingData;  // [NEW]
+  logistics?: import('./logisticsTypes').LogisticsRealismData;  // [NEW]
+  riskDisclosure?: import('./riskDisclosureTypes').RiskDisclosureData;  // [NEW]
   scenarios: ScenarioViewModel[];
   drivers: RiskDriverViewModel[];
+  narrative?: NarrativeViewModel;  // [NEW]
   meta: ResultsMetaViewModel;
 }
 

@@ -36,6 +36,18 @@ except ImportError as e:
     print(f"[API v2] Warning: Could not import market router: {e}")
     market_router = None
 
+try:
+    from app.api.v2.insurance_routes import router as insurance_router
+except ImportError as e:
+    print(f"[API v2] Warning: Could not import insurance router: {e}")
+    insurance_router = None
+
+try:
+    from app.api.v2.webhooks.insurance_webhooks import router as insurance_webhooks_router
+except ImportError as e:
+    print(f"[API v2] Warning: Could not import insurance webhooks router: {e}")
+    insurance_webhooks_router = None
+
 
 def get_v2_router() -> APIRouter:
     """
@@ -56,8 +68,14 @@ def get_v2_router() -> APIRouter:
     if market_router:
         combined.include_router(market_router)
     
+    if insurance_router:
+        combined.include_router(insurance_router)
+    
+    if insurance_webhooks_router:
+        combined.include_router(insurance_webhooks_router)
+    
     return combined
 
 
 # Export routers
-__all__ = ['router', 'get_v2_router', 'api_keys_router', 'enterprise_router', 'market_router']
+__all__ = ['router', 'get_v2_router', 'api_keys_router', 'enterprise_router', 'market_router', 'insurance_router']

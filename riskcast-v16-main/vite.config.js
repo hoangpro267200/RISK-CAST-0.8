@@ -61,11 +61,9 @@ export default defineConfig(({ mode }) => {
       reportCompressedSize: true,
       sourcemap: true, // Enable sourcemap for debugging
       minify: false, // Disable minify to avoid terser dependency
-      commonjsOptions: {
-        include: [/node_modules/],
-        transformMixedEsModules: true,
-      },
+      // Explicitly specify the entry HTML file
       rollupOptions: {
+        input: path.resolve(__dirname, 'index.html'),
         output: {
           manualChunks: (id) => {
             // Vendor chunks (Phase 5 - Performance optimization)

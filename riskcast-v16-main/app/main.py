@@ -303,6 +303,7 @@ async def input_v20_submit(request: Request):
             return default
 
     # Build a shipment-like payload that matches api.run_analysis expectations
+    # UPDATED: Normalize field names to match DomainCase schema (for consistency)
     shipment_payload: Dict[str, Any] = {
         "transport_mode": _get("transport_mode", "ocean_fcl"),
         "cargo_type": _get("cargo_type", "general"),
@@ -336,10 +337,59 @@ async def input_v20_submit(request: Request):
         "risk_level": _get("risk_level", "Medium"),
     }
 
+    # UPDATED: Build DomainCase-like structure for RISKCAST_STATE (single source of truth)
+    # Frontend will handle full DomainCase mapping; backend saves normalized format
+    from datetime import datetime
+    case_id = f"CASE-{int(datetime.now().timestamp() * 1000)}"
+    domain_case_like: Dict[str, Any] = {
+        "caseId": case_id,
+        "version": "1.0",
+        "createdAt": datetime.now().isoformat(),
+        "lastModified": datetime.now().isoformat(),
+        "pol": _get("pol_code", _get("origin", "VNSGN")).upper(),
+        "pod": _get("pod_code", _get("destination", "CNSHA")).upper(),
+        "transportMode": _get("transport_mode", "air").upper()[:4] if _get("transport_mode", "air").upper().startswith("AIR") else _get("transport_mode", "sea").upper()[:3],
+        "containerType": _get("container", "40HC"),
+        "serviceRoute": _get("route") or f"{_get('pol_code', 'VNSGN')}_{_get('pod_code', 'CNSHA')}",
+        "carrier": _get("carrier", ""),
+        "etd": _get("etd") or datetime.now().strftime("%Y-%m-%d"),
+        "eta": _get("eta") or "",
+        "transitTimeDays": int(_to_float("transit_time", 3)),
+        "cargoType": _get("cargo_type", "general"),
+        "packages": int(form_data.get("packages", 0) or 0),
+        "cargoValue": _to_float("cargo_value", 0.0) or _to_float("insuranceValue", 0.0) or _to_float("shipment_value", 0.0),
+        "currency": "USD",
+        "incoterm": _get("incoterm", "FOB"),
+        "priority": _get("priority", "normal"),
+        "seller": {
+            "company": _get("shipper", ""),
+            "email": "",
+            "phone": "",
+            "country": "",
+        },
+        "buyer": {
+            "company": _get("consignee", ""),
+            "email": "",
+            "phone": "",
+            "country": "",
+        },
+        "modules": {
+            "esg": True,
+            "weather": True,
+            "portCongestion": True,
+            "carrierPerformance": True,
+            "marketScanner": False,
+            "insurance": True,
+        },
+        # Keep original shipment_payload for backward compatibility
+        "_shipment_payload": shipment_payload,
+    }
+
     # Persist to session + memory for downstream pages
     if hasattr(request, "session"):
         request.session["shipment_state"] = shipment_payload
-        request.session["RISKCAST_STATE"] = build_riskcast_state_from_shipment(shipment_payload)
+        # UPDATED: Save DomainCase-like structure (frontend will use this)
+        request.session["RISKCAST_STATE"] = domain_case_like
     memory_system.set("latest_shipment", shipment_payload)
 
     # Redirect to latest Overview (v36 IBM-style). Keep backward compatibility by
@@ -377,27 +427,37 @@ async def get_results_data():
     """
     import logging
     logger = logging.getLogger(__name__)
+    logger.info("=" * 60)
     logger.info("GET /results/data endpoint called")
+    logger.info("=" * 60)
     
     try:
         # Priority 1: Engine v2 result (authoritative)
         v2_result = get_last_result_v2()
         if v2_result and isinstance(v2_result, dict) and len(v2_result) > 0:
-            logger.info(f"Returning LAST_RESULT_V2 (keys: {list(v2_result.keys())[:5]}...)")
+            logger.info(f"✅ Returning LAST_RESULT_V2")
+            logger.info(f"   Keys: {list(v2_result.keys())[:10]}")
+            logger.info(f"   Has risk_score: {'risk_score' in v2_result or 'profile' in v2_result}")
+            logger.info(f"   Has layers: {'layers' in v2_result}")
+            logger.info(f"   Has drivers: {'drivers' in v2_result}")
+            logger.info(f"   Has loss: {'loss' in v2_result}")
+            logger.info(f"   Data size: {len(str(v2_result))} chars")
             return v2_result  # FastAPI automatically converts dict to JSON
         
         # Priority 2: Legacy result (for backward compatibility)
         if LAST_RESULT and isinstance(LAST_RESULT, dict) and len(LAST_RESULT) > 0:
-            logger.info("Returning LAST_RESULT (legacy)")
+            logger.info("⚠️  Returning LAST_RESULT (legacy)")
             return LAST_RESULT
     except Exception as e:
         # Log error but continue to fallback
-        logger.warning(f"Error in get_results_data: {str(e)}")
+        logger.error(f"❌ Error in get_results_data: {str(e)}")
         import traceback
-        logger.warning(traceback.format_exc())
+        logger.error(traceback.format_exc())
     
     # Priority 3: Return empty dict - frontend will handle empty state
-    logger.info("Returning empty dict (no data available)")
+    logger.warning("⚠️  Returning empty dict (no data available)")
+    logger.warning("   This means no analysis has been run yet.")
+    logger.warning("   Frontend will show empty state or load from localStorage.")
     return {}
 
 @app.get("/results", response_class=HTMLResponse)
@@ -545,6 +605,14 @@ app.include_router(api_router_v60, tags=["api-v60"])
 
 # Include AI Adviser router
 app.include_router(ai_router, prefix="/api/ai", tags=["AI Adviser"])
+
+# Include API v2 router (includes insurance module)
+try:
+    from app.api.v2 import get_v2_router
+    v2_router = get_v2_router()
+    app.include_router(v2_router, prefix="/api/v2", tags=["API v2"])
+except ImportError as e:
+    logger.warning(f"Could not load API v2 router: {e}")
 
 # Include Overview router
 app.include_router(overview_router)

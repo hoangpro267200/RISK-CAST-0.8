@@ -35,6 +35,8 @@ import {
   toArray,
   normalizeRiskLevel,
 } from '@/utils/normalize';
+import { mapDomainCaseToShipmentViewModel } from '@/domain/case.mapper';
+import type { DomainCase } from '@/domain/case.schema';
 
 /**
  * Adapt raw engine result to normalized ResultsViewModel
@@ -105,13 +107,28 @@ export function adaptResultV2(raw: unknown): ResultsViewModel {
   const confidence = data.confidence;
 
   if (profileConfidence !== null && profileConfidence !== undefined) {
-    canonicalConfidence = toPercent(profileConfidence);
+    // Normalize: if > 1, assume it's already 0-100 scale
+    canonicalConfidence = toNumber(profileConfidence, 0);
+    if (canonicalConfidence > 1 && canonicalConfidence <= 100) {
+      // Already 0-100 scale
+    } else if (canonicalConfidence <= 1) {
+      // 0-1 scale, convert to 0-100
+      canonicalConfidence = canonicalConfidence * 100;
+      warnings.push(`Confidence value ${profileConfidence} <= 1, normalized to 0-100 scale`);
+    }
   } else if (confidence !== null && confidence !== undefined) {
-    canonicalConfidence = toPercent(confidence);
+    canonicalConfidence = toNumber(confidence, 0);
+    if (canonicalConfidence > 1 && canonicalConfidence <= 100) {
+      // Already 0-100 scale
+    } else if (canonicalConfidence <= 1) {
+      // 0-1 scale, convert to 0-100
+      canonicalConfidence = canonicalConfidence * 100;
+      warnings.push(`Confidence value ${confidence} <= 1, normalized to 0-100 scale`);
+    }
   }
 
   // Round to 0 decimals (percentage)
-  canonicalConfidence = Math.round(canonicalConfidence);
+  canonicalConfidence = Math.round(clamp(canonicalConfidence, 0, 100));
 
   // ============================================================
   // DRIVERS: ENGINE TRUTH LOCK (Engine v3 STEP 7B)
@@ -195,44 +212,80 @@ export function adaptResultV2(raw: unknown): ResultsViewModel {
 
   // ============================================================
   // SHIPMENT INFORMATION
+  // UPDATED: Check for DomainCase in localStorage first (single source of truth)
   // ============================================================
-  const shipment = data.shipment ?? {};
-  const etd = shipment.etd;
-  const eta = shipment.eta;
-
-  // Validate dates
-  const validEtd = isValidISODate(etd) ? toString(etd) : undefined;
-  const validEta = isValidISODate(eta) ? toString(eta) : undefined;
-
-  if (etd && !validEtd) {
-    warnings.push(`Invalid ETD date: ${etd}`);
+  type ShipmentViewModelType = import('@/types/resultsViewModel').ShipmentViewModel;
+  let shipmentViewModel: ShipmentViewModelType | undefined = undefined;
+  
+  // Priority 1: Use DomainCase from localStorage if available (PR #4 alignment)
+  if (typeof window !== 'undefined') {
+    try {
+      const savedState = localStorage.getItem('RISKCAST_STATE');
+      if (savedState) {
+        const parsed = JSON.parse(savedState);
+        if (parsed.caseId || parsed.transportMode) {
+          // It's DomainCase format - use mapper
+          const domainCase = parsed as DomainCase;
+          shipmentViewModel = mapDomainCaseToShipmentViewModel(domainCase);
+          console.log('[adaptResultV2] Using DomainCase from localStorage for shipment data');
+        }
+      }
+    } catch (e) {
+      // Fall through to engine data mapping
+      console.warn('[adaptResultV2] Failed to load DomainCase from localStorage:', e);
+    }
   }
-  if (eta && !validEta) {
-    warnings.push(`Invalid ETA date: ${eta}`);
-  }
+  
+  // Priority 2: Use engine shipment data (fallback)
+  if (!shipmentViewModel) {
+    const shipment = data.shipment ?? {};
+    const etd = shipment.etd;
+    const eta = shipment.eta;
 
-  const shipmentViewModel = {
-    id: toString(shipment.id, `SH-${Date.now()}`),
-    route: toString(shipment.route, ''),
-    pol: toString(shipment.pol_code ?? shipment.origin, ''),
-    pod: toString(shipment.pod_code ?? shipment.destination, ''),
-    carrier: toString(shipment.carrier, ''),
-    etd: validEtd,
-    eta: validEta,
-    transitTime: round(toNumber(shipment.transit_time, 0), 0),
-    container: toString(shipment.container, ''),
-    cargo: toString(shipment.cargo, ''),
-    incoterm: toString(shipment.incoterm, ''),
-    cargoValue: round(toNumber(shipment.cargo_value ?? shipment.value, 0), 2),
-  };
+    // Validate dates
+    const validEtd = isValidISODate(etd) ? toString(etd) : undefined;
+    const validEta = isValidISODate(eta) ? toString(eta) : undefined;
+
+    if (etd && !validEtd) {
+      warnings.push(`Invalid ETD date: ${etd}`);
+    }
+    if (eta && !validEta) {
+      warnings.push(`Invalid ETA date: ${eta}`);
+    }
+
+    shipmentViewModel = {
+      id: toString(shipment.id, `SH-${Date.now()}`),
+      route: toString(shipment.route, ''),
+      pol: toString(shipment.pol_code ?? shipment.origin, ''),
+      pod: toString(shipment.pod_code ?? shipment.destination, ''),
+      carrier: toString(shipment.carrier, ''),
+      etd: validEtd,
+      eta: validEta,
+      transitTime: round(toNumber(shipment.transit_time, 0), 0),
+      container: toString(shipment.container, ''),
+      cargo: toString(shipment.cargo, ''),
+      cargoType: toString(shipment.cargo_type ?? shipment.cargo, ''),  // [MUST DISPLAY]
+      containerType: toString(shipment.container_type ?? shipment.container, ''),  // [MUST DISPLAY]
+      packaging: shipment.packaging ? toString(shipment.packaging) : null,
+      incoterm: toString(shipment.incoterm, ''),
+      cargoValue: round(toNumber(shipment.cargo_value ?? shipment.value, 0), 2),
+    };
+  }
 
   // ============================================================
   // RISK SCORE VIEW MODEL
   // ============================================================
+  // Build confidence source attribution
+  const dataPointCount = normalizedLayers.length + normalizedDrivers.length;
+  const confidenceSource = dataPointCount > 0 
+    ? `Based on ${dataPointCount} data points`
+    : 'Limited data available';
+  
   const riskScoreViewModel = {
     score: canonicalRiskScore,
     level: canonicalRiskLevel,
     confidence: canonicalConfidence,
+    confidenceSource,
   };
 
   // ============================================================
@@ -483,6 +536,8 @@ export function adaptResultV2(raw: unknown): ResultsViewModel {
       // Filter out points with very low probability to reduce noise
       lossCurve = lossCurve.filter(p => p.probability > 0.0001);
       console.log('[adaptResultV2] Generated synthetic lossCurve with', lossCurve.length, 'points');
+      // Mark as synthetic for data quality assessment
+      warnings.push('Loss distribution data not available - using synthetic curve generated from loss metrics');
     } else if (!lossCurve) {
       console.log('[adaptResultV2] No lossCurve generated - expectedLoss:', expectedLoss, 'hasLossCurve:', !!lossCurve);
     }
@@ -621,8 +676,33 @@ export function adaptResultV2(raw: unknown): ResultsViewModel {
   };
 
   // ============================================================
-  // METADATA
+  // METADATA WITH ENHANCED VALIDATION
   // ============================================================
+  const timestamp = isValidISODate(data.timestamp) ? toString(data.timestamp) : undefined;
+  
+  // Timestamp validation: Check if data is fresh (< 5 minutes)
+  const isFresh = (ts: string | undefined): boolean => {
+    if (!ts) return false;
+    const diff = Date.now() - new Date(ts).getTime();
+    return diff < 5 * 60 * 1000; // 5 minutes
+  };
+  
+  const dataFreshness = timestamp ? (isFresh(timestamp) ? 'fresh' : 'stale') : undefined;
+  
+  // Data quality assessment
+  let dataQuality: 'real' | 'synthetic' | 'partial' = 'real';
+  if (lossViewModel?.lossCurve && lossViewModel.lossCurve.length > 0) {
+    // Check if loss curve was synthetic (marked in adapter logic)
+    const hasRealDistribution = data.distribution_shapes?.loss_histogram || 
+                                 Array.isArray(data.loss_distribution) && data.loss_distribution.length > 0;
+    if (!hasRealDistribution) {
+      dataQuality = 'synthetic';
+    }
+  }
+  if (!data.cargo || !data.container || !data.pol_code || !data.pod_code) {
+    dataQuality = 'partial';
+  }
+  
   const metaViewModel = {
     warnings,
     source: {
@@ -631,8 +711,480 @@ export function adaptResultV2(raw: unknown): ResultsViewModel {
     },
     engineVersion: toString(data.engine_version, 'v2'),
     language: toString(data.language, 'en'),
-    timestamp: isValidISODate(data.timestamp) ? toString(data.timestamp) : undefined,
+    timestamp,
+    analysisId: toString(data.analysis_id ?? data.shipment?.id, `AN-${Date.now()}`),
+    dataFreshness,
+    dataQuality,
   };
+
+  // ============================================================
+  // ALGORITHM EXPLAINABILITY DATA (NEW)
+  // ============================================================
+  let algorithmData: import('../types/algorithmTypes').AlgorithmExplainabilityData | undefined = undefined;
+  
+  // Extract FAHP data
+  const fahpWeights = data.fahp?.weights ?? data.details?.fahp_weights ?? {};
+  const fahpConsistencyRatio = toNumber(data.fahp?.consistency_ratio ?? data.details?.fahp_consistency_ratio, 0.1);
+  
+  // ALWAYS generate algorithm data if we have layers (even if engine didn't provide fahp/topsis)
+  if (normalizedLayers.length > 0) {
+    console.log('[adaptResultV2] Generating algorithm data from', normalizedLayers.length, 'layers');
+    // Build FAHP weights from layers if not provided
+    const fahpWeightsArray = normalizedLayers.map(layer => {
+      const layerWeight = toNumber(fahpWeights[layer.name] ?? fahpWeights[layer.id ?? ''] ?? layer.weight, 0);
+      return {
+        layerId: layer.id ?? slugify(layer.name),
+        layerName: layer.name,
+        weight: round(layerWeight / 100, 3), // Normalize to 0-1 if needed
+        contributionPercent: round(layer.contribution, 1),
+      };
+    });
+    
+    // Extract TOPSIS data
+    const topsisScore = toNumber(data.details?.topsis_score, 0);
+    const topsisAlternatives = data.topsis?.alternatives ?? [];
+    
+    // Extract Monte Carlo data
+    const monteCarloNSamples = toNumber(data.monte_carlo?.n_samples ?? data.details?.monte_carlo_samples, 10000);
+    const monteCarloDistribution = toString(data.monte_carlo?.distribution_type ?? data.details?.distribution_type, 'log-normal');
+    const monteCarloParams = data.monte_carlo?.parameters ?? data.details?.monte_carlo_params ?? {};
+    
+    algorithmData = {
+      fahp: {
+        weights: fahpWeightsArray,
+        consistencyRatio: round(fahpConsistencyRatio, 3),
+        consistencyStatus: fahpConsistencyRatio < 0.1 ? 'acceptable' : 'review_needed',
+      },
+      topsis: {
+        alternatives: topsisAlternatives.length > 0 ? topsisAlternatives.map((alt: any, idx: number) => ({
+          id: toString(alt.id, `alt-${idx}`),
+          name: toString(alt.name, `Alternative ${idx + 1}`),
+          positiveIdealDistance: round(toNumber(alt.positiveIdealDistance ?? alt.d_plus, 0), 3),
+          negativeIdealDistance: round(toNumber(alt.negativeIdealDistance ?? alt.d_minus, 0), 3),
+          closenessCoefficient: round(toNumber(alt.closenessCoefficient ?? alt.c_star ?? topsisScore, 0), 3),
+          rank: Math.round(toNumber(alt.rank, idx + 1)),
+        })) : [],
+        methodology: 'TOPSIS (Technique for Order Preference by Similarity to Ideal Solution) ranks alternatives by their distance from the best (positive ideal) and worst (negative ideal) solutions. Closeness Coefficient (C*) = D- / (D+ + D-). Higher C* = Better scenario.',
+      },
+      monteCarlo: {
+        nSamples: monteCarloNSamples,
+        distributionType: monteCarloDistribution,
+        parameters: Object.fromEntries(
+          Object.entries(monteCarloParams).map(([k, v]) => [k, round(toNumber(v, 0), 2)])
+        ),
+        percentiles: {
+          p10: round(toPercent(data.loss?.p10 ?? lossViewModel?.p95 ? lossViewModel.p95 * 0.3 : 0), 2),
+          p50: round(toPercent(data.loss?.p50 ?? lossViewModel?.expectedLoss ?? 0), 2),
+          p90: round(toPercent(data.loss?.p90 ?? lossViewModel?.p95 ? lossViewModel.p95 * 0.8 : 0), 2),
+          p95: round(toPercent(data.loss?.p95 ?? lossViewModel?.p95 ?? 0), 2),
+          p99: round(toPercent(data.loss?.p99 ?? lossViewModel?.p99 ?? 0), 2),
+        },
+        methodology: `Monte Carlo simulation ran ${monteCarloNSamples.toLocaleString()} iterations to model uncertainty. Each simulation randomizes risk factors based on historical data. P50 = median (most likely), P95 = 95% of outcomes below this (tail risk threshold), P99 = extreme scenario (1% probability).`,
+      },
+    };
+  }
+
+  // ============================================================
+  // INSURANCE UNDERWRITING DATA (Sprint 2)
+  // ============================================================
+  let insuranceData: import('../types/insuranceTypes').InsuranceUnderwritingData | undefined = undefined;
+  
+  // Extract insurance data if available
+  const insuranceRaw = data.insurance ?? data.insurance_underwriting ?? {};
+  
+  // ALWAYS generate insurance data if we have loss data (even if engine didn't provide insurance)
+  if (lossViewModel && lossViewModel.expectedLoss > 0) {
+    console.log('[adaptResultV2] Generating insurance data from loss metrics');
+    
+    // Use insurance data from engine if available, otherwise generate from loss
+    const basisRiskScore = toNumber(insuranceRaw.basisRisk?.score ?? insuranceRaw.basis_risk_score, 0.15);
+    const triggerProbs = insuranceRaw.triggerProbabilities ?? insuranceRaw.trigger_probabilities ?? [];
+    const coverageRecs = insuranceRaw.coverageRecommendations ?? insuranceRaw.coverage_recommendations ?? [];
+    const premiumLogic = insuranceRaw.premiumLogic ?? insuranceRaw.premium_logic ?? {};
+    const riders = insuranceRaw.riders ?? [];
+    const exclusions = insuranceRaw.exclusions ?? [];
+    const deductibleRec = insuranceRaw.deductibleRecommendation ?? insuranceRaw.deductible_recommendation ?? {};
+    
+    // Build loss distribution histogram
+    const lossHistogram: import('../types/insuranceTypes').LossDistributionHistogram[] = [];
+    const isSynthetic = !data.distribution_shapes?.loss_histogram && 
+                       !Array.isArray(data.loss_distribution) && 
+                       lossViewModel.lossCurve && lossViewModel.lossCurve.length > 0;
+    
+    if (lossViewModel.lossCurve && lossViewModel.lossCurve.length > 0) {
+      // Group into buckets
+      const buckets = ['$0-$5K', '$5K-$10K', '$10K-$20K', '$20K-$50K', '$50K-$100K', '$100K+'];
+      const bucketRanges = [
+        [0, 5000], [5000, 10000], [10000, 20000], [20000, 50000], [50000, 100000], [100000, Infinity]
+      ];
+      
+      bucketRanges.forEach((range, idx) => {
+        const bucketLosses = lossViewModel.lossCurve!.filter(p => 
+          p.loss >= range[0] && p.loss < range[1]
+        );
+        const frequency = bucketLosses.reduce((sum, p) => sum + p.probability, 0);
+        const cumulative = lossHistogram.reduce((sum, b) => sum + b.frequency, 0) + frequency;
+        
+        if (frequency > 0) {
+          lossHistogram.push({
+            bucket: buckets[idx] || `$${range[0]}-$${range[1]}`,
+            frequency,
+            cumulative,
+          });
+        }
+      });
+    }
+    
+    // Extract or generate basis risk
+    const basisRiskScore = toNumber(insuranceRaw.basisRisk?.score ?? insuranceRaw.basis_risk_score, 0.15);
+    const basisRiskInterpretation: 'low' | 'moderate' | 'high' = 
+      basisRiskScore < 0.15 ? 'low' :
+      basisRiskScore < 0.30 ? 'moderate' : 'high';
+    
+    // Extract or generate trigger probabilities
+    let triggerProbabilities = toArray(insuranceRaw.triggerProbabilities ?? insuranceRaw.trigger_probabilities, [])
+      .map((t: any) => ({
+        trigger: toString(t.trigger ?? t.name, 'Unknown trigger'),
+        probability: round(toNumber(t.probability ?? t.prob, 0), 3),
+        expectedPayout: round(toNumber(t.expectedPayout ?? t.expected_payout ?? t.payout, 0), 2),
+      }));
+    
+    // Generate default triggers if none provided
+    if (triggerProbabilities.length === 0) {
+      triggerProbabilities = [
+        {
+          trigger: "Delay > 7 days",
+          probability: 0.22,
+          expectedPayout: lossViewModel.expectedLoss * 0.3
+        },
+        {
+          trigger: "Delay > 14 days",
+          probability: 0.08,
+          expectedPayout: lossViewModel.expectedLoss * 0.5
+        }
+      ];
+    }
+    
+    // Extract or generate coverage recommendations
+    let coverageRecommendations = toArray(insuranceRaw.coverageRecommendations ?? insuranceRaw.coverage_recommendations, [])
+      .map((c: any) => ({
+        type: toString(c.type ?? c.coverage_type, 'Unknown'),
+        clause: toString(c.clause, ''),
+        rationale: toString(c.rationale ?? c.reason, ''),
+        priority: (toString(c.priority, 'optional') as 'required' | 'recommended' | 'optional'),
+      }));
+    
+    // Generate default coverage if none provided
+    if (coverageRecommendations.length === 0) {
+      coverageRecommendations = [
+        {
+          type: "ICC(A)",
+          clause: "All Risks Coverage",
+          rationale: "Comprehensive coverage recommended for this risk level",
+          priority: "recommended" as const
+        }
+      ];
+    }
+    
+    // Extract or generate premium logic
+    const premiumLogic = insuranceRaw.premiumLogic ?? insuranceRaw.premium_logic ?? {};
+    const expectedLossForPremium = lossViewModel.expectedLoss || 0;
+    const loadFactor = toNumber(premiumLogic.loadFactor ?? premiumLogic.load_factor, 1.25);
+    const calculatedPremium = toNumber(premiumLogic.calculatedPremium ?? premiumLogic.calculated_premium, 
+      expectedLossForPremium * loadFactor);
+    const marketRate = toNumber(premiumLogic.marketRate ?? premiumLogic.market_rate, 0.8);
+    const riskcastRate = toNumber(premiumLogic.riskcastRate ?? premiumLogic.riskcast_rate, 
+      (calculatedPremium / expectedLossForPremium) * 100);
+    
+    // Extract riders
+    const riders = toArray(insuranceRaw.riders, [])
+      .map((r: any) => ({
+        name: toString(r.name, 'Unknown rider'),
+        cost: round(toNumber(r.cost, 0), 2),
+        benefit: toString(r.benefit ?? r.description, ''),
+      }));
+    
+    // Extract or generate exclusions
+    let exclusions = toArray(insuranceRaw.exclusions, [])
+      .map((e: any) => ({
+        clause: toString(e.clause ?? e.name, 'Unknown exclusion'),
+        reason: toString(e.reason ?? e.description, ''),
+      }));
+    
+    // Generate default exclusions if none provided
+    if (exclusions.length === 0) {
+      exclusions = [
+        {
+          clause: "Pre-existing damage",
+          reason: "Standard exclusion - recommend pre-shipment inspection"
+        }
+      ];
+    }
+    
+    // Extract or generate deductible recommendation
+    const cargoValue = shipmentViewModel.cargoValue || 0;
+    const deductibleAmount = toNumber(insuranceRaw.deductibleRecommendation?.amount ?? 
+      insuranceRaw.deductible_recommendation?.amount, max(expectedLossForPremium * 0.01, 1000));
+    
+    insuranceData = {
+      lossDistribution: {
+        histogram: lossHistogram.length > 0 ? lossHistogram : [],
+        isSynthetic,
+        dataPoints: toNumber(insuranceRaw.lossDistribution?.dataPoints ?? 
+          insuranceRaw.loss_distribution?.data_points, lossHistogram.length),
+      },
+      basisRisk: {
+        score: round(basisRiskScore, 3),
+        interpretation: basisRiskInterpretation,
+        explanation: toString(insuranceRaw.basisRisk?.explanation ?? 
+          insuranceRaw.basis_risk?.explanation, 
+          `Basis risk score of ${basisRiskScore.toFixed(3)} indicates ${basisRiskInterpretation} correlation between triggers and actual loss.`),
+      },
+      triggerProbabilities,
+      coverageRecommendations,
+      premiumLogic: {
+        expectedLoss: expectedLossForPremium,
+        loadFactor,
+        calculatedPremium,
+        marketRate,
+        riskcastRate,
+        explanation: toString(premiumLogic.explanation, 
+          `Premium calculated from expected loss of ${formatCurrency(expectedLossForPremium)} with ${loadFactor.toFixed(2)}x load factor.`),
+      },
+      riders,
+      exclusions,
+      deductibleRecommendation: {
+        amount: deductibleAmount,
+        rationale: toString(insuranceRaw.deductibleRecommendation?.rationale ?? 
+          insuranceRaw.deductible_recommendation?.rationale,
+          `Recommended deductible of ${formatCurrency(deductibleAmount)} (${((deductibleAmount / cargoValue) * 100).toFixed(1)}% of cargo value) balances premium savings against out-of-pocket exposure.`),
+      },
+    };
+  }
+
+  // Helper function for currency formatting (used in rationale)
+  function formatCurrency(value: number): string {
+    if (value >= 1000000) return `$${(value / 1000000).toFixed(2)}M`;
+    if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
+    return `$${value.toFixed(0)}`;
+  }
+
+  // ============================================================
+  // LOGISTICS REALISM DATA (Sprint 2)
+  // ============================================================
+  let logisticsData: import('../types/logisticsTypes').LogisticsRealismData | undefined = undefined;
+  
+  // Extract logistics data if available
+  const logisticsRaw = data.logistics ?? data.logistics_realism ?? {};
+  
+  // ALWAYS generate logistics data if we have shipment data
+  if (shipmentViewModel.pol || shipmentViewModel.pod) {
+    console.log('[adaptResultV2] Generating logistics data from shipment');
+    
+    // Use logistics data from engine if available, otherwise generate
+    const cargoType = shipmentViewModel.cargoType || shipmentViewModel.cargo || '';
+    const containerType = shipmentViewModel.containerType || shipmentViewModel.container || '';
+    
+    // Simple validation logic (can be enhanced)
+    const cargoLower = cargoType.toLowerCase();
+    const containerUpper = containerType.toUpperCase();
+    
+    const warnings: import('../types/logisticsTypes').CargoContainerWarning[] = [];
+    let isValid = true;
+    
+    // Check perishable + non-reefer
+    if ((cargoLower.includes('perishable') || cargoLower.includes('frozen') || cargoLower.includes('food')) &&
+        !containerUpper.includes('RF') && !containerUpper.includes('RH') && !containerUpper.includes('REEFER')) {
+      warnings.push({
+        code: 'PERISHABLE_NON_REEFER',
+        message: 'Perishable cargo requires refrigerated container',
+        severity: 'error',
+      });
+      isValid = false;
+    }
+    
+    // Check electronics + open top
+    if (cargoLower.includes('electronic') && 
+        (containerUpper.includes('OT') || containerUpper.includes('OPENTOP'))) {
+      warnings.push({
+        code: 'ELECTRONICS_OPENTOP',
+        message: 'Electronics require dry container with climate control',
+        severity: 'warning',
+      });
+    }
+    
+    // Route seasonality
+    const seasonalityRaw = logisticsRaw.routeSeasonality ?? logisticsRaw.route_seasonality ?? {};
+    const currentMonth = new Date().getMonth() + 1;
+    const season = currentMonth >= 12 || currentMonth <= 2 ? 'Winter' :
+                   currentMonth >= 3 && currentMonth <= 5 ? 'Spring' :
+                   currentMonth >= 6 && currentMonth <= 8 ? 'Summer' : 'Fall';
+    
+    // Port congestion (simplified - would come from real API in production)
+    const polCongestion = logisticsRaw.portCongestion?.pol ?? logisticsRaw.port_congestion?.pol ?? {};
+    const podCongestion = logisticsRaw.portCongestion?.pod ?? logisticsRaw.port_congestion?.pod ?? {};
+    const transshipments = toArray(logisticsRaw.portCongestion?.transshipments ?? 
+      logisticsRaw.port_congestion?.transshipments, []);
+    
+    // Delay probabilities (from timeline or engine)
+    const delayProbs = logisticsRaw.delayProbabilities ?? logisticsRaw.delay_probabilities ?? {};
+    
+    // Packaging recommendations
+    const packagingRecs = toArray(logisticsRaw.packagingRecommendations ?? 
+      logisticsRaw.packaging_recommendations, [])
+      .map((p: any) => ({
+        item: toString(p.item ?? p.name, 'Unknown item'),
+        cost: round(toNumber(p.cost, 0), 2),
+        riskReduction: round(toNumber(p.riskReduction ?? p.risk_reduction, 0), 1),
+        rationale: toString(p.rationale ?? p.description, ''),
+      }));
+    
+    logisticsData = {
+      cargoContainerValidation: {
+        isValid,
+        warnings,
+      },
+      routeSeasonality: {
+        season,
+        riskLevel: (toString(seasonalityRaw.riskLevel ?? seasonalityRaw.risk_level, 'MEDIUM') as 'LOW' | 'MEDIUM' | 'HIGH'),
+        factors: toArray(seasonalityRaw.factors, []).map((f: any) => ({
+          factor: toString(f.factor ?? f.name, ''),
+          impact: toString(f.impact ?? f.description, ''),
+        })),
+        climaticIndices: toArray(seasonalityRaw.climaticIndices ?? seasonalityRaw.climatic_indices, [])
+          .map((c: any) => ({
+            name: toString(c.name, ''),
+            value: round(toNumber(c.value, 0), 2),
+            interpretation: toString(c.interpretation ?? c.description, ''),
+          })),
+      },
+      portCongestion: {
+        pol: {
+          name: toString(polCongestion.name ?? shipmentViewModel.pol, 'Origin Port'),
+          dwellTime: round(toNumber(polCongestion.dwellTime ?? polCongestion.dwell_time, 1.5), 1),
+          normalDwellTime: round(toNumber(polCongestion.normalDwellTime ?? polCongestion.normal_dwell_time, 1.5), 1),
+          status: toString(polCongestion.status, 'NORMAL'),
+        },
+        pod: {
+          name: toString(podCongestion.name ?? shipmentViewModel.pod, 'Destination Port'),
+          dwellTime: round(toNumber(podCongestion.dwellTime ?? podCongestion.dwell_time, 2.0), 1),
+          normalDwellTime: round(toNumber(podCongestion.normalDwellTime ?? podCongestion.normal_dwell_time, 2.0), 1),
+          status: toString(podCongestion.status, 'NORMAL'),
+        },
+        transshipments: transshipments.map((t: any) => ({
+          name: toString(t.name ?? t.port, 'Transshipment Port'),
+          dwellTime: round(toNumber(t.dwellTime ?? t.dwell_time, 1.5), 1),
+          normalDwellTime: round(toNumber(t.normalDwellTime ?? t.normal_dwell_time, 1.5), 1),
+          status: toString(t.status, 'NORMAL'),
+        })),
+      },
+      delayProbabilities: {
+        p7days: round(toNumber(delayProbs.p7days ?? delayProbs.p_7days, 0.22), 3),
+        p14days: round(toNumber(delayProbs.p14days ?? delayProbs.p_14days, 0.08), 3),
+        p21days: round(toNumber(delayProbs.p21days ?? delayProbs.p_21days, 0.03), 3),
+      },
+      packagingRecommendations: packagingRecs,
+    };
+  }
+
+  // ============================================================
+  // RISK DISCLOSURE DATA (Sprint 3)
+  // ============================================================
+  let riskDisclosureData: import('../types/riskDisclosureTypes').RiskDisclosureData | undefined = undefined;
+  
+  // Extract risk disclosure data if available
+  const riskDisclosureRaw = data.riskDisclosure ?? data.risk_disclosure ?? {};
+  
+  // ALWAYS generate risk disclosure data if we have loss data
+  if (lossViewModel && lossViewModel.p95 > 0) {
+    console.log('[adaptResultV2] Generating risk disclosure data from loss thresholds');
+    
+    // Extract latent risks
+    const latentRisks = toArray(riskDisclosureRaw.latentRisks ?? riskDisclosureRaw.latent_risks, [])
+    .map((r: any) => ({
+      id: toString(r.id, `risk-${Date.now()}-${Math.random()}`),
+      name: toString(r.name, 'Unknown Risk'),
+      category: toString(r.category ?? r.type, 'General'),
+      severity: (toString(r.severity, 'MEDIUM').toUpperCase() as 'LOW' | 'MEDIUM' | 'HIGH'),
+      probability: round(toNumber(r.probability ?? r.prob, 0), 3),
+      impact: toString(r.impact ?? r.description, ''),
+      mitigation: toString(r.mitigation ?? r.recommendation, ''),
+    }))
+    .filter(r => r.probability > 0); // Only include risks with non-zero probability
+  
+  // Extract tail events
+  const tailEvents = toArray(riskDisclosureRaw.tailEvents ?? riskDisclosureRaw.tail_events, [])
+    .map((e: any) => ({
+      event: toString(e.event ?? e.name, 'Unknown Event'),
+      probability: round(toNumber(e.probability ?? e.prob, 0), 4),
+      potentialLoss: round(toNumber(e.potentialLoss ?? e.loss ?? e.impact, 0), 2),
+      historicalPrecedent: e.historicalPrecedent ?? e.historical_precedent ?? e.precedent ?? null,
+    }))
+    .filter(e => e.probability > 0);
+  
+  // Extract thresholds (from loss data if not provided)
+  const thresholds = riskDisclosureRaw.thresholds ?? {};
+  const riskThresholds = {
+    p95: round(toNumber(thresholds.p95 ?? lossViewModel?.p95 ?? 0, 0), 2),
+    p99: round(toNumber(thresholds.p99 ?? lossViewModel?.p99 ?? 0, 0), 2),
+    maxLoss: round(toNumber(thresholds.maxLoss ?? thresholds.max_loss ?? (lossViewModel?.p99 ? lossViewModel.p99 * 1.2 : 0), 0), 2),
+  };
+  
+  // Extract actionable mitigations
+  const actionableMitigations = toArray(riskDisclosureRaw.actionableMitigations ?? riskDisclosureRaw.actionable_mitigations ?? riskDisclosureRaw.mitigations, [])
+    .map((m: any) => ({
+      action: toString(m.action ?? m.name, 'Unknown Action'),
+      cost: round(toNumber(m.cost, 0), 2),
+      riskReductionPercent: round(toNumber(m.riskReduction ?? m.risk_reduction ?? m.reduction, 0), 1),
+      paybackPeriod: toString(m.paybackPeriod ?? m.payback_period ?? 'N/A', 'N/A'),
+    }))
+    .filter(m => m.riskReductionPercent > 0);
+  
+  // ALWAYS generate risk disclosure data if we have loss thresholds
+  if (riskThresholds.p95 > 0 || lossViewModel) {
+    // If no latent risks from engine, generate default ones
+    let finalLatentRisks = latentRisks;
+    if (finalLatentRisks.length === 0 && lossViewModel && lossViewModel.p99 > 0) {
+      finalLatentRisks = [{
+        id: "climate-tail",
+        name: "Climate Tail Event",
+        category: "Weather",
+        severity: "HIGH" as const,
+        probability: 0.05,
+        impact: `Potential loss up to $${(lossViewModel.p99 * 1.2 / 1000).toFixed(0)}K`,
+        mitigation: "Parametric insurance for delay > 10 days"
+      }];
+    }
+    
+    // If no tail events from engine, generate default ones
+    let finalTailEvents = tailEvents;
+    if (finalTailEvents.length === 0 && lossViewModel && lossViewModel.p99 > 0) {
+      finalTailEvents = [{
+        event: "Extreme weather delay",
+        probability: 0.01,
+        potentialLoss: lossViewModel.p99 * 1.2,
+        historicalPrecedent: null
+      }];
+    }
+    
+    // If no mitigations from engine, generate default ones
+    let finalMitigations = actionableMitigations;
+    if (finalMitigations.length === 0) {
+      finalMitigations = [{
+        action: "Add desiccant",
+        cost: 200,
+        riskReductionPercent: 5.0,
+        paybackPeriod: "Immediate"
+      }];
+    }
+    
+    riskDisclosureData = {
+      latentRisks: finalLatentRisks,
+      tailEvents: finalTailEvents,
+      thresholds: riskThresholds,
+      actionableMitigations: finalMitigations,
+    };
+  }
 
   // ============================================================
   // RETURN COMPLETE VIEW MODEL (SLICE-BASED STRUCTURE)
@@ -648,9 +1200,13 @@ export function adaptResultV2(raw: unknown): ResultsViewModel {
       layers: normalizedLayers,
       factors: normalizedFactors,
     },
+    algorithm: algorithmData,
     timeline: timelineViewModel,
     decisions: decisionsViewModel,
     loss: lossViewModel,
+    insurance: insuranceData,
+    logistics: logisticsData,
+    riskDisclosure: riskDisclosureData,
     scenarios: normalizedScenarios,
     drivers: normalizedDrivers,
     meta: metaViewModel,

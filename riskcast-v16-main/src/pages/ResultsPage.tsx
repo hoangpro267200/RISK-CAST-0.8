@@ -44,6 +44,7 @@ import { Tabs } from '@/components/ui/Tabs';
 import { ExportMenu } from '@/components/ui/ExportMenu';
 import { ChangeIndicator } from '@/components/ui/ChangeIndicator';
 import { KeyboardShortcutsHelp } from '@/components/ui/KeyboardShortcutsHelp';
+import { CaseStepper } from '@/components/ui/CaseStepper';  // PR #6: Navigation stepper
 
 // Hooks
 import { useUrlTabState } from '@/hooks/useUrlTabState';
@@ -62,6 +63,20 @@ const RiskCostEfficiencyFrontier = lazy(() => import('@/components/RiskCostEffic
 const DataReliabilityMatrix = lazy(() => import('@/components/DataReliabilityMatrix').then(m => ({ default: m.DataReliabilityMatrix })));
 const FinancialModule = lazy(() => import('@/components/FinancialModule').then(m => ({ default: m.FinancialModule })));
 const SystemChatPanel = lazy(() => import('@/components/SystemChatPanel').then(m => ({ default: m.SystemChatPanel })));
+
+// Sprint 1: Algorithm Explainability (P0 Critical)
+const AlgorithmExplainabilityPanel = lazy(() => import('@/components/AlgorithmExplainabilityPanel').then(m => ({ default: m.AlgorithmExplainabilityPanel })));
+
+// Sprint 2: Insurance & Logistics (P1 High)
+const InsuranceUnderwritingPanel = lazy(() => import('@/components/InsuranceUnderwritingPanel').then(m => ({ default: m.InsuranceUnderwritingPanel })));
+const LogisticsRealismPanel = lazy(() => import('@/components/LogisticsRealismPanel').then(m => ({ default: m.LogisticsRealismPanel })));
+
+// Sprint 3: Risk Disclosure & Chart Enhancements (P1 High)
+const RiskDisclosurePanel = lazy(() => import('@/components/RiskDisclosurePanel').then(m => ({ default: m.RiskDisclosurePanel })));
+const FactorContributionWaterfall = lazy(() => import('@/components/FactorContributionWaterfall').then(m => ({ default: m.FactorContributionWaterfall })));
+
+// Narrative Generator Service
+import { generateNarrativeViewModel } from '@/services/narrativeGenerator';
 
 // Note: ExecutiveNarrative is also lazy loaded above
 
@@ -321,25 +336,45 @@ export default function ResultsPage() {
   const riskScore = viewModel?.overview?.riskScore?.score ?? 0;
 
   // Build layers data with validation - use adapter-provided status/notes
+  // Sprint 3: Include FAHP weight and TOPSIS score from algorithm data
   const layersData: LayerData[] = useMemo(() => {
     if (!viewModel?.breakdown?.layers || !Array.isArray(viewModel.breakdown.layers)) {
       console.log('[ResultsPage] No layers data available');
       return [];
     }
     console.log(`[ResultsPage] Processing ${viewModel.breakdown.layers.length} layers`);
-    return viewModel.breakdown.layers.map(l => ({
-      id: (l as any).id || l.name.toLowerCase().replace(/\s+/g, '_'),
-      name: l.name,
-      score: l.score,
-      contribution: l.contribution,
-      weight: (l as any).weight || 0,
-      category: l.category || 'UNKNOWN',
-      color: (l as any).color || '#6B7280',
-      enabled: l.enabled !== false,
-      status: (l as any).status || (l.score >= 70 ? 'ALERT' : l.score >= 40 ? 'WARNING' : 'OK'),
-      notes: (l as any).notes || `Contributing ${l.contribution.toFixed(1)}% to overall risk`,
-      confidence: viewModel.overview.riskScore.confidence,
-    }));
+    
+    // Build FAHP weight map from algorithm data
+    const fahpWeightMap = new Map<string, number>();
+    if (viewModel.algorithm?.fahp?.weights) {
+      viewModel.algorithm.fahp.weights.forEach(w => {
+        fahpWeightMap.set(w.layerId, w.weight);
+        fahpWeightMap.set(w.layerName, w.weight);
+      });
+    }
+    
+    return viewModel.breakdown.layers.map(l => {
+      const layerId = (l as any).id || l.name.toLowerCase().replace(/\s+/g, '_');
+      const fahpWeight = fahpWeightMap.get(layerId) ?? fahpWeightMap.get(l.name) ?? 
+                        ((l as any).weight ? (l as any).weight / 100 : undefined);
+      
+      return {
+        id: layerId,
+        name: l.name,
+        score: l.score,
+        contribution: l.contribution,
+        weight: (l as any).weight || 0,
+        category: l.category || 'UNKNOWN',
+        color: (l as any).color || '#6B7280',
+        enabled: l.enabled !== false,
+        status: (l as any).status || (l.score >= 70 ? 'ALERT' : l.score >= 40 ? 'WARNING' : 'OK'),
+        notes: (l as any).notes || `Contributing ${l.contribution.toFixed(1)}% to overall risk`,
+        confidence: viewModel.overview.riskScore.confidence,
+        // Sprint 3: Add FAHP weight and TOPSIS score for enhanced tooltips and table
+        fahpWeight: fahpWeight,
+        topsisScore: undefined, // TOPSIS score would come from algorithm.topsis if available
+      } as LayerData & { fahpWeight?: number; topsisScore?: number };
+    });
   }, [viewModel]);
 
   // Validate layer contributions
@@ -359,17 +394,27 @@ export default function ResultsPage() {
         lastUpdated: new Date().toLocaleString(),
       };
     }
+    const polValue: string = typeof viewModel.overview.shipment.pol === 'string' 
+      ? viewModel.overview.shipment.pol 
+      : (viewModel.overview.shipment.pol?.name || viewModel.overview.shipment.pol?.code || 'N/A');
+    const podValue: string = typeof viewModel.overview.shipment.pod === 'string' 
+      ? viewModel.overview.shipment.pod 
+      : (viewModel.overview.shipment.pod?.name || viewModel.overview.shipment.pod?.code || 'N/A');
+    const cargoValue: number = typeof viewModel.overview.shipment.cargoValue === 'number'
+      ? viewModel.overview.shipment.cargoValue
+      : (viewModel.overview.shipment.cargoValue?.amount || 0);
+    
     return {
       shipmentId: viewModel?.overview?.shipment?.id || 'SHIP-001',
       route: { 
-        pol: viewModel?.overview?.shipment?.pol || 'N/A', 
-        pod: viewModel?.overview?.shipment?.pod || 'N/A' 
+        pol: polValue, 
+        pod: podValue
       },
       carrier: viewModel?.overview?.shipment?.carrier || 'Ocean Carrier',
       etd: viewModel?.overview?.shipment?.etd || 'N/A',
       eta: viewModel?.overview?.shipment?.eta || 'N/A',
       dataConfidence: confidence,
-      cargoValue: viewModel?.overview?.shipment?.cargoValue || 0,
+      cargoValue: cargoValue,
       lastUpdated: new Date().toLocaleString(),
     };
   }, [viewModel, confidence]);
@@ -382,7 +427,38 @@ export default function ResultsPage() {
     return extractKeyTakeaways(riskScore, viewModel.drivers, layersData, confidence);
   }, [riskScore, viewModel, layersData, confidence]);
 
-  // Build narrative - use engine explanation, no fallback generation
+  // Sprint 1: Generate personalized narrative view model
+  const narrativeViewModel = useMemo(() => {
+    if (!viewModel) return undefined;
+    try {
+      return generateNarrativeViewModel(viewModel);
+    } catch (error) {
+      console.warn('[ResultsPage] Failed to generate personalized narrative:', error);
+      return undefined;
+    }
+  }, [viewModel]);
+
+  // Sprint 1: Debug logging (remove in production)
+  useEffect(() => {
+    if (viewModel) {
+      console.log('[Sprint1 Debug] viewModel:', viewModel);
+      console.log('[Sprint1 Debug] algorithm:', viewModel.algorithm);
+      console.log('[Sprint1 Debug] cargoType:', viewModel.overview?.shipment?.cargoType);
+      console.log('[Sprint1 Debug] containerType:', viewModel.overview?.shipment?.containerType);
+      console.log('[Sprint1 Debug] dataFreshness:', viewModel.meta?.dataFreshness);
+      console.log('[Sprint1 Debug] dataQuality:', viewModel.meta?.dataQuality);
+    }
+  }, [viewModel]);
+
+  useEffect(() => {
+    if (narrativeViewModel) {
+      console.log('[Sprint1 Debug] narrativeViewModel:', narrativeViewModel);
+      console.log('[Sprint1 Debug] personalizedSummary:', narrativeViewModel.personalizedSummary);
+      console.log('[Sprint1 Debug] topRiskFactors:', narrativeViewModel.topRiskFactors);
+    }
+  }, [narrativeViewModel]);
+
+  // Build narrative - use personalized narrative if available, otherwise fallback to engine explanation
   const explanation = viewModel?.overview?.reasoning?.explanation;
   
   // Generate insights from drivers (real data only)
@@ -406,19 +482,36 @@ export default function ResultsPage() {
       .map(l => `${l.name}: Score ${l.score.toFixed(1)}, contributing ${l.contribution.toFixed(1)}%`);
   }, [viewModel, layersData]);
 
-  const narrativeData: AINarrative = useMemo(() => ({
-    executiveSummary: explanation || `Risk assessment complete. Overall risk score: ${Math.round(riskScore)}/100 (${riskLevel || 'Unknown'}).`,
-    keyInsights: driverInsights.length > 0 ? driverInsights : layerInsights,
-    actionItems: viewModel?.scenarios && viewModel.scenarios.length > 0 
-      ? viewModel.scenarios.slice(0, 4).map(s => s.title)
-      : riskScore < 30 
-        ? ['Continue monitoring shipment', 'No immediate action required']
-        : ['Review risk mitigation options', 'Consider insurance coverage'],
-    riskDrivers: viewModel?.drivers && viewModel.drivers.length > 0
-      ? viewModel.drivers.map(d => d.name)
-      : layersData.filter(l => l.score > 30).map(l => l.name),
-    confidenceNotes: `Analysis based on ${Math.round(confidence * 100)}% data confidence. ${riskScore < 30 ? 'Low risk - standard monitoring applies.' : ''}`,
-  }), [explanation, riskScore, riskLevel, driverInsights, layerInsights, viewModel, layersData, confidence]);
+  // Use personalized narrative if available, otherwise fallback to existing logic
+  const narrativeData: AINarrative = useMemo(() => {
+    if (narrativeViewModel) {
+      // Use personalized narrative (Sprint 1 enhancement)
+      return {
+        executiveSummary: narrativeViewModel.personalizedSummary,
+        keyInsights: narrativeViewModel.topRiskFactors.map(f => 
+          `${f.factor}: ${f.contribution.toFixed(0)}% contribution`
+        ),
+        actionItems: narrativeViewModel.actionItems.map(a => a.action),
+        riskDrivers: narrativeViewModel.topRiskFactors.map(f => f.factor),
+        confidenceNotes: narrativeViewModel.sourceAttribution,
+      };
+    }
+    
+    // Fallback to existing logic (backward compatibility)
+    return {
+      executiveSummary: explanation || `Risk assessment complete. Overall risk score: ${Math.round(riskScore)}/100 (${riskLevel || 'Unknown'}).`,
+      keyInsights: driverInsights.length > 0 ? driverInsights : layerInsights,
+      actionItems: viewModel?.scenarios && viewModel.scenarios.length > 0 
+        ? viewModel.scenarios.slice(0, 4).map(s => s.title)
+        : riskScore < 30 
+          ? ['Continue monitoring shipment', 'No immediate action required']
+          : ['Review risk mitigation options', 'Consider insurance coverage'],
+      riskDrivers: viewModel?.drivers && viewModel.drivers.length > 0
+        ? viewModel.drivers.map(d => d.name)
+        : layersData.filter(l => l.score > 30).map(l => l.name),
+      confidenceNotes: `Analysis based on ${Math.round(confidence * 100)}% data confidence. ${riskScore < 30 ? 'Low risk - standard monitoring applies.' : ''}`,
+    };
+  }, [narrativeViewModel, explanation, riskScore, riskLevel, driverInsights, layerInsights, viewModel, layersData, confidence]);
 
   // Build scenario projections - ONLY use real data, no fake generation
   const scenarioData: ScenarioDataPoint[] = useMemo(() => {
@@ -663,73 +756,107 @@ export default function ResultsPage() {
         role="main"
         aria-label="Risk analysis results"
       >
-        {/* Header - Mobile Responsive */}
-        <header className="space-y-4">
-          {/* Logo and Actions Row */}
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
+        {/* Header - All elements in one row */}
+        <header className="mb-6">
+          {/* Unified Header Row: Logo (left) | Tabs + Actions (right) */}
+          <div 
+            className="flex items-center justify-between gap-4 flex-wrap" 
+            style={{ 
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              width: '100%'
+            } as React.CSSProperties}
+          >
+            {/* Left: Logo - Compact on mobile */}
+            <div className="flex items-center gap-2" style={{ flexShrink: 0, minWidth: 'fit-content' }}>
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
                 <Activity className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <div>
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white tracking-tight">
+              <div className="hidden lg:block" style={{ flexShrink: 0 }}>
+                <h1 className="text-2xl lg:text-3xl font-bold text-white tracking-tight whitespace-nowrap leading-tight">
                   RISKCAST<span className="text-blue-400">.</span>
                 </h1>
-                <p className="text-white/50 text-xs sm:text-sm hidden sm:block">Enterprise Risk Intelligence Platform</p>
+                <p className="text-white/50 text-xs whitespace-nowrap leading-tight">Enterprise Risk Intelligence Platform</p>
+              </div>
+              <div className="lg:hidden" style={{ flexShrink: 0 }}>
+                <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight whitespace-nowrap">
+                  RISKCAST<span className="text-blue-400">.</span>
+                </h1>
               </div>
             </div>
 
-            {/* Action Buttons - Always visible */}
-            <div className="flex items-center gap-2 sm:gap-3">
-              {/* Export Menu (P0 - #3) */}
-              <ExportMenu
-                onExportPDF={exportPDF}
-                onExportCSV={exportCSV}
-                onExportExcel={exportExcel}
-                onCopyLink={copyShareLink}
-                isExporting={isExporting}
-                disabled={!viewModel}
-              />
-
-              {/* Language Switcher - Hidden on mobile */}
-              <div className="hidden sm:block">
-                <HeaderLangSwitcher />
+            {/* Right: Tabs + Action Buttons - Horizontal alignment */}
+            <div className="flex items-center gap-3 sm:gap-4" style={{ flexShrink: 0, minWidth: 'fit-content' }}>
+              {/* Tab Navigation */}
+              <div className="flex items-center">
+                <Tabs
+                  tabs={[
+                    { id: 'overview' as ResultsTab, label: t('overview') },
+                    { id: 'analytics' as ResultsTab, label: t('analytics') },
+                    { id: 'decisions' as ResultsTab, label: t('decisions') }
+                  ]}
+                  activeTab={activeTab}
+                  onTabChange={setActiveTab}
+                  size="md"
+                  variant="default"
+                  className="w-fit"
+                />
               </div>
 
-              <button
-                onClick={() => fetchResults(true, true)}
-                disabled={loading}
-                className="px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-xl font-medium transition-all flex items-center gap-2 shadow-lg shadow-blue-500/25 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
-                aria-label="Refresh analysis data"
-              >
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                <span className="hidden sm:inline">{t('refresh')}</span>
-              </button>
-            </div>
-          </div>
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 sm:gap-3">
+                {/* Export Menu */}
+                <ExportMenu
+                  onExportPDF={exportPDF}
+                  onExportCSV={exportCSV}
+                  onExportExcel={exportExcel}
+                  onCopyLink={copyShareLink}
+                  isExporting={isExporting}
+                  disabled={!viewModel}
+                />
 
-          {/* Tab Navigation - Scrollable on mobile (P0 - #4, P1 - #21) */}
-          <div className="tabs-scroll-container -mx-4 sm:mx-0 px-4 sm:px-0">
-            <Tabs
-              tabs={[
-                { id: 'overview' as ResultsTab, label: t('overview') },
-                { id: 'analytics' as ResultsTab, label: t('analytics') },
-                { id: 'decisions' as ResultsTab, label: t('decisions') }
-              ]}
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-              size="md"
-              variant="default"
-              className="w-fit min-w-full sm:min-w-0"
-            />
+                {/* Language Switcher - Hidden on mobile */}
+                <div className="hidden sm:block">
+                  <HeaderLangSwitcher />
+                </div>
+
+                <button
+                  onClick={() => fetchResults(true, true)}
+                  disabled={loading}
+                  className="px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-xl font-medium transition-all flex items-center gap-2 shadow-lg shadow-blue-500/25 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 whitespace-nowrap"
+                  aria-label="Refresh analysis data"
+                >
+                  <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                  <span className="hidden sm:inline">{t('refresh')}</span>
+                </button>
+              </div>
+            </div>
           </div>
         </header>
 
-        {/* Breadcrumb Navigation (P0 - #1) */}
+        {/* PR #6: Case Stepper (Navigation Progress) */}
+        <div className="mb-4 pb-4 border-b border-white/10">
+          <CaseStepper currentStep="results" completedSteps={['input', 'summary']} />
+        </div>
+
+        {/* Breadcrumb Navigation (P0 - #1) - UPDATED: Includes back to Summary */}
         <ResultsBreadcrumb 
           shipmentId={viewModel?.overview?.shipment?.id?.replace('SHIP-', '') || 'Unknown'}
           className="mb-2"
         />
+        
+        {/* PR #4: Display Run ID + Timestamp (traceability) */}
+        {viewModel?.meta?.analysisId || viewModel?.meta?.timestamp ? (
+          <div className="flex items-center gap-4 text-xs text-white/40 mb-4">
+            {viewModel.meta.analysisId && (
+              <span>Run #{viewModel.meta.analysisId.replace('AN-', '')}</span>
+            )}
+            {viewModel.meta.timestamp && (
+              <span>• {new Date(viewModel.meta.timestamp).toLocaleString()}</span>
+            )}
+          </div>
+        ) : null}
 
         {/* Shipment Header */}
         <ShipmentHeader data={shipmentData} />
@@ -822,20 +949,44 @@ export default function ResultsPage() {
                 <div className="space-y-3">
                   <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
                     <span className="text-white/60">Origin</span>
-                    <span className="text-white font-medium">{viewModel.overview.shipment.pol}</span>
+                    <span className="text-white font-medium">
+                      {typeof viewModel.overview.shipment.pol === 'string' 
+                        ? viewModel.overview.shipment.pol 
+                        : viewModel.overview.shipment.pol?.name || viewModel.overview.shipment.pol?.code || 'N/A'}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
                     <span className="text-white/60">Destination</span>
-                    <span className="text-white font-medium">{viewModel.overview.shipment.pod}</span>
+                    <span className="text-white font-medium">
+                      {typeof viewModel.overview.shipment.pod === 'string' 
+                        ? viewModel.overview.shipment.pod 
+                        : viewModel.overview.shipment.pod?.name || viewModel.overview.shipment.pod?.code || 'N/A'}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
                     <span className="text-white/60">Transit Time</span>
                     <span className="text-white font-medium">{viewModel.overview.shipment.transitTime} days</span>
                   </div>
+                  {/* Sprint 1: Display Cargo Type */}
+                  <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+                    <span className="text-white/60">Cargo Type</span>
+                    <span className="text-white font-medium">
+                      {viewModel.overview.shipment.cargoType || viewModel.overview.shipment.cargo || 'N/A'}
+                    </span>
+                  </div>
+                  {/* Sprint 1: Display Container Type */}
+                  <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+                    <span className="text-white/60">Container Type</span>
+                    <span className="text-white font-medium">
+                      {viewModel.overview.shipment.containerType || viewModel.overview.shipment.container || 'N/A'}
+                    </span>
+                  </div>
                   <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
                     <span className="text-white/60">Cargo Value</span>
                     <span className="text-white font-medium">
-                      ${((viewModel.overview.shipment.cargoValue || 0) / 1000).toFixed(0)}K
+                      ${((typeof viewModel.overview.shipment.cargoValue === 'number' 
+                        ? viewModel.overview.shipment.cargoValue 
+                        : viewModel.overview.shipment.cargoValue?.amount || 0) / 1000).toFixed(0)}K
                     </span>
                   </div>
                 </div>
@@ -950,6 +1101,15 @@ export default function ResultsPage() {
               </Suspense>
             </div>
 
+            {/* Sprint 3: Factor Contribution Waterfall */}
+            <Suspense fallback={<ChartLoader />}>
+              <FactorContributionWaterfall
+                baseScore={Math.max(0, riskScore - layersData.reduce((sum, l) => sum + (l.contribution || 0), 0))}
+                layers={layersData}
+                finalScore={riskScore}
+              />
+            </Suspense>
+
             {/* Data Integrity Warning (if needed) */}
             {!layerValidation.isValid && layerValidation.warnings.length > 0 && (
               <GlassCard className="border-amber-500/30 bg-amber-500/5">
@@ -1014,6 +1174,50 @@ export default function ResultsPage() {
             ============================================================ */}
         {activeTab === 'analytics' && (
           <div className="space-y-8">
+            {/* Sprint 1: Algorithm Explainability Panel (P0 Critical) */}
+            {viewModel.algorithm && (
+              <Suspense fallback={<ChartLoader />}>
+                <AlgorithmExplainabilityPanel algorithmData={viewModel.algorithm} />
+              </Suspense>
+            )}
+
+            {/* Sprint 2: Insurance Underwriting Panel (P1 High) */}
+            {viewModel.insurance && viewModel.loss && (
+              <Suspense fallback={<ChartLoader />}>
+                <InsuranceUnderwritingPanel
+                  insuranceData={viewModel.insurance}
+                  cargoValue={typeof viewModel.overview.shipment.cargoValue === 'number'
+                    ? viewModel.overview.shipment.cargoValue
+                    : viewModel.overview.shipment.cargoValue?.amount || 0}
+                  expectedLoss={viewModel.loss.expectedLoss}
+                  p95={viewModel.loss.p95}
+                  p99={viewModel.loss.p99}
+                />
+              </Suspense>
+            )}
+
+            {/* Sprint 2: Logistics Realism Panel (P1 High) */}
+            {viewModel.logistics && (
+              <Suspense fallback={<ChartLoader />}>
+                <LogisticsRealismPanel
+                  logisticsData={viewModel.logistics}
+                  cargoType={viewModel.overview.shipment.cargoType || viewModel.overview.shipment.cargo || ''}
+                  containerType={viewModel.overview.shipment.containerType || viewModel.overview.shipment.container || ''}
+                  cargoValue={typeof viewModel.overview.shipment.cargoValue === 'number'
+                    ? viewModel.overview.shipment.cargoValue
+                    : viewModel.overview.shipment.cargoValue?.amount || 0}
+                  transitDays={viewModel.overview.shipment.transitTime || 0}
+                />
+              </Suspense>
+            )}
+
+            {/* Sprint 3: Risk Disclosure Panel (P1 High) */}
+            {viewModel.riskDisclosure && (
+              <Suspense fallback={<ChartLoader />}>
+                <RiskDisclosurePanel riskDisclosure={viewModel.riskDisclosure} />
+              </Suspense>
+            )}
+
             {/* Scenario Projections - Only show if real data exists */}
             {scenarioData.length > 0 && (
               <Suspense fallback={<ChartLoader />}>

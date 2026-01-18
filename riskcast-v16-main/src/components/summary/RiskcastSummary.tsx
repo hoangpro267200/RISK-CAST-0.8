@@ -10,6 +10,14 @@ import { AiAdvisorDock, AiAdvisorTrigger } from '../AiAdvisorDock';
 import { AiDockProvider } from '../../hooks/useAiDockState';
 import type { ShipmentData, ModulesState, SaveState } from './types';
 import { getValidationIssues, type ValidationIssue } from '../../lib/validation';
+import { 
+  mapInputFormToDomainCase, 
+  mapDomainCaseToShipmentData,
+  createDefaultDomainCase,
+  type DomainCase 
+} from '@/domain';
+import { CaseStepper } from '../ui/CaseStepper';
+import { SummaryBreadcrumb } from '../ui/Breadcrumb';
 
 // Smart field types for enhanced editing
 type SmartFieldType = 'text' | 'number' | 'date' | 'select' | 'checkbox' | 'textarea' | 'port' | 'cargo_type' | 'incoterm' | 'mode' | 'carrier' | 'container';
@@ -171,98 +179,11 @@ export function RiskcastSummary({ initialData }: RiskcastSummaryProps) {
   });
 
   // Transform RISKCAST_STATE (Input page format) to ShipmentData format
+  // UPDATED: Uses domain mapper for consistent transformation
   const transformInputStateToSummary = (state: Record<string, unknown>): ShipmentData => {
-    const transport = (state.transport || {}) as Record<string, unknown>;
-    const cargo = (state.cargo || {}) as Record<string, unknown>;
-    const seller = (state.seller || {}) as Record<string, unknown>;
-    const buyer = (state.buyer || {}) as Record<string, unknown>;
-    
-    // Get POL/POD codes
-    const pol = String(transport.pol || 'SGN');
-    const pod = String(transport.pod || 'LAX');
-    
-    // Map port codes to names/cities (basic mapping)
-    const portInfo: Record<string, { name: string; city: string; country: string }> = {
-      'SGN': { name: 'Tan Son Nhat International Airport', city: 'Ho Chi Minh City', country: 'Vietnam' },
-      'VNSGN': { name: 'Tan Son Nhat International Airport', city: 'Ho Chi Minh City', country: 'Vietnam' },
-      'LAX': { name: 'Los Angeles International Airport', city: 'Los Angeles', country: 'United States' },
-      'USLAX': { name: 'Los Angeles International Airport', city: 'Los Angeles', country: 'United States' },
-      'SHA': { name: 'Shanghai Pudong International Airport', city: 'Shanghai', country: 'China' },
-      'HKG': { name: 'Hong Kong International Airport', city: 'Hong Kong', country: 'Hong Kong' },
-      'SIN': { name: 'Changi Airport', city: 'Singapore', country: 'Singapore' },
-    };
-    
-    const polInfo = portInfo[pol.toUpperCase()] || { name: pol, city: pol, country: 'Unknown' };
-    const podInfo = portInfo[pod.toUpperCase()] || { name: pod, city: pod, country: 'Unknown' };
-    
-    // Get shipment value from multiple possible sources
-    const shipmentValue = Number(cargo.insuranceValue) || Number(cargo.value) || Number(cargo.cargo_value) || Number(state.value) || 0;
-    
-    // Get seller/buyer country - handle both string and object formats
-    const getCountryName = (country: unknown): string => {
-      if (typeof country === 'string') return country;
-      if (country && typeof country === 'object' && 'name' in country) return String((country as Record<string, unknown>).name);
-      return '';
-    };
-    
-    return {
-      shipmentId: String(state.shipmentId || `SH-${pol}-${pod}-${Date.now().toString().slice(-10)}`),
-      trade: {
-        pol: pol,
-        polName: polInfo.name,
-        polCity: polInfo.city,
-        polCountry: polInfo.country,
-        pod: pod,
-        podName: podInfo.name,
-        podCity: podInfo.city,
-        podCountry: podInfo.country,
-        mode: (String(transport.mode || transport.modeOfTransport || 'AIR').toUpperCase()) as 'AIR' | 'SEA' | 'ROAD' | 'RAIL' | 'MULTIMODAL',
-        service_route: String(transport.serviceRoute || `${pol}-${pod} Direct`),
-        carrier: String(transport.carrier || ''),
-        container_type: String(transport.containerType || 'Air Cargo Unit'),
-        etd: String(transport.etd || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]),
-        eta: String(transport.eta || new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]),
-        transit_time_days: Number(transport.transitTime || transport.transitTimeDays) || 3,
-        incoterm: String(transport.incoterm || 'FOB'),
-        incoterm_location: String(transport.incotermLocation || ''),
-        priority: String(transport.priority || 'normal'),
-      },
-      cargo: {
-        cargo_type: String(cargo.cargoType || ''),
-        cargo_category: String(cargo.category || 'General'),
-        hs_code: String(cargo.hsCode || ''),
-        hs_chapter: String(cargo.hsCode || '').split('.')[0] || '',
-        packing_type: String(cargo.packingType || cargo.packaging || ''),
-        packages: Number(cargo.numberOfPackages || cargo.packageCount) || 0,
-        gross_weight_kg: Number(cargo.grossWeight || cargo.weight) || 0,
-        net_weight_kg: Number(cargo.netWeight) || 0,
-        volume_cbm: Number(cargo.volumeM3 || cargo.volume) || 0,
-        stackability: cargo.stackable !== false,
-        temp_control_required: Boolean(cargo.temperatureControl || cargo.tempControl),
-        is_dg: Boolean(cargo.dangerousGoods || cargo.isDG),
-      },
-      seller: {
-        name: String(seller.contactPerson || seller.contact_person || ''),
-        company: String(seller.companyName || seller.company_name || ''),
-        email: String(seller.email || ''),
-        phone: String(seller.phone || ''),
-        country: getCountryName(seller.country),
-        city: String(seller.city || ''),
-        address: String(seller.address || ''),
-        tax_id: String(seller.taxId || seller.tax_id || ''),
-      },
-      buyer: {
-        name: String(buyer.contactPerson || buyer.contact_person || ''),
-        company: String(buyer.companyName || buyer.company_name || ''),
-        email: String(buyer.email || ''),
-        phone: String(buyer.phone || ''),
-        country: getCountryName(buyer.country),
-        city: String(buyer.city || ''),
-        address: String(buyer.address || ''),
-        tax_id: String(buyer.taxId || buyer.tax_id || ''),
-      },
-      value: shipmentValue,
-    };
+    // Use domain mapper: Input form state → DomainCase → ShipmentData
+    const domainCase = mapInputFormToDomainCase(state);
+    return mapDomainCaseToShipmentData(domainCase);
   };
 
   // Load data from localStorage on mount
@@ -275,11 +196,11 @@ export function RiskcastSummary({ initialData }: RiskcastSummaryProps) {
         const parsed = JSON.parse(savedState);
         console.log('[RiskcastSummary] Parsed RISKCAST_STATE:', parsed);
         
-        // Check if it's Input page format (has transport key) or Summary format (has trade key)
+        // Check if it's Input page format (has transport key), DomainCase format (has caseId), or Summary format (has trade key)
         if (parsed.transport) {
-          // Input page format - transform it
+          // Input page format - transform via domain mapper
           const transformed = transformInputStateToSummary(parsed);
-          console.log('[RiskcastSummary] Transformed data:', transformed);
+          console.log('[RiskcastSummary] Transformed from Input format via domain mapper:', transformed);
           setData(transformed);
           
           // Also load modules from riskModules
@@ -292,8 +213,26 @@ export function RiskcastSummary({ initialData }: RiskcastSummaryProps) {
             marketScanner: riskModules.market === true,
             insurance: riskModules.insurance !== false,
           });
+        } else if (parsed.caseId || parsed.transportMode) {
+          // DomainCase format - convert to ShipmentData
+          const domainCase = parsed as DomainCase;
+          const transformed = mapDomainCaseToShipmentData(domainCase);
+          console.log('[RiskcastSummary] Transformed from DomainCase format:', transformed);
+          setData(transformed);
+          
+          // Load modules from DomainCase
+          if (domainCase.modules) {
+            setModules({
+              esg: domainCase.modules.esg,
+              weather: domainCase.modules.weather,
+              portCongestion: domainCase.modules.portCongestion,
+              carrierPerformance: domainCase.modules.carrierPerformance,
+              marketScanner: domainCase.modules.marketScanner,
+              insurance: domainCase.modules.insurance,
+            });
+          }
         } else if (parsed.trade) {
-          // Already in Summary format
+          // Already in Summary format (backward compatibility)
           setData({
             ...defaultData,
             ...parsed,
@@ -368,6 +307,57 @@ export function RiskcastSummary({ initialData }: RiskcastSummaryProps) {
     });
   }, [data]);
 
+  // Helper: Convert ShipmentData back to DomainCase for saving
+  const shipmentDataToDomainCase = useCallback((shipmentData: ShipmentData): DomainCase => {
+    // Map ShipmentData back to DomainCase (for saving as DomainCase)
+    const formData: Record<string, unknown> = {
+      pol_code: shipmentData.trade.pol,
+      pod_code: shipmentData.trade.pod,
+      transport_mode: shipmentData.trade.mode.toLowerCase(),
+      container: shipmentData.trade.container_type,
+      service_route: shipmentData.trade.service_route,
+      carrier: shipmentData.trade.carrier,
+      etd: shipmentData.trade.etd,
+      eta: shipmentData.trade.eta,
+      transit_time_days: shipmentData.trade.transit_time_days,
+      cargo_type: shipmentData.cargo.cargo_type,
+      cargo_category: shipmentData.cargo.cargo_category,
+      hs_code: shipmentData.cargo.hs_code,
+      packaging: shipmentData.cargo.packing_type,
+      packages: shipmentData.cargo.packages,
+      gross_weight_kg: shipmentData.cargo.gross_weight_kg,
+      net_weight_kg: shipmentData.cargo.net_weight_kg,
+      volume_cbm: shipmentData.cargo.volume_cbm,
+      cargo_value: shipmentData.value,
+      incoterm: shipmentData.trade.incoterm,
+      incoterm_location: shipmentData.trade.incoterm_location,
+      priority: shipmentData.trade.priority,
+      seller: {
+        name: shipmentData.seller.name,
+        company: shipmentData.seller.company,
+        email: shipmentData.seller.email,
+        phone: shipmentData.seller.phone,
+        country: shipmentData.seller.country,
+        city: shipmentData.seller.city,
+        address: shipmentData.seller.address,
+        tax_id: shipmentData.seller.tax_id,
+      },
+      buyer: {
+        name: shipmentData.buyer.name,
+        company: shipmentData.buyer.company,
+        email: shipmentData.buyer.email,
+        phone: shipmentData.buyer.phone,
+        country: shipmentData.buyer.country,
+        city: shipmentData.buyer.city,
+        address: shipmentData.buyer.address,
+        tax_id: shipmentData.buyer.tax_id,
+      },
+      modules,
+    };
+    
+    return mapInputFormToDomainCase(formData);
+  }, [modules]);
+
   const handleEditorSave = useCallback((value: unknown) => {
     setSaveState('saving');
     
@@ -399,13 +389,22 @@ export function RiskcastSummary({ initialData }: RiskcastSummaryProps) {
 
   const handleSaveDraft = useCallback(() => {
     setSaveState('saving');
-    localStorage.setItem('RISKCAST_STATE', JSON.stringify(data));
+    
+    // Convert ShipmentData to DomainCase for saving (single source of truth)
+    const domainCase = shipmentDataToDomainCase(data);
+    const domainCaseJson = JSON.stringify(domainCase);
+    
+    // Save as DomainCase (new format)
+    localStorage.setItem('RISKCAST_STATE', domainCaseJson);
+    
+    // Also save modules separately (for backward compatibility)
     localStorage.setItem('summary_modules_state', JSON.stringify(modules));
+    
     setTimeout(() => {
       setSaveState('saved');
       setLastSaved(new Date());
     }, 500);
-  }, [data, modules]);
+  }, [data, modules, shipmentDataToDomainCase]);
 
   const handleBack = useCallback(() => {
     window.history.back();
@@ -415,8 +414,9 @@ export function RiskcastSummary({ initialData }: RiskcastSummaryProps) {
     setIsAnalyzing(true);
     
     try {
-      // Save current state first
-      localStorage.setItem('RISKCAST_STATE', JSON.stringify(data));
+      // Save current state first (as DomainCase for single source of truth)
+      const domainCase = shipmentDataToDomainCase(data);
+      localStorage.setItem('RISKCAST_STATE', JSON.stringify(domainCase));
       localStorage.setItem('summary_modules_state', JSON.stringify(modules));
       
       // Prepare payload
@@ -779,6 +779,16 @@ export function RiskcastSummary({ initialData }: RiskcastSummaryProps) {
           isAnalyzing,
         }}
       />
+
+      {/* PR #6: Case Stepper (Navigation Progress) */}
+      <div className="px-12 pt-4 pb-2 border-b border-white/10">
+        <CaseStepper currentStep="summary" completedSteps={['input']} />
+      </div>
+
+      {/* PR #6: Breadcrumb Navigation */}
+      <div className="px-12 pt-4">
+        <SummaryBreadcrumb />
+      </div>
 
       <main className="px-12 py-8 pb-24">
         {/* Hero Overview */}
