@@ -10,6 +10,7 @@ if (typeof window !== 'undefined') {
 // Lazy load pages for code splitting (Phase 5 - Performance)
 const ResultsPage = lazy(() => import('./pages/ResultsPage'));
 const SummaryPage = lazy(() => import('./pages/SummaryPage'));
+const InputPage = lazy(() => import('./pages/InputPage'));
 
 // Loading component for lazy-loaded pages
 const PageLoader = () => (
@@ -22,12 +23,14 @@ const PageLoader = () => (
 );
 
 export default function App() {
-  const [page, setPage] = useState<'results' | 'summary'>('results');
+  const [page, setPage] = useState<'results' | 'summary' | 'input'>('results');
 
   useEffect(() => {
     // Determine which page to render based on URL
     const path = window.location.pathname;
-    if (path.includes('/summary') || path.includes('/shipments/summary')) {
+    if (path.includes('/input') || path.includes('/input_react')) {
+      setPage('input');
+    } else if (path.includes('/summary') || path.includes('/shipments/summary')) {
       setPage('summary');
     } else {
       setPage('results');
@@ -36,7 +39,9 @@ export default function App() {
     // Listen for popstate (browser back/forward)
     const handlePopState = () => {
       const newPath = window.location.pathname;
-      if (newPath.includes('/summary') || newPath.includes('/shipments/summary')) {
+      if (newPath.includes('/input') || newPath.includes('/input_react')) {
+        setPage('input');
+      } else if (newPath.includes('/summary') || newPath.includes('/shipments/summary')) {
         setPage('summary');
       } else {
         setPage('results');
@@ -53,7 +58,7 @@ export default function App() {
       description="Ứng dụng gặp sự cố. Vui lòng tải lại trang hoặc báo cáo lỗi."
     >
       <Suspense fallback={<PageLoader />}>
-        {page === 'summary' ? <SummaryPage /> : <ResultsPage />}
+        {page === 'input' ? <InputPage /> : page === 'summary' ? <SummaryPage /> : <ResultsPage />}
       </Suspense>
     </ErrorBoundary>
   );
