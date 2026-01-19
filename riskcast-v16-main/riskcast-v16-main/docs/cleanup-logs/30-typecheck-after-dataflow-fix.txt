@@ -1,0 +1,12 @@
+﻿node.exe : npm error Missing script: "typecheck"
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (npm error Missing script: "typecheck":String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+npm error
+npm error To see a list of scripts, run:
+npm error   npm run
+npm error A complete log of this run can be found in: 
+C:\Users\RIM\AppData\Local\npm-cache\_logs\2026-01-18T12_39_02_584Z-debug-0.log

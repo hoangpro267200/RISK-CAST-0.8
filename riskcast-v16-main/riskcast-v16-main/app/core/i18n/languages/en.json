@@ -1,0 +1,113 @@
+{
+  "common": {
+    "risk": "Risk",
+    "score": "Score",
+    "level": "Level",
+    "confidence": "Confidence",
+    "factors": "Factors",
+    "drivers": "Drivers",
+    "recommendations": "Recommendations",
+    "scenario": "Scenario",
+    "baseline": "Baseline",
+    "delta": "Delta",
+    "analysis": "Analysis",
+    "report": "Report",
+    "export": "Export"
+  },
+  "risk": {
+    "level": {
+      "low": "Low",
+      "low_medium": "Low-Medium",
+      "medium": "Medium",
+      "medium_high": "Medium-High",
+      "high": "High",
+      "critical": "Critical"
+    },
+    "factors": {
+      "delay": "Delivery Delay Risk",
+      "port": "Port Congestion",
+      "climate": "Weather Hazard",
+      "carrier": "Carrier Reliability",
+      "esg": "ESG Exposure",
+      "equipment": "Equipment Availability",
+      "network": "Network Dependencies"
+    },
+    "explanations": {
+      "low": "Low risk level indicates shipment can proceed with standard operating procedures.",
+      "medium": "Medium risk level suggests enhanced monitoring and moderate contingency planning.",
+      "high": "High risk level requires immediate attention and comprehensive mitigation strategies.",
+      "critical": "Critical risk level demands urgent action and alternative route considerations."
+    },
+    "matrix": {
+      "low_probability": "Low Probability",
+      "medium_probability": "Medium Probability",
+      "high_probability": "High Probability",
+      "low_severity": "Low Severity",
+      "medium_severity": "Medium Severity",
+      "high_severity": "High Severity"
+    },
+    "recommendations": {
+      "operational": "Operational (Immediate Actions)",
+      "tactical": "Tactical (Short-term Actions)",
+      "strategic": "Strategic (Long-term Actions)"
+    }
+  },
+  "scenarios": {
+    "heavy_rain_q3": "Heavy Rain Season Q3",
+    "port_strike": "Port Strike",
+    "equipment_shortage": "Equipment Shortage",
+    "carrier_drop": "Carrier Reliability Drop",
+    "holiday_peak": "Holiday Peak Season",
+    "extreme_weather": "Extreme Weather Event",
+    "route_disruption": "Trade Route Disruption",
+    "esg_pressure": "ESG Compliance Pressure"
+  },
+  "terminology": {
+    "port": "Port",
+    "airport": "Airport",
+    "transit": "Transit",
+    "carrier": "Carrier",
+    "vessel": "Vessel",
+    "container": "Container",
+    "cargo": "Cargo",
+    "route": "Route",
+    "origin": "Origin",
+    "destination": "Destination"
+  },
+  "regions": {
+    "vn": "Vietnam",
+    "sea": "Southeast Asia",
+    "china": "China",
+    "eu": "European Union",
+    "us": "United States",
+    "global": "Global"
+  },
+  "messages": {
+    "loading": "Loading...",
+    "analyzing": "Analyzing risk...",
+    "generating": "Generating report...",
+    "exporting": "Exporting PDF...",
+    "error": "An error occurred",
+    "success": "Success"
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

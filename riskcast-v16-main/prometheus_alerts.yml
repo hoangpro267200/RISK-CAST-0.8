@@ -1,0 +1,53 @@
+groups:
+  - name: riskcast_alerts
+    interval: 30s
+    rules:
+      - alert: HighErrorRate
+        expr: rate(riskcast_http_errors_total[5m]) / rate(riskcast_http_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          component: riskcast
+        annotations:
+          summary: "Error rate exceeds 5%"
+          description: "Error rate is {{ $value | humanizePercentage }} for 5 minutes. Investigate error logs."
+      
+      - alert: HighLatencyP95
+        expr: histogram_quantile(0.95, rate(riskcast_http_request_duration_seconds_bucket[5m])) > 2.0
+        for: 5m
+        labels:
+          severity: warning
+          component: riskcast
+        annotations:
+          summary: "P95 latency exceeds 2 seconds"
+          description: "P95 latency is {{ $value }}s. Check slow queries or external API latency."
+      
+      - alert: HighLatencyP99
+        expr: histogram_quantile(0.99, rate(riskcast_http_request_duration_seconds_bucket[5m])) > 5.0
+        for: 5m
+        labels:
+          severity: critical
+          component: riskcast
+        annotations:
+          summary: "P99 latency exceeds 5 seconds"
+          description: "P99 latency is {{ $value }}s. Investigate system bottlenecks immediately."
+      
+      - alert: AIAdvisorFailures
+        expr: rate(riskcast_ai_advisor_errors_total[5m]) / rate(riskcast_ai_advisor_requests_total[5m]) > 0.10
+        for: 5m
+        labels:
+          severity: warning
+          component: riskcast
+        annotations:
+          summary: "AI advisor failure rate exceeds 10%"
+          description: "AI advisor failure rate is {{ $value | humanizePercentage }}. Check Anthropic API status."
+      
+      - alert: RequestTimeoutRate
+        expr: rate(riskcast_http_requests_total{status_code="504"}[5m]) / rate(riskcast_http_requests_total[5m]) > 0.01
+        for: 5m
+        labels:
+          severity: warning
+          component: riskcast
+        annotations:
+          summary: "Request timeout rate exceeds 1%"
+          description: "Timeout rate is {{ $value | humanizePercentage }}. Check for slow endpoints."

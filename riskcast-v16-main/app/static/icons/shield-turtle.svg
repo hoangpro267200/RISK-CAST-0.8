@@ -1,0 +1,37 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Shield Background -->
+  <path d="M16 2L4 7V16C4 22 8 26 16 28C24 26 28 22 28 16V7L16 2Z" stroke="#00ffb3" stroke-width="1.5" fill="rgba(0, 255, 179, 0.1)"/>
+  
+  <!-- Turtle Shell -->
+  <ellipse cx="16" cy="18" rx="8" ry="6" fill="#00ffb3" opacity="0.8"/>
+  <ellipse cx="16" cy="18" rx="6" ry="4" fill="none" stroke="#00ffb3" stroke-width="0.5"/>
+  
+  <!-- Turtle Head -->
+  <ellipse cx="16" cy="12" rx="3" ry="2.5" fill="#00ffb3" opacity="0.9"/>
+  
+  <!-- Turtle Legs -->
+  <ellipse cx="10" cy="20" rx="1.5" ry="2" fill="#00ffb3" opacity="0.7"/>
+  <ellipse cx="22" cy="20" rx="1.5" ry="2" fill="#00ffb3" opacity="0.7"/>
+  <ellipse cx="10" cy="22" rx="1.5" ry="2" fill="#00ffb3" opacity="0.7"/>
+  <ellipse cx="22" cy="22" rx="1.5" ry="2" fill="#00ffb3" opacity="0.7"/>
+  
+  <!-- Shield Accent Lines -->
+  <path d="M16 7L10 9V14" stroke="#00ffb3" stroke-width="0.8" opacity="0.5"/>
+  <path d="M16 7L22 9V14" stroke="#00ffb3" stroke-width="0.8" opacity="0.5"/>
+  
+  <!-- Glow Effect -->
+  <ellipse cx="16" cy="18" rx="10" ry="8" fill="#00ffb3" opacity="0.1" filter="url(#glow)"/>
+  
+  <defs>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+</svg>
+
+
+

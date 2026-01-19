@@ -1,0 +1,21 @@
+{
+  "risk_score": 25,
+  "risk_level": "Low",
+  "confidence": 0.75,
+  "profile": {
+    "score": 25,
+    "level": "Low",
+    "confidence": 0.75,
+    "explanation": ["Low risk shipment with distributed factors"],
+    "factors": {
+      "climate": 0.2,
+      "port": 0.15,
+      "carrier": 0.1
+    }
+  },
+  "drivers": [],
+  "reasoning": {
+    "explanation": "Risk assessment indicates a Low risk level (score: 25.0/100). The overall risk is distributed across multiple minor factors, with no single dominant driver."
+  }
+}
+

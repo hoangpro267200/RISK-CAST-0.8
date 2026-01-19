@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipment Detail - RISKCAST v35</title>
+    <link rel="stylesheet" href="/static/css/global_visionos.css">
+    <link rel="stylesheet" href="/static/css/shipment_detail.css">
+</head>
+<body class="page visionos has-topbar">
+    <nav class="vision-topbar glass-panel">
+        <div class="vision-topbar__brand">
+            <div class="vision-topbar__logo">
+                <svg width="26" height="26" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="rcNeonShipment" x1="2" y1="2" x2="30" y2="30">
+                            <stop offset="0%" stop-color="#00FFC8"/>
+                            <stop offset="100%" stop-color="#00D4FF"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M16 3L27.5 9.5V22.5L16 29L4.5 22.5V9.5L16 3Z" stroke="url(#rcNeonShipment)" stroke-width="2.2" stroke-linejoin="round"/>
+                    <path d="M16 8L23 12V20L16 24L9 20V12L16 8Z" stroke="url(#rcNeonShipment)" stroke-width="1.6" stroke-linejoin="round" opacity="0.7"/>
+                    <path d="M16 11L20 13.5V18.5L16 21L12 18.5V13.5L16 11Z" fill="url(#rcNeonShipment)" opacity="0.9"/>
+                </svg>
+            </div>
+            <div class="vision-topbar__title">
+                <span>RISKCAST</span>
+                <span class="vision-topbar__version">v35 FutureOS</span>
+            </div>
+        </div>
+
+        <div class="vision-topbar__nav">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/shipments" class="nav-link active">Shipments</a>
+            <a href="/pricing" class="nav-link">Pricing</a>
+            <a href="/consolidation" class="nav-link">Consolidation</a>
+            <a href="/documents" class="nav-link">Documents</a>
+            <a href="/customs" class="nav-link">Customs</a>
+            <a href="/tracking" class="nav-link">Tracking</a>
+        </div>
+    </nav>
+
+    <div class="topbar-offset">
+    <header class="glass header">
+        <div class="logo">RISKCAST v35</div>
+        <div class="title">
+            <span class="section-underline">Shipment Detail Hub</span>
+        </div>
+        <div class="pill" id="status-pill">-</div>
+    </header>
+
+    <div id="shipment-root" data-shipment-id="{{ shipment_id }}"></div>
+
+    <main class="layout fade-in">
+        <section class="row">
+            <div id="shipment-core" class="glass card slide-in">
+                <h3 class="card-title"><span class="card-icon">📌</span>Core Info</h3>
+                <div class="content"></div>
+            </div>
+            <div id="shipment-pricing" class="glass card slide-in">
+                <h3 class="card-title"><span class="card-icon">💲</span>Pricing</h3>
+                <div class="content"></div>
+                <button class="ghost nav-ghost" id="btn-pricing">Open Pricing Dashboard</button>
+            </div>
+            <div id="shipment-consolidation" class="glass card slide-in">
+                <h3 class="card-title"><span class="card-icon">📦</span>Consolidation</h3>
+                <div class="content"></div>
+                <button class="ghost nav-ghost" id="btn-consolidation">Open Consolidation Center</button>
+            </div>
+        </section>
+
+        <section class="row">
+            <div id="shipment-documents" class="glass card slide-in">
+                <h3 class="card-title"><span class="card-icon">📑</span>Documents</h3>
+                <div class="content"></div>
+                <button class="ghost nav-ghost" id="btn-documents">Open Documents Center</button>
+            </div>
+            <div id="shipment-tracking" class="glass card slide-in">
+                <h3 class="card-title"><span class="card-icon">📡</span>Tracking & Risk</h3>
+                <div class="content"></div>
+                <button class="ghost nav-ghost" id="btn-tracking">Open Tracking Center</button>
+            </div>
+            <div id="shipment-customs" class="glass card slide-in">
+                <h3 class="card-title"><span class="card-icon">🛃</span>Customs</h3>
+                <div class="content"></div>
+                <button class="ghost nav-ghost" id="btn-customs">Open Customs Assist</button>
+            </div>
+        </section>
+    </main>
+    </div>
+
+    <script src="/static/js/shipment_detail.js"></script>
+</body>
+</html>
+

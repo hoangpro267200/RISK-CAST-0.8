@@ -1,0 +1,173 @@
+/* ==========================================================================
+   SUMMARY_V400 - VISIONOS THEME (VisionOS v550 Ultra)
+   CSS Variables, Colors, Gradients, and Theme System
+   ========================================================================== */
+
+/* Note: CSS Variables are defined in summary_reset.css */
+
+/* ===== BACKGROUND GRADIENT - VisionOS v600 Ultra (xanh tím 2024) ===== */
+body {
+    background: linear-gradient(135deg, 
+        var(--bg-from) 0%, 
+        #05152A 25%,
+        var(--bg-via) 50%, 
+        #041020 75%,
+        var(--bg-to) 100%);
+    background-attachment: fixed;
+}
+
+/* ===== GLASSMORPHISM SURFACES - VisionOS v550 ===== */
+.summary-topbar {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    backdrop-filter: var(--card-blur);
+    -webkit-backdrop-filter: var(--card-blur);
+    box-shadow: var(--card-shadow);
+}
+
+.summary-panel,
+.advisor-panel,
+.mega-summary,
+.risk-row {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    backdrop-filter: var(--card-blur);
+    -webkit-backdrop-filter: var(--card-blur);
+    box-shadow: var(--card-shadow);
+}
+
+.summary-panel:hover,
+.advisor-panel:hover,
+.mega-summary:hover {
+    border-color: var(--accent-cyan);
+    box-shadow: var(--card-shadow), 0 0 25px rgba(53, 224, 255, 0.3);
+}
+
+/* ===== GRADIENT TEXT ===== */
+.summary-logo__brand {
+    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.summary-logo__icon {
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+    color: white;
+}
+
+/* ===== BUTTON GRADIENTS ===== */
+.btn--primary {
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+    color: #000;
+    box-shadow: var(--neon-glow-cyan);
+}
+
+.btn--primary:hover {
+    box-shadow: 0 0 30px rgba(53, 224, 255, 0.8);
+}
+
+.btn--secondary {
+    background: var(--surface-glass);
+    color: var(--text-primary);
+    border: 1px solid var(--border-strong);
+}
+
+.btn--secondary:hover {
+    background: var(--surface-glass-hover);
+    border-color: var(--accent-cyan);
+}
+
+/* ===== PROGRESS BAR GRADIENT ===== */
+.completeness-bar__fill {
+    background: linear-gradient(90deg, var(--accent-purple), var(--accent-cyan));
+}
+
+/* ===== PANEL TAG - Gradient styling moved to summary_typography.css ===== */
+
+/* ===== TEXT COLORS ===== */
+.summary-logo__subtitle {
+    color: var(--text-secondary);
+}
+
+.field-tile__label,
+.banner-tile__label,
+.mega-tile__label {
+    color: var(--text-muted);
+}
+
+.field-tile__value,
+.banner-tile__value,
+.mega-tile__value {
+    color: var(--text-primary);
+}
+
+.field-tile__value--empty,
+.banner-tile__value--empty,
+.mega-tile__value--empty {
+    color: var(--text-muted);
+}
+
+/* ===== ERROR STATES ===== */
+.field-tile--error {
+    border: 1px solid var(--text-danger);
+    background: rgba(255, 75, 92, 0.08);
+}
+
+.field-tile--warning {
+    border: 1px solid var(--text-warning);
+    background: rgba(255, 200, 87, 0.08);
+}
+
+.error-chip--critical {
+    background: rgba(255, 75, 92, 0.15);
+    border: 1px solid var(--accent-red);
+    color: var(--text-danger);
+}
+
+.error-chip--warning {
+    background: rgba(255, 200, 87, 0.15);
+    border: 1px solid var(--accent-amber);
+    color: var(--text-warning);
+}
+
+/* ===== ADVISOR COLORS ===== */
+.advisor-section__title--critical {
+    color: var(--text-danger);
+}
+
+.advisor-section__title--warning {
+    color: var(--text-warning);
+}
+
+.advisor-section__title--suggestion {
+    color: var(--accent-cyan);
+}
+
+.advisor-item--critical {
+    border-left: 3px solid var(--accent-red);
+}
+
+.advisor-item--warning {
+    border-left: 3px solid var(--accent-amber);
+}
+
+.advisor-item--suggestion {
+    border-left: 3px solid var(--accent-cyan);
+}
+
+/* ===== RISK CARD TOGGLE ===== */
+.risk-card__toggle--on {
+    background: var(--accent-cyan);
+    border-color: var(--accent-cyan);
+    box-shadow: var(--neon-glow-cyan);
+}
+
+.risk-card__status--on {
+    color: var(--accent-cyan);
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+    color: var(--text-muted);
+}

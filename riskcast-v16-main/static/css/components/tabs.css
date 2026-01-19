@@ -1,0 +1,55 @@
+@import url("../../css/tokens.css");
+
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  position: sticky;
+  padding: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-16);
+}
+
+.tab-trigger {
+  position: relative;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  padding: 14px 10px;
+  border-radius: var(--radius-12);
+  font: var(--font-body-lg);
+  cursor: pointer;
+  transition: color var(--transition);
+}
+
+.tab-trigger:hover {
+  color: var(--text-strong);
+}
+
+.tab-trigger.is-active {
+  color: var(--color-primary-neon);
+  text-shadow: 0 0 12px rgba(110, 243, 255, 0.4);
+}
+
+.tab-indicator {
+  position: absolute;
+  height: 42px;
+  width: calc(25% - 12px);
+  top: 8px;
+  left: 6px;
+  background: linear-gradient(120deg, rgba(110, 243, 255, 0.16), rgba(139, 123, 255, 0.12));
+  border-radius: var(--radius-12);
+  border: 1px solid rgba(110, 243, 255, 0.32);
+  box-shadow: var(--shadow-neon);
+  transition: transform var(--transition), left var(--transition);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.tabs .tab-trigger {
+  z-index: 1;
+}
+
+
+
+

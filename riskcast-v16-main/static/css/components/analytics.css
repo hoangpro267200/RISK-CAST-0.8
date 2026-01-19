@@ -1,0 +1,54 @@
+@import url("../../css/tokens.css");
+
+.grid-analytics {
+  align-items: stretch;
+}
+
+.risk-module {
+  padding: var(--space-20);
+  position: relative;
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.risk-module:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-neon);
+}
+
+.risk-module[data-risk-level="high"] {
+  border: 1px solid rgba(255, 107, 107, 0.4);
+  box-shadow: 0 0 24px rgba(255, 107, 107, 0.2);
+}
+
+.risk-module[data-risk-level="medium"] {
+  border: 1px solid rgba(247, 201, 72, 0.35);
+  box-shadow: 0 0 20px rgba(247, 201, 72, 0.16);
+}
+
+.risk-module[data-risk-level="low"] {
+  border: 1px solid rgba(97, 201, 255, 0.35);
+  box-shadow: 0 0 18px rgba(97, 201, 255, 0.14);
+}
+
+.risk-module .tooltip {
+  position: absolute;
+  bottom: var(--space-12);
+  right: var(--space-12);
+  padding: 8px 10px;
+  background: rgba(5, 7, 13, 0.65);
+  border-radius: var(--radius-12);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-soft);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity var(--transition), transform var(--transition);
+}
+
+.risk-module:hover .tooltip {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+
+
+

@@ -1,0 +1,317 @@
+/* ==========================================================================
+   MODULES_V30 - VisionOS Ultra Design
+   Premium glassmorphic module selection interface
+   ========================================================================== */
+
+/* ===== ROOT VARIABLES ===== */
+:root {
+    --modules-bg-from: #0A0E1A;
+    --modules-bg-via: #0F182B;
+    --modules-bg-to: #0A0E1A;
+    --modules-card-bg: rgba(255, 255, 255, 0.05);
+    --modules-card-border: rgba(255, 255, 255, 0.08);
+    --modules-card-border-active: #00e6b8;
+    --modules-card-shadow: 0 10px 30px rgba(0, 0, 0, 0.4),
+                           0 4px 12px rgba(0, 0, 0, 0.2),
+                           inset 0 0 40px rgba(255, 255, 255, 0.05);
+    --modules-card-shadow-active: 0 10px 30px rgba(0, 0, 0, 0.4),
+                                  0 4px 12px rgba(0, 0, 0, 0.2),
+                                  0 0 30px rgba(0, 230, 184, 0.4),
+                                  inset 0 0 40px rgba(255, 255, 255, 0.05);
+    --modules-card-blur: blur(24px);
+    --modules-neon-glow: 0 0 20px rgba(0, 230, 184, 0.6);
+    --modules-text-primary: #F5FAFF;
+    --modules-text-secondary: #A7B3C8;
+    --modules-text-muted: #6F7C90;
+}
+
+/* ===== MAIN CONTAINER ===== */
+.modules-v30-container {
+    min-height: 100vh;
+    padding: 60px 40px 40px;
+    background: linear-gradient(180deg, var(--modules-bg-from) 0%, var(--modules-bg-via) 50%, var(--modules-bg-to) 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* ===== HEADER ===== */
+.modules-v30-header {
+    text-align: center;
+    margin-bottom: 48px;
+    width: 100%;
+}
+
+.modules-v30-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.modules-v30-logo-icon {
+    font-size: 32px;
+    filter: drop-shadow(0 0 10px rgba(0, 230, 184, 0.6));
+}
+
+.modules-v30-logo-text {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #00e6b8, #00b8ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.modules-v30-logo-version {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--modules-text-secondary);
+    padding: 4px 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+}
+
+.modules-v30-title {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 42px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    color: var(--modules-text-primary);
+    margin-bottom: 12px;
+}
+
+.modules-v30-subtitle {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--modules-text-secondary);
+}
+
+/* ===== MODULES GRID ===== */
+.modules-v30-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+    width: 100%;
+    max-width: 1200px;
+    margin-bottom: 48px;
+}
+
+@media (max-width: 1024px) {
+    .modules-v30-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .modules-v30-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ===== MODULE CARD ===== */
+.module-card-v30 {
+    position: relative;
+    padding: 32px 28px;
+    background: var(--modules-card-bg);
+    backdrop-filter: var(--modules-card-blur);
+    -webkit-backdrop-filter: var(--modules-card-blur);
+    border: 1px solid var(--modules-card-border);
+    border-radius: 20px;
+    box-shadow: var(--modules-card-shadow);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    overflow: hidden;
+}
+
+.module-card-v30::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 20px;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(0, 230, 184, 0.1), rgba(0, 184, 255, 0.1));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.module-card-v30:hover {
+    transform: translateY(-4px) scale(1.02);
+    border-color: var(--modules-card-border-active);
+    box-shadow: var(--modules-card-shadow-active);
+}
+
+.module-card-v30:hover::before {
+    opacity: 1;
+}
+
+.module-card-v30--active {
+    border: 2px solid var(--modules-card-border-active);
+    box-shadow: var(--modules-card-shadow-active);
+    background: rgba(0, 230, 184, 0.05);
+}
+
+.module-card-v30--active::before {
+    opacity: 1;
+}
+
+/* ===== MODULE ICON ===== */
+.module-card-v30__icon {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    filter: drop-shadow(0 0 12px rgba(0, 230, 184, 0.5));
+    transition: filter 0.3s ease;
+}
+
+.module-card-v30:hover .module-card-v30__icon {
+    filter: drop-shadow(0 0 20px rgba(0, 230, 184, 0.8));
+}
+
+.module-card-v30--active .module-card-v30__icon {
+    filter: drop-shadow(0 0 24px rgba(0, 230, 184, 1));
+}
+
+.module-card-v30__icon svg {
+    width: 100%;
+    height: 100%;
+    color: #00e6b8;
+}
+
+/* ===== MODULE TITLE ===== */
+.module-card-v30__title {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: var(--modules-text-primary);
+    margin-bottom: 8px;
+}
+
+.module-card-v30--active .module-card-v30__title {
+    color: #00e6b8;
+}
+
+/* ===== MODULE DESCRIPTION ===== */
+.module-card-v30__desc {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--modules-text-secondary);
+}
+
+/* ===== MODULE STATUS INDICATOR ===== */
+.module-card-v30__status {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid var(--modules-card-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.module-card-v30--active .module-card-v30__status {
+    background: var(--modules-card-border-active);
+    border-color: var(--modules-card-border-active);
+    box-shadow: 0 0 12px rgba(0, 230, 184, 0.6);
+}
+
+.module-card-v30__status::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: transparent;
+    transition: background 0.3s ease;
+}
+
+.module-card-v30--active .module-card-v30__status::after {
+    background: #00131a;
+}
+
+/* ===== FOOTER ===== */
+.modules-v30-footer {
+    display: flex;
+    gap: 16px;
+    width: 100%;
+    max-width: 1200px;
+    justify-content: flex-end;
+    padding-top: 32px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ===== BUTTONS ===== */
+.modules-v30-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 28px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    white-space: nowrap;
+}
+
+.modules-v30-btn i {
+    width: 20px;
+    height: 20px;
+}
+
+.modules-v30-btn--primary {
+    background: linear-gradient(135deg, #00e6b8, #00b8ff);
+    color: #00131a;
+    box-shadow: 0 0 20px rgba(0, 230, 184, 0.4);
+}
+
+.modules-v30-btn--primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 30px rgba(0, 230, 184, 0.6);
+}
+
+.modules-v30-btn--secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--modules-text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modules-v30-btn--secondary:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* ===== LOADING STATE ===== */
+.modules-v30-grid.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+
+

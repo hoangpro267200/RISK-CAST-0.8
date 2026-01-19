@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracking & Risk Center - RISKCAST v35</title>
+    <link rel="stylesheet" href="/static/css/global_visionos.css">
+    <link rel="stylesheet" href="/static/css/tracking_center.css">
+</head>
+<body class="page visionos has-topbar">
+    <nav class="vision-topbar glass-panel">
+        <div class="vision-topbar__brand">
+            <div class="vision-topbar__logo">
+                <svg width="26" height="26" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="rcNeonTrack" x1="2" y1="2" x2="30" y2="30">
+                            <stop offset="0%" stop-color="#00FFC8"/>
+                            <stop offset="100%" stop-color="#00D4FF"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M16 3L27.5 9.5V22.5L16 29L4.5 22.5V9.5L16 3Z" stroke="url(#rcNeonTrack)" stroke-width="2.2" stroke-linejoin="round"/>
+                    <path d="M16 8L23 12V20L16 24L9 20V12L16 8Z" stroke="url(#rcNeonTrack)" stroke-width="1.6" stroke-linejoin="round" opacity="0.7"/>
+                    <path d="M16 11L20 13.5V18.5L16 21L12 18.5V13.5L16 11Z" fill="url(#rcNeonTrack)" opacity="0.9"/>
+                </svg>
+            </div>
+            <div class="vision-topbar__title">
+                <span>RISKCAST</span>
+                <span class="vision-topbar__version">v35 FutureOS</span>
+            </div>
+        </div>
+
+        <div class="vision-topbar__nav">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/shipments" class="nav-link">Shipments</a>
+            <a href="/pricing" class="nav-link">Pricing</a>
+            <a href="/consolidation" class="nav-link">Consolidation</a>
+            <a href="/documents" class="nav-link">Documents</a>
+            <a href="/customs" class="nav-link">Customs</a>
+            <a href="/tracking" class="nav-link active">Tracking</a>
+        </div>
+    </nav>
+
+    <main class="layout fade-in topbar-offset">
+        <section class="glass panel controls">
+            <label>
+                <span>Shipment ID</span>
+                <input id="shipment-id" type="text" placeholder="Enter shipment UUID">
+            </label>
+            <button id="btn-load" class="cta">Load Tracking</button>
+        </section>
+
+        <section class="middle">
+            <div class="glass card position-card">
+                <h3>Current Position</h3>
+                <div id="current-position" class="content">No data</div>
+            </div>
+            <div class="glass card risk-card">
+                <h3>Risk Summary</h3>
+                <div id="risk-summary" class="content">No data</div>
+            </div>
+            <div class="glass card chart-card">
+                <h3>Risk Timeline</h3>
+                <canvas id="risk-chart" width="500" height="220"></canvas>
+            </div>
+        </section>
+
+        <section class="bottom">
+            <div class="glass card map-card">
+                <h3>Map</h3>
+                <div class="map-wrap">
+                    <img id="map-img" src="/static/img/world_map.png" alt="World Map">
+                    <div id="map-marker" class="marker" style="display:none;"></div>
+                </div>
+            </div>
+            <div class="glass card events-card">
+                <h3>Tracking Events</h3>
+                <div id="tracking-events" class="events-list">No events</div>
+            </div>
+        </section>
+    </main>
+
+    <script src="/static/js/tracking_center.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <defs>
+    <linearGradient id="planeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00f0ff;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#00d4e0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#36e27b;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Fuselage -->
+  <path d="M6 12L18 12" stroke="url(#planeGradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Nose -->
+  <path d="M6 12L2 8L4 10L6 12" stroke="url(#planeGradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Main wing -->
+  <path d="M8 12L8 8L14 8L14 12" stroke="url(#planeGradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Tail wing -->
+  <path d="M16 12L16 6L18 8L16 12" stroke="url(#planeGradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Vertical stabilizer -->
+  <path d="M18 8L20 6L20 10L18 8" stroke="url(#planeGradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Speed lines -->
+  <path d="M3 9L4 10" stroke="url(#planeGradient)" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.5"/>
+  <path d="M3 11L4 12" stroke="url(#planeGradient)" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.5"/>
+  <path d="M3 13L4 14" stroke="url(#planeGradient)" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.5"/>
+</svg>
+
+
+
+
+
+

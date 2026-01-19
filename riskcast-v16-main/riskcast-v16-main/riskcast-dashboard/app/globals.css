@@ -1,0 +1,26 @@
+/* Tailwind CSS directives - valid for Tailwind processing */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #050B16;
+    color: #E8F7FF;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+    overflow: hidden;
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(30px) saturate(130%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .glass-card-hover {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+}

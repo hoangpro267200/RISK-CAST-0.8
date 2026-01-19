@@ -1,0 +1,19 @@
+:root {
+  --rc-bg: #0a0f1f;
+  --rc-bg-card: rgba(255, 255, 255, 0.04);
+  --rc-glass: rgba(255, 255, 255, 0.03);
+  --rc-primary: #00ffc8;
+  --rc-primary-soft: rgba(0, 255, 200, 0.15);
+  --rc-text-main: #eafbff;
+  --rc-text-muted: #7f8da0;
+  --rc-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+  --rc-radius: 16px;
+  --rc-padding: 22px;
+}
+
+
+
+
+
+
+

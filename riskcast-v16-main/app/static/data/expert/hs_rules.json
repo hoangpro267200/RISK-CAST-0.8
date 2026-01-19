@@ -1,0 +1,96 @@
+[
+  {
+    "prefix": "85",
+    "category": "Electronics & Electrical Equipment",
+    "risk_level": "MEDIUM",
+    "default_stackability": "No",
+    "dg_flag": "No",
+    "recommendations": [
+      "Use shock sensors during handling",
+      "Avoid stacking to prevent PCB damage",
+      "Prefer Air or high-reliability SEA carrier"
+    ]
+  },
+  {
+    "prefix": "84",
+    "category": "Machinery & Mechanical Appliances",
+    "risk_level": "LOW",
+    "default_stackability": "Yes",
+    "dg_flag": "No",
+    "recommendations": [
+      "Use proper bracing and wooden crating",
+      "Verify center of gravity for heavy parts",
+      "Ensure moisture protection"
+    ]
+  },
+  {
+    "prefix": "28",
+    "category": "Inorganic Chemicals",
+    "risk_level": "HIGH",
+    "default_stackability": "No",
+    "dg_flag": "Yes",
+    "recommendations": [
+      "DG declaration required",
+      "Verify IMDG class carefully",
+      "Temperature control may be mandatory"
+    ]
+  },
+  {
+    "prefix": "29",
+    "category": "Organic Chemicals",
+    "risk_level": "HIGH",
+    "default_stackability": "No",
+    "dg_flag": "Yes",
+    "recommendations": [
+      "Must declare DG (IMO regulations)",
+      "Check flashpoint before accepting cargo",
+      "Prefer specialized carriers for chemicals"
+    ]
+  },
+  {
+    "prefix": "90",
+    "category": "Optical & Medical Instruments",
+    "risk_level": "MEDIUM",
+    "default_stackability": "No",
+    "dg_flag": "No",
+    "recommendations": [
+      "Fragile — require vibration control",
+      "Moisture protection required",
+      "Prefer AIR or fast SEA service"
+    ]
+  },
+  {
+    "prefix": "94",
+    "category": "Furniture",
+    "risk_level": "LOW",
+    "default_stackability": "Yes",
+    "dg_flag": "No",
+    "recommendations": [
+      "Check volume for consolidation",
+      "Ensure proper wrapping to prevent scratches"
+    ]
+  },
+  {
+    "prefix": "72",
+    "category": "Iron & Steel",
+    "risk_level": "MEDIUM",
+    "default_stackability": "Yes",
+    "dg_flag": "No",
+    "recommendations": [
+      "Ensure correct weight declaration",
+      "Check for rust protection",
+      "Use heavy-duty pallets"
+    ]
+  },
+  {
+    "prefix": "39",
+    "category": "Plastics & Polymers",
+    "risk_level": "LOW",
+    "default_stackability": "Yes",
+    "dg_flag": "No",
+    "recommendations": [
+      "Avoid deformation under stacking",
+      "Moisture is generally low risk"
+    ]
+  }
+]

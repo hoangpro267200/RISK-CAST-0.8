@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+dist/
+*.min.js
+*.bundle.min.js
+*.bundle.min.css
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

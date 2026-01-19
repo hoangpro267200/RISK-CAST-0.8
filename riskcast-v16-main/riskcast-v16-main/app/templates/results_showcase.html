@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results Showcase — RISKCAST</title>
+    <link rel="stylesheet" href="/static/css/results.css">
+    <style>
+        .showcase-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(17, 24, 39, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-md);
+            backdrop-filter: blur(12px);
+        }
+        .showcase-controls label {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+        .showcase-controls input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="showcase-controls">
+        <label>
+            <input type="checkbox" id="useLiveData" />
+            <span>Use Live Data</span>
+        </label>
+    </div>
+
+    <div class="results-page">
+        
+        <header class="results-header">
+            <div class="shipment-meta">
+                <span class="shipment-id">SHP-2024-00847</span>
+                <span class="route">Shanghai (CNSHA) → Rotterdam (NLRTM)</span>
+                <span class="carrier">Maersk Line</span>
+                <span class="departure">ETD: Dec 28, 2024</span>
+            </div>
+        </header>
+
+        <section class="results-hero">
+            <div class="hero-content">
+                <h1 class="hero-title">Overall Shipment Risk Assessment</h1>
+                
+                <div class="risk-orb-container">
+                    <div class="risk-orb">
+                        <div class="orb-glow"></div>
+                        <div class="orb-score">
+                            <span class="score-value">67</span>
+                            <span class="score-label">Risk Score</span>
+                        </div>
+                    </div>
+                    <div class="risk-level-badge moderate">Moderate Risk</div>
+                </div>
+
+                <div class="risk-layers-orbit">
+                    <!-- Layer cards will be dynamically generated -->
+                </div>
+
+                <div class="confidence-indicator">
+                    <span class="confidence-label">Model Confidence</span>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" style="width: 87%"></div>
+                    </div>
+                    <span class="confidence-value">87%</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="risk-composition">
+            <h2 class="section-title">Risk Composition</h2>
+            
+            <div class="composition-grid">
+                <div class="composition-card radar-card">
+                    <h3 class="card-title">Multi-Factor Risk Profile</h3>
+                    <div class="radar-chart-placeholder">
+                        <svg viewBox="0 0 400 400" class="radar-svg">
+                            <circle cx="200" cy="200" r="160" fill="none" stroke="rgba(0, 255, 255, 0.1)" stroke-width="1"/>
+                            <circle cx="200" cy="200" r="120" fill="none" stroke="rgba(0, 255, 255, 0.1)" stroke-width="1"/>
+                            <circle cx="200" cy="200" r="80" fill="none" stroke="rgba(0, 255, 255, 0.1)" stroke-width="1"/>
+                            <circle cx="200" cy="200" r="40" fill="none" stroke="rgba(0, 255, 255, 0.1)" stroke-width="1"/>
+                            <line x1="200" y1="200" x2="200" y2="40" stroke="rgba(0, 255, 255, 0.2)" stroke-width="1"/>
+                            <line x1="200" y1="200" x2="339" y2="108" stroke="rgba(0, 255, 255, 0.2)" stroke-width="1"/>
+                            <line x1="200" y1="200" x2="339" y2="292" stroke="rgba(0, 255, 255, 0.2)" stroke-width="1"/>
+                            <line x1="200" y1="200" x2="200" y2="360" stroke="rgba(0, 255, 255, 0.2)" stroke-width="1"/>
+                            <line x1="200" y1="200" x2="61" y2="292" stroke="rgba(0, 255, 255, 0.2)" stroke-width="1"/>
+                            <line x1="200" y1="200" x2="61" y2="108" stroke="rgba(0, 255, 255, 0.2)" stroke-width="1"/>
+                            <polygon points="200,85 295,130 295,260 200,295 105,260 105,130" 
+                                     fill="rgba(0, 255, 255, 0.2)" 
+                                     stroke="rgba(0, 255, 255, 0.8)" 
+                                     stroke-width="2"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="composition-card layers-table-card">
+                    <h3 class="card-title">Risk Layer Breakdown</h3>
+                    <table class="layers-table">
+                        <thead>
+                            <tr>
+                                <th>Layer</th>
+                                <th>Score</th>
+                                <th>Contribution</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Will be populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section class="financial-impact">
+            <h2 class="section-title">Financial Impact Analysis</h2>
+            
+            <div class="financial-grid">
+                <div class="financial-card histogram-card">
+                    <h3 class="card-title">Loss Distribution</h3>
+                    <p class="card-caption">10,000 Monte Carlo simulations</p>
+                    <div class="histogram-chart">
+                        <svg viewBox="0 0 600 300" class="histogram-svg">
+                            <line x1="50" y1="30" x2="50" y2="250" stroke="rgba(255, 255, 255, 0.3)" stroke-width="1"/>
+                            <line x1="50" y1="250" x2="570" y2="250" stroke="rgba(255, 255, 255, 0.3)" stroke-width="1"/>
+                            <rect x="70" y="180" width="35" height="70" fill="rgba(0, 255, 255, 0.3)"/>
+                            <rect x="110" y="140" width="35" height="110" fill="rgba(0, 255, 255, 0.4)"/>
+                            <rect x="150" y="100" width="35" height="150" fill="rgba(0, 255, 255, 0.5)"/>
+                            <rect x="190" y="70" width="35" height="180" fill="rgba(0, 255, 255, 0.7)"/>
+                            <rect x="230" y="50" width="35" height="200" fill="rgba(0, 255, 255, 0.9)"/>
+                            <rect x="270" y="40" width="35" height="210" fill="rgba(0, 255, 255, 1)"/>
+                            <rect x="310" y="60" width="35" height="190" fill="rgba(0, 255, 255, 0.8)"/>
+                            <rect x="350" y="90" width="35" height="160" fill="rgba(0, 255, 255, 0.6)"/>
+                            <rect x="390" y="130" width="35" height="120" fill="rgba(0, 255, 255, 0.5)"/>
+                            <rect x="430" y="170" width="35" height="80" fill="rgba(0, 255, 255, 0.4)"/>
+                            <rect x="470" y="200" width="35" height="50" fill="rgba(0, 255, 255, 0.3)"/>
+                            <rect x="510" y="220" width="35" height="30" fill="rgba(0, 255, 255, 0.2)"/>
+                            <text x="60" y="270" fill="rgba(255, 255, 255, 0.6)" font-size="11">$0</text>
+                            <text x="270" y="270" fill="rgba(255, 255, 255, 0.6)" font-size="11">$50k</text>
+                            <text x="500" y="270" fill="rgba(255, 255, 255, 0.6)" font-size="11">$100k+</text>
+                        </svg>
+                    </div>
+                    <div class="histogram-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Mean Loss</span>
+                            <span class="stat-value">$47,200</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Std Dev</span>
+                            <span class="stat-value">$18,900</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="financial-card loss-curve-card">
+                    <h3 class="card-title">Cumulative Loss Curve</h3>
+                    <p class="card-caption">VaR and CVaR analysis</p>
+                    <div class="loss-curve-chart">
+                        <svg viewBox="0 0 600 300" class="loss-curve-svg">
+                            <line x1="50" y1="30" x2="50" y2="250" stroke="rgba(255, 255, 255, 0.3)" stroke-width="1"/>
+                            <line x1="50" y1="250" x2="570" y2="250" stroke="rgba(255, 255, 255, 0.3)" stroke-width="1"/>
+                            <path d="M 50,240 Q 150,230 250,180 T 450,80 T 570,50" 
+                                  fill="none" 
+                                  stroke="rgba(0, 255, 255, 0.8)" 
+                                  stroke-width="3"/>
+                            <line x1="400" y1="250" x2="400" y2="100" stroke="rgba(255, 184, 0, 0.8)" stroke-width="2" stroke-dasharray="4,4"/>
+                            <circle cx="400" cy="100" r="5" fill="rgba(255, 184, 0, 1)"/>
+                            <text x="400" y="90" text-anchor="middle" fill="rgba(255, 184, 0, 1)" font-size="11" font-weight="600">VaR 95%</text>
+                            <text x="400" y="270" text-anchor="middle" fill="rgba(255, 184, 0, 0.8)" font-size="11" class="var-label">$72k</text>
+                            <line x1="490" y1="250" x2="490" y2="65" stroke="rgba(255, 59, 48, 0.8)" stroke-width="2" stroke-dasharray="4,4"/>
+                            <circle cx="490" cy="65" r="5" fill="rgba(255, 59, 48, 1)"/>
+                            <text x="490" y="55" text-anchor="middle" fill="rgba(255, 59, 48, 1)" font-size="11" font-weight="600">CVaR</text>
+                            <text x="490" y="270" text-anchor="middle" fill="rgba(255, 59, 48, 0.8)" font-size="11" class="cvar-label">$89k</text>
+                            <text x="300" y="285" text-anchor="middle" fill="rgba(255, 255, 255, 0.5)" font-size="12">Loss Amount ($)</text>
+                            <text x="25" y="150" text-anchor="middle" fill="rgba(255, 255, 255, 0.5)" font-size="12" transform="rotate(-90 25 150)">Probability</text>
+                        </svg>
+                    </div>
+                    <div class="loss-stats">
+                        <div class="stat-item var">
+                            <span class="stat-label">VaR (95%)</span>
+                            <span class="stat-value">$72,400</span>
+                        </div>
+                        <div class="stat-item cvar">
+                            <span class="stat-label">CVaR (Tail)</span>
+                            <span class="stat-value">$89,100</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="expected-loss-summary">
+                <div class="summary-item">
+                    <span class="summary-label">Expected Loss</span>
+                    <span class="summary-value primary">$47,200</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">95th Percentile</span>
+                    <span class="summary-value">$72,400</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Maximum Observed</span>
+                    <span class="summary-value">$103,800</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Cargo Value</span>
+                    <span class="summary-value">$850,000</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="decision-intelligence">
+            <h2 class="section-title">Insurance Decision</h2>
+            
+            <div class="decision-panel">
+                <div class="recommendation-badge recommended">
+                    <div class="badge-icon">✓</div>
+                    <div class="badge-content">
+                        <span class="badge-label">Recommendation</span>
+                        <span class="badge-value">Insurance Recommended</span>
+                    </div>
+                </div>
+
+                <div class="decision-cards-grid">
+                    <div class="decision-card window-card">
+                        <h3 class="card-title">Safe Shipping Window</h3>
+                        <div class="window-content">
+                            <div class="window-optimal">
+                                <span class="window-label">Optimal Window</span>
+                                <span class="window-dates">Jan 15 – Jan 22, 2025</span>
+                            </div>
+                            <div class="window-current">
+                                <span class="window-label">Current ETD</span>
+                                <span class="window-dates outside">Dec 28, 2024</span>
+                                <span class="window-status">Outside optimal window</span>
+                            </div>
+                            <div class="window-risk-reduction">
+                                <span class="reduction-label">Risk reduction if delayed</span>
+                                <span class="reduction-value">-18 points</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="decision-card providers-card">
+                        <h3 class="card-title">Recommended Providers</h3>
+                        <div class="providers-list">
+                            <!-- Will be populated by JS -->
+                        </div>
+                    </div>
+
+                    <div class="decision-card traceability-card">
+                        <h3 class="card-title">Decision Traceability</h3>
+                        <div class="trace-items">
+                            <!-- Will be populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="ai-narrative">
+            <h2 class="section-title">Risk Analysis Summary</h2>
+            
+            <div class="narrative-panel">
+                <div class="narrative-header">
+                    <div class="ai-badge">
+                        <span class="ai-icon">✦</span>
+                        <span>AI-Generated Analysis</span>
+                    </div>
+                    <span class="analysis-timestamp">Generated: Dec 19, 2024 14:32 UTC</span>
+                </div>
+
+                <div class="narrative-content">
+                    <p class="narrative-summary">
+                        <!-- Will be populated by JS -->
+                    </p>
+
+                    <div class="insights-grid">
+                        <!-- Will be populated by JS -->
+                    </div>
+
+                    <div class="action-items">
+                        <h4 class="action-title">Recommended Actions</h4>
+                        <ul class="action-list">
+                            <!-- Will be populated by JS -->
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="narrative-footer">
+                    <span class="methodology-link">View methodology & data sources →</span>
+                </div>
+            </div>
+        </section>
+
+    </div>
+    
+    <script type="module">
+        import { loadSummaryData, normalizeSummary, showEmptyState } from '/static/js/results.js';
+        import { renderResults } from '/static/js/resultsRenderer.js';
+        
+        // Mock data for showcase
+        const MOCK_SUMMARY = {
+            shipment: {
+                id: "SHP-2024-00847",
+                routeText: "Shanghai (CNSHA) → Rotterdam (NLRTM)",
+                carrier: "Maersk Line",
+                etd: "2024-12-28"
+            },
+            overall: {
+                riskScore: 67,
+                riskLevel: "Moderate",
+                confidence: 87
+            },
+            layers: [
+                { name: "Geopolitical", score: 72, contributionPct: 24, status: "high", icon: "🌍" },
+                { name: "Route", score: 69, contributionPct: 22, status: "moderate", icon: "🗺️" },
+                { name: "Port", score: 63, contributionPct: 19, status: "moderate", icon: "⚓" },
+                { name: "Weather", score: 58, contributionPct: 16, status: "moderate", icon: "⛈️" },
+                { name: "Cargo", score: 51, contributionPct: 11, status: "low", icon: "📦" },
+                { name: "Carrier", score: 45, contributionPct: 8, status: "low", icon: "🚢" }
+            ],
+            financial: {
+                meanLoss: 47200,
+                stdDev: 18900,
+                var95: 72400,
+                cvar: 89100,
+                expectedLoss: 47200,
+                p95: 72400,
+                maxObserved: 103800,
+                cargoValue: 850000
+            },
+            decision: {
+                insuranceRecommendation: "BUY",
+                safeWindow: {
+                    optimalStart: "2025-01-15",
+                    optimalEnd: "2025-01-22",
+                    currentEtd: "2024-12-28",
+                    riskReductionPts: 18
+                },
+                providers: [
+                    { name: "Allianz Global", fitPct: 94, premium: 4200, rank: 1 },
+                    { name: "Chubb Marine", fitPct: 89, premium: 4500, rank: 2 },
+                    { name: "AIG Cargo", fitPct: 86, premium: 4800, rank: 3 }
+                ],
+                trace: [
+                    { icon: "📊", label: "Risk Score", detail: "67/100 exceeds threshold (60)" },
+                    { icon: "💰", label: "Expected Loss", detail: "$47.2k vs $4.2k premium (11:1 ratio)" },
+                    { icon: "🎯", label: "Coverage Gap", detail: "Current policy excludes geopolitical risk" },
+                    { icon: "📈", label: "ROI Projection", detail: "Positive expected value ($43k net)" }
+                ]
+            },
+            narrative: {
+                timestamp: "2024-12-19T14:32:00Z",
+                summaryText: "Shanghai-Rotterdam shipment faces elevated geopolitical risk (72/100) due to Red Sea tensions affecting Suez Canal transit. Expected delays of 5-7 days may impact delivery commitments.",
+                insights: [
+                    { type: "critical", title: "Critical Factor", text: "Red Sea diversions add 10-14 days via Cape of Good Hope, increasing weather exposure and fuel costs by 40%" },
+                    { type: "opportunity", title: "Mitigation Option", text: "Delaying departure to mid-January reduces geopolitical risk score to 54 and aligns with optimal weather window" },
+                    { type: "watch", title: "Monitor", text: "Rotterdam port congestion increasing (current: 3.2 days avg dwell time). Consider alternative discharge ports if delays exceed 5 days" }
+                ],
+                actions: [
+                    "Secure marine insurance with geopolitical coverage before Dec 22",
+                    "Negotiate force majeure clause with buyer for Red Sea delays",
+                    "Activate real-time tracking for Suez Canal / Cape routing decision",
+                    "Review alternative carriers with dedicated Cape routes for cost optimization"
+                ]
+            },
+            factors: []
+        };
+        
+        // Initialize showcase
+        async function initShowcase() {
+            const useLiveDataCheckbox = document.getElementById('useLiveData');
+            let summary = null;
+            
+            // Load data based on checkbox
+            if (useLiveDataCheckbox.checked) {
+                summary = await loadSummaryData();
+                if (!summary) {
+                    console.warn('[Showcase] No live data available, using mock data');
+                    summary = normalizeSummary(MOCK_SUMMARY);
+                }
+            } else {
+                summary = normalizeSummary(MOCK_SUMMARY);
+            }
+            
+            if (summary) {
+                renderResults(summary);
+            } else {
+                showEmptyState();
+            }
+        }
+        
+        // Handle checkbox toggle
+        document.getElementById('useLiveData').addEventListener('change', initShowcase);
+        
+        // Initial load
+        initShowcase();
+    </script>
+</body>
+</html>
+

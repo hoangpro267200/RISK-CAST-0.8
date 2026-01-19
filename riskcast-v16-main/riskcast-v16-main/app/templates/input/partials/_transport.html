@@ -1,0 +1,519 @@
+<section id="transport-section" class="form-section">
+                    <div class="enterprise-section-card" id="section-transport">
+                        <h2 class="section-title">01. Transport Setup</h2>
+                        <p class="section-subtitle">Dữ liệu nền để AI tính toán rủi ro lộ trình, khí hậu, và thời gian.</p>
+
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-6 w-full">
+                            <!-- Commercial Route -->
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label class="form-label" for="route_dropdown" data-i18n="label_route">
+                                    <i class="ph ph-globe input-icon"></i>
+                                    Tuyến Đường Vận Chuyển
+                                    <span class="required-indicator">*</span>
+                                </label>
+                                <div class="custom-dropdown" id="route_dropdown">
+                                    <div class="dropdown-trigger" tabindex="0" role="button" aria-haspopup="listbox">
+                                        <span class="dropdown-value placeholder" data-i18n="placeholder_select">Chọn tuyến đường</span>
+                                        <span class="dropdown-arrow">
+                                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                <path d="M5 8L10 13L15 8" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                        </span>
+                                    </div>
+                                    <div class="dropdown-menu" role="listbox">
+                                        <div class="dropdown-option" data-value="vn_cn" role="option">🇻🇳 Việt Nam → 🇨🇳 Trung Quốc</div>
+                                        <div class="dropdown-option" data-value="vn_us" role="option">🇻🇳 Việt Nam → 🇺🇸 Mỹ (LA/NY)</div>
+                                        <div class="dropdown-option" data-value="vn_kr" role="option">🇻🇳 Việt Nam → 🇰🇷 Hàn Quốc</div>
+                                        <div class="dropdown-option" data-value="vn_jp" role="option">🇻🇳 Việt Nam → 🇯🇵 Nhật Bản</div>
+                                        <div class="dropdown-option" data-value="vn_eu" role="option">🇻🇳 Việt Nam → 🇪🇺 EU (Hà Lan/Đức)</div>
+                                        <div class="dropdown-option" data-value="vn_hk" role="option">🇻🇳 Việt Nam → 🇭🇰 Hồng Kông</div>
+                                        <div class="dropdown-option" data-value="vn_in" role="option">🇻🇳 Việt Nam → 🇮🇳 Ấn Độ</div>
+                                        <div class="dropdown-option" data-value="vn_th" role="option">🇻🇳 Việt Nam → 🇹🇭 Thái Lan</div>
+                                        <div class="dropdown-option" data-value="vn_tw" role="option">🇻🇳 Việt Nam → 🇹🇼 Đài Loan</div>
+                                        <div class="dropdown-option" data-value="domestic" role="option">🇻🇳 Nội Địa Việt Nam</div>
+                                    </div>
+                                </div>
+                                <span class="error-message" id="route_error"></span>
+                            </div>
+
+                            <!-- Transport Mode -->
+                            <div class="form-group" id="transport_mode_group" style="display: none; grid-column: 1 / -1;">
+                                <label class="form-label" for="transport_mode_dropdown" data-i18n="label_transport_mode">
+                                    <i class="ph ph-truck input-icon"></i>
+                                    Phương Thức Vận Tải
+                                    <span class="required-indicator">*</span>
+                                    <span class="badge-recommended" id="transport_recommended_badge" style="display:none; margin-left: 8px; padding: 2px 8px; background: rgba(0,255,136,0.2); color: #00ff88; border-radius: 4px; font-size: 10px;">Được đề xuất</span>
+                                </label>
+                                <div class="custom-dropdown" id="transport_mode_dropdown">
+                                    <div class="dropdown-trigger" tabindex="0" role="button" aria-haspopup="listbox">
+                                        <span class="dropdown-value placeholder">Chọn tuyến đường thương mại trước</span>
+                                        <span class="dropdown-arrow">
+                                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                <path d="M5 8L10 13L15 8" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                        </span>
+                                    </div>
+                                    <div class="dropdown-menu" role="listbox" id="transport_mode_menu">
+                                        <!-- Options sẽ được populate dynamically -->
+                                    </div>
+                                </div>
+                                <span class="error-message" id="transport_mode_error"></span>
+                                <span class="field-hint" id="transport_mode_hint"></span>
+                            </div>
+
+                            <!-- Detailed Route -->
+                            <div class="form-group" id="detailed_route_group" style="display: none; grid-column: 1 / -1;">
+                                <label class="form-label" for="detailed_route_dropdown">
+                                    <i class="ph ph-navigation-arrow input-icon"></i>
+                                    Tuyến (Route)
+                                    <span class="help-icon" title="Chọn tuyến vận chuyển cụ thể cho tuyến đường đã chọn" style="margin-left: 8px; cursor: help;">💡</span>
+                                </label>
+                                <div class="custom-dropdown" id="detailed_route_dropdown">
+                                    <div class="dropdown-trigger" tabindex="0" role="button" aria-haspopup="listbox">
+                                        <span class="dropdown-value placeholder">Chọn phương thức vận chuyển trước</span>
+                                        <span class="dropdown-arrow">
+                                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                <path d="M5 8L10 13L15 8" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                        </span>
+                                    </div>
+                                    <div class="dropdown-menu" id="detailed_route_menu" role="listbox">
+                                        <!-- Routes will be populated dynamically -->
+                                    </div>
+                                </div>
+                                <input type="hidden" name="detailed_route" id="detailed_route_input" value="">
+                                <span class="error-message" id="detailed_route_error"></span>
+                                
+                                <!-- Route Details Panel -->
+                                <div id="route_details_panel" class="route-details-panel" style="display: none; margin-top: 12px;">
+                                    <div class="route-details-header">
+                                        <span class="route-details-icon">📋</span>
+                                        <span class="route-details-title">Thông Tin Chi Tiết Tuyến</span>
+                                    </div>
+                                    <div class="route-details-grid">
+                                        <div class="route-detail-item">
+                                            <span class="detail-label">⏱️ Transit Time:</span>
+                                            <span class="detail-value" id="route_detail_transit">--</span>
+                                        </div>
+                                        <div class="route-detail-item">
+                                            <span class="detail-label">💰 Phụ Phí (11/2025):</span>
+                                            <span class="detail-value" id="route_detail_surcharge">--</span>
+                                        </div>
+                                        <div class="route-detail-item">
+                                            <span class="detail-label">🌡️ Rủi Ro Khí Hậu:</span>
+                                            <span class="detail-value" id="route_detail_climate">--</span>
+                                        </div>
+                                        <div class="route-detail-item">
+                                            <span class="detail-label">⚔️ Rủi Ro Chiến Sự:</span>
+                                            <span class="detail-value" id="route_detail_conflict">--</span>
+                                        </div>
+                                        <div class="route-detail-item">
+                                            <span class="detail-label">📊 % Tàu Đang Đi:</span>
+                                            <span class="detail-value" id="route_detail_usage">--</span>
+                                        </div>
+                                    </div>
+                                    <div class="route-details-note">
+                                        <span class="note-icon">💬</span>
+                                        <span class="note-text" id="route_detail_note">--</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Carrier -->
+                            <div class="form-group" id="carrier_group" style="display: none; grid-column: 1 / -1;">
+                                <label class="form-label" for="carrier_dropdown" data-i18n="label_carrier">
+                                    <i class="ph ph-anchor input-icon"></i>
+                                    Hãng Tàu / Carrier
+                                    <span class="required-indicator">*</span>
+                                    <span class="carrier-rating-display" id="carrier_rating_info" style="display: none; margin-left: 12px; font-size: 13px; color: var(--text-secondary);">
+                                        <span id="carrier_rating_stars_display"></span>
+                                        <span id="carrier_rating_votes" style="margin-left: 8px;"></span>
+                                    </span>
+                                </label>
+                                <div class="custom-dropdown" id="carrier_dropdown">
+                                    <div class="dropdown-trigger" tabindex="0" role="button" aria-haspopup="listbox">
+                                        <span class="dropdown-value placeholder">Chọn tuyến cụ thể trước để xem hãng tàu</span>
+                                        <span class="dropdown-arrow">
+                                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                <path d="M5 8L10 13L15 8" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                        </span>
+                                    </div>
+                                    <div class="dropdown-menu" id="carrier_dropdown_menu" role="listbox">
+                                        <!-- Carriers will be populated dynamically by smart_input.js -->
+                                    </div>
+                                </div>
+                                <div id="carrier_note" class="field-hint" style="display: none;"></div>
+                                <input type="hidden" name="carrier" id="carrier_input" value="">
+                                <span class="error-message" id="carrier_error"></span>
+                                <div id="carrier-suggestion" class="suggestion-panel" style="display: none;"></div>
+                            </div>
+
+                            <!-- POL -->
+                            <div class="form-group">
+                                <label class="form-label" for="pol_dropdown">
+                                    <i class="ph ph-map-pin input-icon"></i>
+                                    Cảng Bốc Hàng (POL)
+                                    <span class="required-indicator">*</span>
+                                </label>
+                                <div class="custom-dropdown" id="pol_dropdown">
+                                    <div class="dropdown-trigger" tabindex="0" role="button">
+                                        <span class="dropdown-value placeholder">Chọn phương thức trước</span>
+                                        <span class="dropdown-arrow">
+                                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                <path d="M5 8L10 13L15 8" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                        </span>
+                                    </div>
+                                    <div class="dropdown-menu" role="listbox" id="pol_menu">
+                                        <!-- Options dynamically populated -->
+                                    </div>
+                                </div>
+                                <input type="hidden" name="pol" id="pol_input">
+                                <span class="error-message" id="pol_error"></span>
+                            </div>
+
+                            <!-- POD -->
+                            <div class="form-group">
+                                <label class="form-label" for="pod_dropdown">
+                                    <i class="ph ph-flag-checkered input-icon"></i>
+                                    Cảng Dỡ Hàng (POD)
+                                    <span class="required-indicator">*</span>
+                                </label>
+                                <div class="custom-dropdown" id="pod_dropdown">
+                                    <div class="dropdown-trigger" tabindex="0" role="button">
+                                        <span class="dropdown-value placeholder">Chọn phương thức trước</span>
+                                        <span class="dropdown-arrow">
+                                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                <path d="M5 8L10 13L15 8" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                        </span>
+                                    </div>
+                                    <div class="dropdown-menu" role="listbox" id="pod_menu">
+                                        <!-- Options dynamically populated -->
+                                    </div>
+                                </div>
+                                <input type="hidden" name="pod" id="pod_input">
+                                <span class="error-message" id="pod_error"></span>
+                            </div>
+
+                            <!-- ETD / Departure Time -->
+                            <div class="form-group">
+                                <label class="form-label" for="shipment-month">
+                                    <i class="ph ph-calendar-blank input-icon"></i>
+                                    Thời Gian Dự Kiến Đi Hàng
+                                    <span class="required-indicator">*</span>
+                                </label>
+                                <div class="input-wrapper">
+                                    <input type="month" id="shipment-month" name="shipment_month" value="2025-11" required class="form-input date-input" style="display: none;">
+                                    <input type="text" id="shipment-month-display" class="form-input date-input" readonly placeholder="Chọn tháng" style="width: 100%; cursor: pointer;">
+                                    <span class="input-icon calendar-icon">
+                                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                            <rect x="3" y="4" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                                            <path d="M7 2V6M13 2V6M3 8H17" stroke="currentColor" stroke-width="1.5"/>
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Distance -->
+                            <div class="form-group">
+                                <label class="form-label" for="distance">
+                                    <i class="ph ph-ruler input-icon"></i>
+                                    Khoảng Cách Vận Chuyển
+                                    <span class="auto-badge">Tự động</span>
+                                </label>
+                                <div class="input-wrapper">
+                                    <input type="number" id="distance" name="distance" class="form-input" placeholder="Sẽ tự động điền" style="background: rgba(0,255,136,0.05); border-color: rgba(0,255,136,0.3);">
+                                    <span class="input-suffix">km</span>
+                                </div>
+                            </div>
+
+                            <!-- Transit Days -->
+                            <div class="form-group">
+                                <label class="form-label" for="transit_time_display">
+                                    <i class="ph ph-timer input-icon"></i>
+                                    Thời Gian Vận Chuyển Dự Kiến
+                                    <span class="auto-badge">Tự động</span>
+                                </label>
+                                <div class="input-wrapper">
+                                    <input type="text" id="transit_time_display" class="form-input" placeholder="--" readonly style="background: rgba(0,255,136,0.05); border-color: rgba(0,255,136,0.3); font-weight: 700; font-size: 20px; color: #00ff9d; text-align: center; padding: 12px 16px;">
+                                    <span class="input-suffix">ngày</span>
+                                </div>
+                                <input type="hidden" name="transit_time" id="transit_time">
+                            </div>
+
+                            <!-- Cargo Type -->
+                            <div class="form-group">
+                                <label class="form-label" for="cargo_type_dropdown" data-i18n="label_cargo_type">
+                                    <i class="ph ph-cube input-icon"></i>
+                                    Loại Hàng Hóa
+                                </label>
+                                <div class="custom-dropdown" id="cargo_type_dropdown">
+                                    <div class="dropdown-trigger" tabindex="0" role="button" aria-haspopup="listbox">
+                                        <span class="dropdown-value placeholder" data-i18n="placeholder_select">Select cargo type</span>
+                                        <span class="dropdown-arrow">
+                                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                <path d="M5 8L10 13L15 8" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                        </span>
+                                    </div>
+                                    <div class="dropdown-menu" role="listbox">
+                                        <div class="dropdown-option" data-value="general" role="option" data-i18n="opt_ct_general">General Cargo</div>
+                                        <div class="dropdown-option" data-value="electronics" role="option" data-i18n="opt_ct_electronics">Electronics</div>
+                                        <div class="dropdown-option" data-value="food_bev" role="option" data-i18n="opt_ct_food_bev">Food & Beverage</div>
+                                        <div class="dropdown-option" data-value="garments" role="option" data-i18n="opt_ct_garments">Garments / Textile</div>
+                                        <div class="dropdown-option" data-value="agriculture" role="option" data-i18n="opt_ct_agriculture">Agriculture</div>
+                                        <div class="dropdown-option" data-value="refrigerated" role="option" data-i18n="opt_ct_refrigerated">Refrigerated / Frozen</div>
+                                        <div class="dropdown-option" data-value="chemicals" role="option" data-i18n="opt_ct_chemicals">Chemicals</div>
+                                        <div class="dropdown-option" data-value="machinery" role="option" data-i18n="opt_ct_machinery">Machinery</div>
+                                        <div class="dropdown-option" data-value="fragile" role="option" data-i18n="opt_ct_fragile">Fragile Goods</div>
+                                        <div class="dropdown-option" data-value="auto_parts" role="option" data-i18n="opt_ct_auto_parts">Automotive Parts</div>
+                                        <div class="dropdown-option" data-value="dg" role="option" data-i18n="opt_ct_dg">Dangerous Goods (DG)</div>
+                                        <div class="dropdown-option" data-value="pharma" role="option" data-i18n="opt_ct_pharma">Pharmaceutical</div>
+                                    </div>
+                                </div>
+                                <span class="error-message" id="cargo_type_error"></span>
+                            </div>
+
+                            <!-- Incoterm -->
+                            <div class="form-group">
+                                <label class="form-label" for="incoterm_dropdown" data-i18n="label_incoterm">
+                                    <i class="ph ph-file-text input-icon"></i>
+                                    Incoterms
+                                </label>
+                                <div class="custom-dropdown" id="incoterm_dropdown">
+                                    <div class="dropdown-trigger" tabindex="0" role="button" aria-haspopup="listbox">
+                                        <span class="dropdown-value placeholder" data-i18n="placeholder_select">Select incoterm</span>
+                                        <span class="dropdown-arrow">
+                                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                <path d="M5 8L10 13L15 8" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                        </span>
+                                    </div>
+                                    <div class="dropdown-menu" role="listbox">
+                                        <div class="dropdown-option" data-value="exw" role="option" data-i18n="opt_ic_exw">EXW</div>
+                                        <div class="dropdown-option" data-value="fca" role="option" data-i18n="opt_ic_fca">FCA</div>
+                                        <div class="dropdown-option" data-value="fas" role="option" data-i18n="opt_ic_fas">FAS</div>
+                                        <div class="dropdown-option" data-value="fob" role="option" data-i18n="opt_ic_fob">FOB</div>
+                                        <div class="dropdown-option" data-value="cfr" role="option" data-i18n="opt_ic_cfr">CFR</div>
+                                        <div class="dropdown-option" data-value="cif" role="option" data-i18n="opt_ic_cif">CIF</div>
+                                        <div class="dropdown-option" data-value="cpt" role="option" data-i18n="opt_ic_cpt">CPT</div>
+                                        <div class="dropdown-option" data-value="cip" role="option" data-i18n="opt_ic_cip">CIP</div>
+                                        <div class="dropdown-option" data-value="dap" role="option" data-i18n="opt_ic_dap">DAP</div>
+                                        <div class="dropdown-option" data-value="dpu" role="option" data-i18n="opt_ic_dpu">DPU</div>
+                                        <div class="dropdown-option" data-value="ddp" role="option" data-i18n="opt_ic_ddp">DDP</div>
+                                    </div>
+                                </div>
+                                <span class="error-message" id="incoterm_error"></span>
+                            </div>
+
+                            <!-- Container Type -->
+                            <div class="form-group">
+                                <label class="form-label" for="container_dropdown" data-i18n="label_container">
+                                    <i class="ph ph-package input-icon"></i>
+                                    Loại Container
+                                </label>
+                                <div class="custom-dropdown" id="container_dropdown">
+                                    <div class="dropdown-trigger" tabindex="0" role="button" aria-haspopup="listbox">
+                                        <span class="dropdown-value placeholder" data-i18n="placeholder_select">Select container</span>
+                                        <span class="dropdown-arrow">
+                                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                <path d="M5 8L10 13L15 8" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                        </span>
+                                    </div>
+                                    <div class="dropdown-menu" role="listbox">
+                                        <div class="dropdown-option container-item" id="container-20ft_standard" data-value="20ft_standard" data-container-type="20ft_standard" role="option" data-i18n="opt_cn_20ft">
+                                            <span>20ft Standard</span>
+                                            <span class="compatibility-badge" style="display: none;">--</span>
+                                        </div>
+                                        <div class="dropdown-option container-item" id="container-40ft_standard" data-value="40ft_standard" data-container-type="40ft_standard" role="option" data-i18n="opt_cn_40ft">
+                                            <span>40ft Standard</span>
+                                            <span class="compatibility-badge" style="display: none;">--</span>
+                                        </div>
+                                        <div class="dropdown-option container-item" id="container-40ft_highcube" data-value="40ft_highcube" data-container-type="40ft_highcube" role="option" data-i18n="opt_cn_40hc">
+                                            <span>40ft High Cube</span>
+                                            <span class="compatibility-badge" style="display: none;">--</span>
+                                        </div>
+                                        <div class="dropdown-option container-item" id="container-45ft_highcube" data-value="45ft_highcube" data-container-type="45ft_highcube" role="option" data-i18n="opt_cn_45hc">
+                                            <span>45ft High Cube</span>
+                                            <span class="compatibility-badge" style="display: none;">--</span>
+                                        </div>
+                                        <div class="dropdown-option container-item" id="container-reefer" data-value="reefer" data-container-type="reefer" role="option" data-i18n="opt_cn_reefer">
+                                            <span>Reefer Container</span>
+                                            <span class="compatibility-badge" style="display: none;">--</span>
+                                        </div>
+                                        <div class="dropdown-option container-item" id="container-open_top" data-value="open_top" data-container-type="open_top" role="option" data-i18n="opt_cn_opentop">
+                                            <span>Open-top</span>
+                                            <span class="compatibility-badge" style="display: none;">--</span>
+                                        </div>
+                                        <div class="dropdown-option container-item" id="container-flat_rack" data-value="flat_rack" data-container-type="flat_rack" role="option" data-i18n="opt_cn_flatrack">
+                                            <span>Flat-rack</span>
+                                            <span class="compatibility-badge" style="display: none;">--</span>
+                                        </div>
+                                        <div class="dropdown-option container-item" id="container-iso_tank" data-value="iso_tank" data-container-type="iso_tank" role="option" data-i18n="opt_cn_isotank">
+                                            <span>ISO Tank</span>
+                                            <span class="compatibility-badge" style="display: none;">--</span>
+                                        </div>
+                                        <div class="dropdown-option container-item" id="container-bulk_container" data-value="bulk_container" data-container-type="bulk_container" role="option" data-i18n="opt_cn_bulk">
+                                            <span>Bulk Container</span>
+                                            <span class="compatibility-badge" style="display: none;">--</span>
+                                        </div>
+                                        <div class="dropdown-option container-item" id="container-palletized" data-value="palletized" data-container-type="palletized" role="option" data-i18n="opt_cn_pallet">
+                                            <span>Palletized</span>
+                                            <span class="compatibility-badge" style="display: none;">--</span>
+                                        </div>
+                                        <div class="dropdown-option container-item" id="container-wooden_crates" data-value="wooden_crates" data-container-type="wooden_crates" role="option" data-i18n="opt_cn_wooden">
+                                            <span>Wooden Crates</span>
+                                            <span class="compatibility-badge" style="display: none;">--</span>
+                                        </div>
+                                        <div class="dropdown-option container-item" id="container-polybags_cartons" data-value="polybags_cartons" data-container-type="polybags_cartons" role="option" data-i18n="opt_cn_poly">
+                                            <span>Polybags / Cartons</span>
+                                            <span class="compatibility-badge" style="display: none;">--</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <span class="error-message" id="container_error"></span>
+                                <div id="container-suggestion" class="suggestion-panel" style="display: none;"></div>
+                            </div>
+
+                            <!-- Packing Quality -->
+                            <div class="form-group">
+                                <label class="form-label" for="packaging_dropdown" data-i18n="label_packaging">
+                                    <i class="ph ph-gift input-icon"></i>
+                                    Chất Lượng Đóng Gói
+                                </label>
+                                <div class="custom-dropdown" id="packaging_dropdown">
+                                    <div class="dropdown-trigger" tabindex="0" role="button" aria-haspopup="listbox">
+                                        <span class="dropdown-value placeholder" data-i18n="placeholder_select">Select quality</span>
+                                        <span class="dropdown-arrow">
+                                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                <path d="M5 8L10 13L15 8" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                        </span>
+                                    </div>
+                                    <div class="dropdown-menu" role="listbox">
+                                        <div class="dropdown-option" data-value="poor" role="option" data-i18n="opt_pk_poor">Poor</div>
+                                        <div class="dropdown-option" data-value="medium" role="option" data-i18n="opt_pk_medium">Medium</div>
+                                        <div class="dropdown-option" data-value="good" role="option" data-i18n="opt_pk_good">Good</div>
+                                        <div class="dropdown-option" data-value="excellent" role="option" data-i18n="opt_pk_excellent">Excellent</div>
+                                    </div>
+                                </div>
+                                <span class="error-message" id="packaging_error"></span>
+                            </div>
+
+                        </div>
+
+
+                        <!-- Climate Risk Panel (Collapsible) -->
+                        <div id="climate-panel" class="climate-card" style="display: none;">
+                            <div class="climate-header" id="climate-header-toggle">
+                                <div class="climate-header-title">
+                                    <i class="ph ph-cloud-lightning" style="font-size: 18px; color: #00FFC8; margin-right: 8px; filter: drop-shadow(0 0 4px rgba(0, 255, 200, 0.5));"></i>
+                                    <span>Climate Risk Overview</span>
+                                    <span class="climate-header-score" id="climate-header-score">
+                                        <span id="climate-stress-value-header">--</span>
+                                        <span id="climate-stress-badge-header" class="badge">--</span>
+                                    </span>
+                                </div>
+                                <span id="climate-arrow" class="climate-toggle-icon">▼</span>
+                            </div>
+                            <div id="climate-body" class="climate-body hidden">
+                                <div class="climate-body-content">
+                                    <h3>
+                                        ENSO INDEX: <span id="enso-value" style="color: #10B981; font-weight: 700;">La Niña Phase (ONI: -0.6°C)</span>
+                                    </h3>
+                                    <h3>
+                                        TẦN SUẤT BÃO: <span id="storm-value" style="color: #10B981; font-weight: 700;">3 cơn bão dự kiến</span>
+                                    </h3>
+                                    <h3>
+                                        NHIỆT ĐỘ BIỂN (SST): <span id="sst-value" style="color: #10B981; font-weight: 700;">-0.5°C</span>
+                                    </h3>
+                                    <h3>
+                                        <span style="color: #ffffff; font-weight: 700;">ĐIỂM ÁP LỰC KHÍ HẬU:</span> 
+                                        <span id="climate-stress-badge" class="badge critical" style="margin-left: 8px;">Critical</span>
+                                        <span id="climate-stress-value" style="color: #10B981; font-weight: 700; margin-left: 8px;">8.7</span>
+                                    </h3>
+                                    <div style="position: relative; margin-top: 12px;">
+                                        <input type="range" id="climate-stress-slider" min="1" max="10" value="8.7" step="0.1" disabled style="width: 100%; height: 8px; border-radius: 4px; background: var(--bg-tertiary); outline: none; opacity: 0.7;">
+                                        <div class="slider-labels" style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; font-weight: 700;">
+                                            <span style="color: rgba(255, 255, 255, 0.8); padding: 2px 4px; border-radius: 3px;">1</span>
+                                            <span style="color: rgba(255, 255, 255, 0.8); padding: 2px 4px; border-radius: 3px;">2</span>
+                                            <span style="color: rgba(255, 255, 255, 0.8); padding: 2px 4px; border-radius: 3px;">3</span>
+                                            <span style="color: rgba(255, 255, 255, 0.8); padding: 2px 4px; border-radius: 3px;">4</span>
+                                            <span style="color: rgba(255, 255, 255, 0.8); padding: 2px 4px; border-radius: 3px;">5</span>
+                                            <span style="color: rgba(255, 255, 255, 0.8); padding: 2px 4px; border-radius: 3px;">6</span>
+                                            <span style="color: rgba(255, 255, 255, 0.8); padding: 2px 4px; border-radius: 3px;">7</span>
+                                            <span style="color: rgba(255, 255, 255, 0.8); padding: 2px 4px; border-radius: 3px;">8</span>
+                                            <span style="color: rgba(255, 255, 255, 0.8); padding: 2px 4px; border-radius: 3px;">9</span>
+                                            <span style="color: rgba(255, 255, 255, 0.8); padding: 2px 4px; border-radius: 3px;">10</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Priority Profile - Moved to end -->
+                        <div class="form-group" style="grid-column: 1 / -1; margin-top: 24px;">
+                            <label class="form-label" for="priority_dropdown" data-i18n="label_priority">
+                                <i class="ph ph-star input-icon"></i>
+                                Hồ Sơ Ưu Tiên
+                            </label>
+                            <div class="custom-dropdown" id="priority_dropdown">
+                                <div class="dropdown-trigger" tabindex="0" role="button" aria-haspopup="listbox">
+                                    <span class="dropdown-value placeholder" data-i18n="placeholder_select">Chọn tùy chọn</span>
+                                    <span class="dropdown-arrow">
+                                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                            <path d="M5 8L10 13L15 8" stroke="currentColor" stroke-width="1.5"/>
+                                        </svg>
+                                    </span>
+                                </div>
+                                <div class="dropdown-menu" role="listbox">
+                                    <div class="dropdown-option" data-value="economy" role="option" data-i18n="opt_pr_economy">Economy</div>
+                                    <div class="dropdown-option" data-value="standard" role="option" data-i18n="opt_pr_standard">Standard</div>
+                                    <div class="dropdown-option" data-value="express" role="option" data-i18n="opt_pr_express">Express</div>
+                                    <div class="dropdown-option" data-value="critical" role="option" data-i18n="opt_pr_critical">Critical</div>
+                                </div>
+                            </div>
+                            <span class="error-message" id="priority_error"></span>
+                        </div>
+
+                        <!-- Priority Weights Preview - Moved to end -->
+                        <div id="priority-preview" class="priority-box" style="display: none; grid-column: 1 / -1;">
+                            <div class="priority-weights-preview" id="priority_preview_box">
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+                                    <i class="ph ph-chart-bar" style="color: #00FFC8; font-size: 20px; filter: drop-shadow(0 0 4px rgba(0, 255, 200, 0.5));"></i>
+                                    <h4 style="color: #00FFC8; font-size: 15px; font-weight: 600; margin: 0; text-shadow: 0 0 8px rgba(0, 255, 200, 0.3);">Priority Weights Preview</h4>
+                                    <span id="priority_selected_badge" style="display: none; margin-left: auto; padding: 4px 10px; background: rgba(0, 255, 200, 0.2); color: #00FFC8; border-radius: 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; border: 1px solid rgba(0, 255, 200, 0.3);"></span>
+                                </div>
+                                <div class="grid-3" style="gap: 16px; margin-bottom: 16px;">
+                                    <div style="text-align: center; padding: 12px; background: rgba(0, 255, 200, 0.08); border-radius: 8px; border: 1px solid rgba(0, 255, 200, 0.3); transition: all 0.3s ease;">
+                                        <div style="display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; color: #00FFC8; margin-bottom: 6px; font-weight: 500;">
+                                            <i class="ph ph-timer" style="color: #00FFC8; font-size: 16px; filter: drop-shadow(0 0 4px rgba(0, 255, 200, 0.5));"></i>
+                                            Speed
+                                        </div>
+                                        <div id="priority_speed_display" style="font-size: 24px; font-weight: 700; color: #00FFC8; transition: all 0.3s ease; text-shadow: 0 0 8px rgba(0, 255, 200, 0.4);">--</div>
+                                    </div>
+                                    <div style="text-align: center; padding: 12px; background: rgba(0, 255, 200, 0.08); border-radius: 8px; border: 1px solid rgba(0, 255, 200, 0.3); transition: all 0.3s ease;">
+                                        <div style="display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; color: #00FFC8; margin-bottom: 6px; font-weight: 500;">
+                                            <i class="ph ph-currency-dollar" style="color: #00FFC8; font-size: 16px; filter: drop-shadow(0 0 4px rgba(0, 255, 200, 0.5));"></i>
+                                            Cost
+                                        </div>
+                                        <div id="priority_cost_display" style="font-size: 24px; font-weight: 700; color: #00FFC8; transition: all 0.3s ease; text-shadow: 0 0 8px rgba(0, 255, 200, 0.4);">--</div>
+                                    </div>
+                                    <div style="text-align: center; padding: 12px; background: rgba(0, 255, 200, 0.08); border-radius: 8px; border: 1px solid rgba(0, 255, 200, 0.3); transition: all 0.3s ease;">
+                                        <div style="display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; color: #00FFC8; margin-bottom: 6px; font-weight: 500;">
+                                            <i class="ph ph-warning" style="color: #00FFC8; font-size: 16px; filter: drop-shadow(0 0 4px rgba(0, 255, 200, 0.5));"></i>
+                                            Risk
+                                        </div>
+                                        <div id="priority_risk_display" style="font-size: 24px; font-weight: 700; color: #00FFC8; transition: all 0.3s ease; text-shadow: 0 0 8px rgba(0, 255, 200, 0.4);">--</div>
+                                    </div>
+                                </div>
+                                <p id="priority_description" style="margin-top: 0; font-size: 13px; color: rgba(0, 255, 200, 0.7); text-align: center; font-style: italic; padding: 12px; background: rgba(0, 255, 200, 0.05); border-radius: 8px; border: 1px solid rgba(0, 255, 200, 0.1);">Chọn chế độ ưu tiên để xem phân bổ trọng số</p>
+                            </div>
+                        </div>
+
+                        <div id="climate-section" style="display: none;"></div>
+                    </div>
+                </section

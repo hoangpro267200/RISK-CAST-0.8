@@ -1,0 +1,36 @@
+﻿{% extends "base.html" %}
+{% block title %}Documents Center - RISKCAST v35{% endblock %}
+{% block content %}
+<div class="documents-center">
+    <h1>Smart Documents Engine</h1>
+    <section class="generate-si">
+        <h2>Generate Shipping Instruction</h2>
+        <form id="si-form">
+            <label>Shipment ID: <input type="text" name="shipment_id" required></label>
+            <button type="submit">Generate SI</button>
+        </form>
+    </section>
+    <section class="generate-bl">
+        <h2>Generate Draft B/L</h2>
+        <form id="bl-form">
+            <label>SI Document ID: <input type="text" name="si_document_id" required></label>
+            <button type="submit">Generate Draft B/L</button>
+        </form>
+    </section>
+    <section class="validate-docs">
+        <h2>Validate SI vs Draft B/L</h2>
+        <form id="validate-form">
+            <label>SI ID: <input type="text" name="si_id" required></label>
+            <label>B/L ID: <input type="text" name="bl_id" required></label>
+            <button type="submit">Validate</button>
+        </form>
+        <div id="validation-results"></div>
+    </section>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+// TODO: Wire document actions
+</script>
+{% endblock %}
+

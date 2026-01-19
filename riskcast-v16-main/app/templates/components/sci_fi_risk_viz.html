@@ -1,0 +1,72 @@
+<!-- SCI-FI CINEMATIC RISK VISUALIZATION -->
+<section class="sci-fi-risk-viz" id="sci-fi-risk-viz" style="display: block !important; visibility: visible !important; opacity: 1 !important;">
+    <div class="sci-fi-container">
+        <!-- Central Risk Score Orb (CORE) -->
+        <div class="risk-orb-core">
+            <div class="orb-glow-pulse"></div>
+            <div class="orb-inner">
+                <div class="orb-score-value" id="sci-fi-risk-score">16</div>
+                <div class="orb-score-label">RISK SCORE</div>
+            </div>
+            <div class="orb-rings">
+                <div class="ring ring-1"></div>
+                <div class="ring ring-2"></div>
+                <div class="ring ring-3"></div>
+            </div>
+        </div>
+
+        <!-- Orbital Risk Factor Cards -->
+        <div class="factor-orbit" id="factor-orbit">
+            <!-- Connection Lines SVG (inside orbit container for proper positioning) -->
+            <svg class="connection-lines" id="connection-lines" style="display: block !important; visibility: visible !important; opacity: 1 !important; position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1;">
+                <!-- Lines will be drawn dynamically -->
+            </svg>
+            
+            <!-- Cards will be dynamically positioned by JavaScript -->
+            <!-- Template structure for each card: -->
+            <div class="factor-card" data-factor="equipment" style="display: none;">
+                <div class="factor-icon">⚙️</div>
+                <div class="factor-name">Equipment</div>
+                <div class="factor-score">17</div>
+            </div>
+            <div class="factor-card" data-factor="weather" style="display: none;">
+                <div class="factor-icon">⛈️</div>
+                <div class="factor-name">Weather</div>
+                <div class="factor-score">25</div>
+            </div>
+            <div class="factor-card" data-factor="esg" style="display: none;">
+                <div class="factor-icon">🌱</div>
+                <div class="factor-name">ESG</div>
+                <div class="factor-score">16</div>
+            </div>
+            <div class="factor-card" data-factor="port" style="display: none;">
+                <div class="factor-icon">⚓</div>
+                <div class="factor-name">Port</div>
+                <div class="factor-score">52</div>
+            </div>
+            <div class="factor-card" data-factor="climate" style="display: none;">
+                <div class="factor-icon">🌍</div>
+                <div class="factor-name">Climate</div>
+                <div class="factor-score">17</div>
+            </div>
+            <div class="factor-card" data-factor="carrier" style="display: none;">
+                <div class="factor-icon">🚢</div>
+                <div class="factor-name">Carrier</div>
+                <div class="factor-score">3</div>
+            </div>
+        </div>
+
+
+        <!-- Bottom Section: Badge & Confidence -->
+        <div class="sci-fi-footer">
+            <div class="risk-status-badge" id="sci-fi-risk-badge">
+                <span class="badge-text">LOW RISK</span>
+            </div>
+            <div class="model-confidence">
+                <span class="confidence-label">Model Confidence</span>
+                <span class="confidence-value" id="sci-fi-confidence">76%</span>
+            </div>
+        </div>
+    </div>
+</section>
+

@@ -1,0 +1,493 @@
+/* ==========================================================================
+   SUMMARY_V500 - LAYOUT (VisionOS v550 Ultra)
+   VisionOS v550 Unified Grid System - Fixed spacing and alignment
+   ========================================================================== */
+
+/* ===== ROOT CONTAINER ===== */
+.summary-root {
+    position: relative;
+    z-index: 1;
+    max-width: 1920px;
+    margin: 0 auto;
+    padding: var(--section-padding);
+    padding-bottom: 40px !important; /* Fix spacing bug - reduced from 120px */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    gap: 22px; /* Gap between cards: 22px */
+    overflow: visible !important;
+}
+
+.summary-root > *:last-child {
+    margin-bottom: 0;
+}
+
+/* ===== TOP BAR ===== */
+.summary-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md) var(--section-padding);
+    height: 72px;
+    min-height: 72px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--card-radius);
+    backdrop-filter: var(--card-blur);
+    -webkit-backdrop-filter: var(--card-blur);
+    box-shadow: var(--shadow-depth-1);
+    overflow: visible !important;
+    transform: none !important;
+}
+
+.summary-topbar__left,
+.summary-topbar__right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.summary-logo {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.summary-logo__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+    color: white;
+    flex-shrink: 0;
+}
+
+.summary-logo__text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.summary-logo__brand {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+}
+
+.summary-logo__subtitle {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    letter-spacing: 0.02em;
+    font-family: 'Space Mono', monospace;
+    line-height: 1.2;
+}
+
+/* ===== MEGA SUMMARY CARD ===== */
+.mega-summary {
+    width: 100%;
+    padding: var(--section-padding);
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--card-radius);
+    backdrop-filter: var(--card-blur);
+    -webkit-backdrop-filter: var(--card-blur);
+    box-shadow: var(--card-shadow);
+    overflow: visible !important;
+    transform: none !important;
+}
+
+.mega-summary__grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: var(--section-gap);
+    overflow: visible !important;
+}
+
+/* ===== MAIN CONTENT GRID - Clean 2x2 layout ===== */
+.summary-main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 0.9fr;
+    gap: var(--section-gap);
+    flex: 1;
+    min-height: 0; /* Prevent flex from creating extra space */
+    overflow: visible !important;
+    transform: none !important;
+    margin-bottom: 0;
+    padding-bottom: 0;
+    align-items: start;
+}
+
+/* ===== 2x2 MATRIX - Clean grid alignment ===== */
+.summary-matrix {
+    grid-column: 1 / span 2;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 22px; /* Gap between cards: 22px */
+    align-items: stretch;
+    min-height: 0; /* Prevent flex from creating extra space */
+    overflow: visible !important;
+    transform: none !important;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+/* ===== UNIFIED CARD COMPONENT ===== */
+.summary-panel,
+.advisor-panel,
+.risk-card {
+    padding: var(--section-padding);
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--card-radius);
+    backdrop-filter: var(--card-blur);
+    -webkit-backdrop-filter: var(--card-blur);
+    box-shadow: var(--card-shadow);
+    display: flex;
+    flex-direction: column;
+    overflow: visible !important;
+    transform: none !important;
+    height: 100%;
+    min-height: 0; /* Prevent flex from creating extra space */
+}
+
+/* ===== PANEL STRUCTURE ===== */
+.summary-panel {
+    min-height: auto; /* Remove fixed min-height */
+    height: auto; /* Auto height based on content */
+    margin-bottom: 0;
+    display: grid;
+    grid-template-rows: auto 1fr;
+}
+
+/* ===== PANEL HEADER - Legacy support ===== */
+.summary-panel__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    margin-top: 0;
+    flex-shrink: 0;
+    position: relative;
+}
+
+/* ===== SUMMARY SECTION HEADER - VisionOS Ultra Style ===== */
+.summary-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 22px;
+    margin-bottom: 12px;
+    margin-top: 0;
+    flex-shrink: 0;
+    position: relative;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow:
+        inset 0 1px 2px rgba(255, 255, 255, 0.08),
+        0 6px 18px rgba(0, 0, 0, 0.35);
+    transition: all 0.25s ease;
+}
+
+.summary-section-header:hover {
+    transform: translateY(-1px);
+    box-shadow:
+        inset 0 1px 3px rgba(255, 255, 255, 0.1),
+        0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* Border gradient effect */
+.summary-section-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 22px;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(54, 227, 255, 0.1), rgba(23, 179, 255, 0.1));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0.15;
+    transition: opacity 0.25s ease;
+}
+
+.summary-section-header:hover::before {
+    opacity: 0.2;
+}
+
+/* ===== PANEL TITLE - Icon + text alignment tốt ===== */
+.summary-panel__title {
+    display: flex;
+    align-items: center; /* Align-center vertically */
+    gap: 10px; /* Gap 8-10px giữa icon và text */
+}
+
+/* ===== PANEL ICON - Size đồng bộ, opacity tốt ===== */
+.summary-panel__icon {
+    font-size: 20px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.95; /* Icon opacity */
+    filter: drop-shadow(0 0 8px rgba(53, 224, 255, 0.4));
+    transition: filter var(--transition-fast);
+}
+
+.summary-panel__icon svg {
+    width: 22px; /* Icon-size 22px */
+    height: 22px;
+    filter: drop-shadow(0 0 6px rgba(53, 224, 255, 0.3));
+}
+
+.summary-panel:hover .summary-panel__icon {
+    filter: drop-shadow(0 0 12px rgba(53, 224, 255, 0.6));
+}
+
+/* ===== VISIONOS ICON - 3D Glow Effect ===== */
+.visionos-icon {
+    width: 22px;
+    height: 22px;
+    filter: drop-shadow(0 0 6px rgba(0, 200, 255, 0.8));
+    transition: filter 0.25s ease;
+}
+
+.summary-section-header:hover .visionos-icon {
+    filter: drop-shadow(0 0 10px rgba(0, 200, 255, 1));
+}
+
+.advisor-panel__icon .visionos-icon {
+    width: 22px;
+    height: 22px;
+    filter: drop-shadow(0 0 6px rgba(0, 200, 255, 0.8));
+}
+
+/* Typography for .summary-panel__label is now in summary_typography.css */
+
+/* Styling for .summary-panel__tag is now in summary_typography.css */
+
+.summary-panel__body {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+    overflow: visible !important;
+    align-content: start;
+    min-height: 0;
+    margin-bottom: 0;
+    padding-bottom: 0;
+    grid-auto-rows: min-content;
+    flex-basis: auto; /* Fix flex-basis for proper sizing */
+}
+
+/* ===== AI ADVISOR PANEL ===== */
+.advisor-panel {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    max-height: none;
+    height: 100%;
+}
+
+/* Advisor panel header now uses .summary-section-header */
+.advisor-panel__header {
+    margin-bottom: var(--space-md);
+    padding-bottom: var(--space-sm);
+    border-bottom: 1px solid var(--border-soft);
+    flex-shrink: 0;
+}
+
+.advisor-panel__title {
+    display: flex;
+    align-items: center;
+    gap: 12px; /* Consistent gap with summary-panel__title */
+    width: 100%;
+}
+
+/* When inside summary-section-header, advisor icon should match panel icon size */
+.summary-section-header .advisor-panel__icon {
+    font-size: 20px;
+    margin-bottom: 0; /* Remove margin when in header */
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Legacy support for old structure */
+.advisor-panel__icon:not(.summary-section-header .advisor-panel__icon) {
+    font-size: 40px;
+    margin-bottom: var(--space-sm);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    filter: drop-shadow(0 0 12px rgba(53, 224, 255, 0.5));
+    animation: iconGlow 3s ease-in-out infinite;
+}
+
+.advisor-panel__icon svg {
+    width: 40px;
+    height: 40px;
+}
+
+@keyframes iconGlow {
+    0%, 100% {
+        filter: drop-shadow(0 0 12px rgba(53, 224, 255, 0.5));
+    }
+    50% {
+        filter: drop-shadow(0 0 20px rgba(53, 224, 255, 0.8));
+    }
+}
+
+.advisor-panel__label {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-primary);
+    font-family: 'Space Mono', monospace;
+}
+
+.advisor-panel__body {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: visible;
+    min-height: 0;
+}
+
+/* ===== RISK MODULE ROW ===== */
+.risk-row {
+    width: 100%;
+    padding: var(--section-padding);
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--card-radius);
+    backdrop-filter: var(--card-blur);
+    -webkit-backdrop-filter: var(--card-blur);
+    box-shadow: var(--card-shadow);
+    overflow: visible !important;
+    transform: none !important;
+    margin-bottom: 0;
+}
+
+.risk-row__inner {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: var(--section-gap);
+    overflow: visible !important;
+}
+
+/* ===== ACTION STRIP (Fixed Bottom) ===== */
+.action-strip {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: var(--space-md) var(--section-padding);
+    background: var(--card-bg);
+    border-top: 1px solid var(--card-border);
+    backdrop-filter: var(--card-blur-strong);
+    -webkit-backdrop-filter: var(--card-blur-strong);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.4), 
+                0 -2px 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 100;
+    transform: translateY(100%);
+    transition: transform var(--transition-normal);
+    max-width: 1920px;
+    margin: 0 auto;
+}
+
+.action-strip.action-strip--visible {
+    transform: translateY(0);
+}
+
+.action-strip__left,
+.action-strip__right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1400px) {
+    .summary-main-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .summary-matrix {
+        grid-column: 1;
+    }
+    
+    .advisor-panel {
+        grid-column: 1;
+        grid-row: auto;
+    }
+    
+    .mega-summary__grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .risk-row__inner {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .summary-root {
+        padding-bottom: 160px; /* More space for mobile action strip */
+    }
+    
+    .mega-summary__grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .summary-matrix {
+        grid-template-columns: 1fr;
+    }
+    
+    .summary-topbar {
+        flex-direction: column;
+        height: auto;
+        min-height: auto;
+        gap: var(--space-md);
+        padding: var(--space-md);
+    }
+    
+    .action-strip {
+        flex-direction: column;
+        gap: var(--space-md);
+        padding: var(--space-md);
+    }
+    
+    .risk-row__inner {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .mega-summary__grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .risk-row__inner {
+        grid-template-columns: 1fr;
+    }
+}

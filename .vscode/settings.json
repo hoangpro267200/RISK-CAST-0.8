@@ -1,0 +1,36 @@
+{
+  "python.analysis.typeCheckingMode": "off",
+  "python.analysis.diagnosticSeverityOverrides": {
+    "reportMissingImports": "none",
+    "reportMissingTypeStubs": "none",
+    "reportMissingModuleSource": "none"
+  },
+  "python.analysis.autoImportCompletions": true,
+  "python.analysis.autoSearchPaths": true,
+  "python.defaultInterpreterPath": "${workspaceFolder}/riskcast-v16-main/venv/Scripts/python.exe",
+  "python.languageServer": "None",
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/*.pyc": true
+  },
+  "css.lint.unknownAtRules": "ignore",
+  "css.customData": [
+    ".vscode/css_custom_data.json"
+  ],
+  "cursorpyright.analysis.autoImportCompletions": true,
+  "cursorpyright.analysis.autoSearchPaths": true,
+  "cursorpyright.analysis.diagnosticSeverityOverrides": {
+    "reportMissingImports": "none",
+    "reportMissingTypeStubs": "none",
+    "reportMissingModuleSource": "none"
+  },
+  "cursorpyright.analysis.typeCheckingMode": "off"
+}
+
+
+
+
+
+
+
+

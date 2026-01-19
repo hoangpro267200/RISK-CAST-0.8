@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RISKCAST Globe V2000 - Three.js Hologram</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #020405;
+      overflow: hidden;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    #globe-v2000 {
+      width: 100%;
+      height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    .loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #00f0ff;
+      font-size: 14px;
+      letter-spacing: 0.1em;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+  <div id="globe-v2000">
+    <div class="loading">Initializing hologram sphere...</div>
+  </div>
+
+  <!-- Three.js from CDN (UMD build for global THREE) -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/postprocessing/EffectComposer.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/postprocessing/RenderPass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/shaders/CopyShader.js"></script>
+
+  <script>
+    (function() {
+      'use strict';
+
+      // ============================================================================
+      // CONFIGURATION
+      // ============================================================================
+      const CONFIG = {
+        sphereRadius: 2.5,
+        atmosphereScale: 1.15,
+        riskPointCount: 12,
+        microStarCount: 200,
+        arcCount: 7,
+        starfieldCount: 400,
+        rotationSpeed: 45, // seconds per full revolution
+        atmosphereBreathSpeed: 5,
+        cameraFOV: 45,
+        bloom: {
+          strength: 0.8,
+          threshold: 0.2,
+          radius: 0.3
+        },
+        parallax: {
+          maxTilt: 8, // degrees
+          sensitivity: 0.001
+        }
+      };
+
+      // ============================================================================
+      // SCENE SETUP
+      // ============================================================================
+      const container = document.getElementById('globe-v2000');
+      const loadingEl = container.querySelector('.loading');
+      
+      let scene, camera, renderer, composer;
+      let sphere, atmosphere, riskPoints, microStars, arcs, starfield;
+      let clock = new THREE.Clock();
+      let mouseX = 0, mouseY = 0;
+      let targetRotationX = 0, targetRotationY = 0;
+
+      function init() {
+        // Scene
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x020405);
+        scene.fog = new THREE.Fog(0x020405, 15, 25);
+
+        // Camera
+        const aspect = container.clientWidth / container.clientHeight;
+        camera = new THREE.PerspectiveCamera(CONFIG.cameraFOV, aspect, 0.1, 100);
+        camera.position.set(0, 0, 8);
+
+        // Renderer
+        renderer = new THREE.WebGLRenderer({ 
+          antialias: true,
+          alpha: false,
+          powerPreference: "high-performance"
+        });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setClearColor(0x020405, 1);
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.2;
+        container.appendChild(renderer.domElement);
+
+        // Post-processing
+        composer = new THREE.EffectComposer(renderer);
+        const renderPass = new THREE.RenderPass(scene, camera);
+        composer.addPass(renderPass);
+
+        const bloomPass = new THREE.UnrealBloomPass(
+          new THREE.Vector2(container.clientWidth, container.clientHeight),
+          CONFIG.bloom.strength,
+          CONFIG.bloom.radius,
+          CONFIG.bloom.threshold
+        );
+        composer.addPass(bloomPass);
+
+        // ============================================================================
+        // CUSTOM SHADERS
+        // ============================================================================
+
+        // Atmosphere Shader
+        const atmosphereVertexShader = `
+          uniform float time;
+          uniform float breathScale;
+          varying vec3 vWorldPosition;
+          varying vec3 vNormal;
+
+          void main() {
+            vNormal = normalize(normalMatrix * normal);
+            vec3 pos = position;
+            // Push outward slightly
+            pos += normal * 0.02;
+            vec4 worldPos = modelMatrix * vec4(pos, 1.0);
+            vWorldPosition = worldPos.xyz;
+            
+            // Breathing effect
+            float scale = 1.0 + sin(time * 0.4) * 0.03 * breathScale;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(pos * scale, 1.0);
+          }
+        `;
+
+        const atmosphereFragmentShader = `
+          uniform float time;
+          varying vec3 vWorldPosition;
+          varying vec3 vNormal;
+          uniform vec3 cameraPosition;
+
+          void main() {
+            vec3 viewDirection = normalize(cameraPosition - vWorldPosition);
+            float fresnel = pow(1.0 - dot(viewDirection, vNormal), 2.0);
+            
+            // Radial gradient from edge to center
+            float dist = length(vWorldPosition);
+            float gradient = 1.0 - smoothstep(2.5, 3.0, dist);
+            
+            // Rim lighting
+            float rim = fresnel * 0.8;
+            
+            // Combine with breathing
+            float breath = 0.7 + sin(time * 0.4) * 0.3;
+            
+            // Cyan teal color
+            vec3 color = mix(
+              vec3(0.0, 0.95, 1.0), // Cyan
+              vec3(0.0, 0.8, 0.9),  // Teal
+              gradient
+            );
+            
+            float alpha = (gradient * 0.25 + rim * 0.5) * breath;
+            gl_FragColor = vec4(color, alpha);
+          }
+        `;
+
+        // Risk Pulse Shader
+        const riskPulseVertexShader = `
+          uniform float time;
+          uniform float pulseSpeed;
+          varying float vPulse;
+
+          void main() {
+            vPulse = sin(time * pulseSpeed) * 0.5 + 0.5;
+            vec3 pos = position;
+            float scale = 0.6 + vPulse * 0.8;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(pos * scale, 1.0);
+            gl_PointSize = 12.0 * (300.0 / -gl_Position.z);
+          }
+        `;
+
+        const riskPulseFragmentShader = `
+          uniform vec3 color;
+          varying float vPulse;
+
+          void main() {
+            vec2 center = gl_PointCoord - vec2(0.5);
+            float dist = length(center);
+            if (dist > 0.5) discard;
+            
+            float alpha = (1.0 - dist * 2.0) * (0.7 + vPulse * 0.3);
+            vec3 finalColor = color * (1.0 + vPulse * 0.5);
+            gl_FragColor = vec4(finalColor, alpha);
+          }
+        `;
+
+        // Hologram Scanline Shader
+        const scanlineVertexShader = `
+          varying vec2 vUv;
+          void main() {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `;
+
+        const scanlineFragmentShader = `
+          uniform float time;
+          varying vec2 vUv;
+
+          void main() {
+            float scanline = sin(vUv.y * 800.0 + time * 2.0) * 0.02 + 1.0;
+            scanline *= sin(vUv.x * 400.0 + time * 1.5) * 0.01 + 1.0;
+            gl_FragColor = vec4(vec3(scanline), 0.05);
+          }
+        `;
+
+        // ============================================================================
+        // 3D SPHERE
+        // ============================================================================
+        const sphereGeometry = new THREE.SphereGeometry(CONFIG.sphereRadius, 64, 64);
+        const sphereMaterial = new THREE.MeshStandardMaterial({
+          color: 0x0a1210,
+          roughness: 0.9,
+          metalness: 0.1,
+          emissive: 0x001013,
+          emissiveIntensity: 0.1
+        });
+        sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+        scene.add(sphere);
+
+        // ============================================================================
+        // ATMOSPHERE (SHADER MESH)
+        // ============================================================================
+        const atmosphereGeometry = new THREE.SphereGeometry(
+          CONFIG.sphereRadius * CONFIG.atmosphereScale,
+          64,
+          64
+        );
+        const atmosphereMaterial = new THREE.ShaderMaterial({
+          vertexShader: atmosphereVertexShader,
+          fragmentShader: atmosphereFragmentShader,
+          uniforms: {
+            time: { value: 0 },
+            breathScale: { value: 1.0 },
+            cameraPosition: { value: camera.position }
+          },
+          transparent: true,
+          side: THREE.BackSide,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false
+        });
+        atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+        scene.add(atmosphere);
+
+        // ============================================================================
+        // RISK POINTS
+        // ============================================================================
+        const riskGeometry = new THREE.BufferGeometry();
+        const riskPositions = [];
+        const riskColors = [];
+        const riskSpeeds = [];
+        const riskColor = new THREE.Color(0xff3366);
+
+        for (let i = 0; i < CONFIG.riskPointCount; i++) {
+          // Random spherical coordinates
+          const theta = Math.random() * Math.PI * 2;
+          const phi = Math.acos(Math.random() * 2 - 1);
+          const radius = CONFIG.sphereRadius * 1.02; // Slightly above surface
+
+          const x = radius * Math.sin(phi) * Math.cos(theta);
+          const y = radius * Math.sin(phi) * Math.sin(theta);
+          const z = radius * Math.cos(phi);
+
+          riskPositions.push(x, y, z);
+          riskColors.push(riskColor.r, riskColor.g, riskColor.b);
+          riskSpeeds.push(0.8 + Math.random() * 0.4); // Random pulse speed
+        }
+
+        riskGeometry.setAttribute('position', new THREE.Float32BufferAttribute(riskPositions, 3));
+        riskGeometry.setAttribute('color', new THREE.Float32BufferAttribute(riskColors, 3));
+
+        const riskMaterial = new THREE.ShaderMaterial({
+          vertexShader: riskPulseVertexShader,
+          fragmentShader: riskPulseFragmentShader,
+          uniforms: {
+            time: { value: 0 },
+            pulseSpeed: { value: 2.0 },
+            color: { value: riskColor }
+          },
+          transparent: true,
+          vertexColors: true,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false
+        });
+
+        riskPoints = new THREE.Points(riskGeometry, riskMaterial);
+        scene.add(riskPoints);
+
+        // ============================================================================
+        // MICRO STARS (on sphere surface)
+        // ============================================================================
+        const starGeometry = new THREE.BufferGeometry();
+        const starPositions = [];
+        const starSizes = [];
+        const starColor = new THREE.Color(0x00e4ff);
+
+        for (let i = 0; i < CONFIG.microStarCount; i++) {
+          const theta = Math.random() * Math.PI * 2;
+          const phi = Math.acos(Math.random() * 2 - 1);
+          const radius = CONFIG.sphereRadius * 0.999; // On surface
+
+          const x = radius * Math.sin(phi) * Math.cos(theta);
+          const y = radius * Math.sin(phi) * Math.sin(theta);
+          const z = radius * Math.cos(phi);
+
+          starPositions.push(x, y, z);
+          starSizes.push(0.5 + Math.random() * 1.5);
+        }
+
+        starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starPositions, 3));
+        starGeometry.setAttribute('size', new THREE.Float32BufferAttribute(starSizes, 1));
+
+        const starMaterial = new THREE.PointsMaterial({
+          color: starColor,
+          size: 1.5,
+          transparent: true,
+          opacity: 0.4,
+          blending: THREE.AdditiveBlending,
+          sizeAttenuation: true
+        });
+
+        microStars = new THREE.Points(starGeometry, starMaterial);
+        scene.add(microStars);
+
+        // ============================================================================
+        // ARC PATHS (Bezier curves with animated light)
+        // ============================================================================
+        arcs = [];
+        const arcColors = [
+          new THREE.Color(0x36e27b), // Primary
+          new THREE.Color(0x00f0ff), // Secondary
+          new THREE.Color(0x36e27b),
+          new THREE.Color(0x00f0ff),
+          new THREE.Color(0x36e27b),
+          new THREE.Color(0x00f0ff),
+          new THREE.Color(0x36e27b)
+        ];
+
+        for (let i = 0; i < CONFIG.arcCount; i++) {
+          // Random start and end points on sphere surface
+          const startTheta = Math.random() * Math.PI * 2;
+          const startPhi = Math.acos(Math.random() * 2 - 1);
+          const endTheta = Math.random() * Math.PI * 2;
+          const endPhi = Math.acos(Math.random() * 2 - 1);
+
+          const startRadius = CONFIG.sphereRadius * 1.05;
+          const endRadius = CONFIG.sphereRadius * 1.05;
+
+          const start = new THREE.Vector3(
+            startRadius * Math.sin(startPhi) * Math.cos(startTheta),
+            startRadius * Math.sin(startPhi) * Math.sin(startTheta),
+            startRadius * Math.cos(startPhi)
+          );
+
+          const end = new THREE.Vector3(
+            endRadius * Math.sin(endPhi) * Math.cos(endTheta),
+            endRadius * Math.sin(endPhi) * Math.sin(endTheta),
+            endRadius * Math.cos(endPhi)
+          );
+
+          // Control point (curved path)
+          const mid = start.clone().add(end).multiplyScalar(0.5);
+          const control = mid.clone().normalize().multiplyScalar(CONFIG.sphereRadius * 1.3);
+
+          const curve = new THREE.QuadraticBezierCurve3(start, control, end);
+          const points = curve.getPoints(100);
+          const curveGeometry = new THREE.BufferGeometry().setFromPoints(points);
+
+          const curveMaterial = new THREE.LineBasicMaterial({
+            color: arcColors[i % arcColors.length],
+            transparent: true,
+            opacity: 0.15,
+            linewidth: 1
+          });
+
+          const arcLine = new THREE.Line(curveGeometry, curveMaterial);
+          scene.add(arcLine);
+
+          // Animated light pulse on arc
+          const pulseGeometry = new THREE.BufferGeometry();
+          pulseGeometry.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0], 3));
+
+          const pulseMaterial = new THREE.PointsMaterial({
+            color: arcColors[i % arcColors.length],
+            size: 8,
+            transparent: true,
+            opacity: 0.9,
+            blending: THREE.AdditiveBlending
+          });
+
+          const pulse = new THREE.Points(pulseGeometry, pulseMaterial);
+          scene.add(pulse);
+
+          arcs.push({
+            curve: curve,
+            line: arcLine,
+            pulse: pulse,
+            progress: Math.random(), // Random starting position
+            speed: 0.3 + Math.random() * 0.2
+          });
+        }
+
+        // ============================================================================
+        // 3D STARFIELD BACKGROUND
+        // ============================================================================
+        const starfieldGeometry = new THREE.BufferGeometry();
+        const starfieldPositions = [];
+        const starfieldColor = new THREE.Color(0x00f0ff);
+
+        for (let i = 0; i < CONFIG.starfieldCount; i++) {
+          // Random positions in a sphere around the scene
+          const radius = 15 + Math.random() * 10;
+          const theta = Math.random() * Math.PI * 2;
+          const phi = Math.acos(Math.random() * 2 - 1);
+
+          starfieldPositions.push(
+            radius * Math.sin(phi) * Math.cos(theta),
+            radius * Math.sin(phi) * Math.sin(theta),
+            radius * Math.cos(phi)
+          );
+        }
+
+        starfieldGeometry.setAttribute(
+          'position',
+          new THREE.Float32BufferAttribute(starfieldPositions, 3)
+        );
+
+        const starfieldMaterial = new THREE.PointsMaterial({
+          color: starfieldColor,
+          size: 1,
+          transparent: true,
+          opacity: 0.3,
+          blending: THREE.AdditiveBlending
+        });
+
+        starfield = new THREE.Points(starfieldGeometry, starfieldMaterial);
+        scene.add(starfield);
+
+        // ============================================================================
+        // LIGHTING
+        // ============================================================================
+        const ambientLight = new THREE.AmbientLight(0x00f0ff, 0.15);
+        scene.add(ambientLight);
+
+        const pointLight1 = new THREE.PointLight(0x00f0ff, 0.8, 20);
+        pointLight1.position.set(5, 5, 5);
+        scene.add(pointLight1);
+
+        const pointLight2 = new THREE.PointLight(0x36e27b, 0.6, 20);
+        pointLight2.position.set(-5, -5, -5);
+        scene.add(pointLight2);
+
+        // ============================================================================
+        // MOUSE PARALLAX
+        // ============================================================================
+        function onMouseMove(event) {
+          const rect = container.getBoundingClientRect();
+          mouseX = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
+          mouseY = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
+
+          targetRotationX = mouseY * CONFIG.parallax.maxTilt * CONFIG.parallax.sensitivity * 10;
+          targetRotationY = mouseX * CONFIG.parallax.maxTilt * CONFIG.parallax.sensitivity * 10;
+        }
+
+        container.addEventListener('mousemove', onMouseMove);
+
+        // ============================================================================
+        // RESIZE HANDLER
+        // ============================================================================
+        function onWindowResize() {
+          const width = container.clientWidth;
+          const height = container.clientHeight;
+
+          camera.aspect = width / height;
+          camera.updateProjectionMatrix();
+
+          renderer.setSize(width, height);
+          composer.setSize(width, height);
+        }
+
+        window.addEventListener('resize', onWindowResize);
+
+        // ============================================================================
+        // ANIMATION LOOP
+        // ============================================================================
+        function animate() {
+          requestAnimationFrame(animate);
+
+          const elapsedTime = clock.getElapsedTime();
+          const delta = clock.getDelta();
+
+          // Update shader uniforms
+          atmosphereMaterial.uniforms.time.value = elapsedTime;
+          atmosphereMaterial.uniforms.cameraPosition.value.copy(camera.position);
+
+          riskMaterial.uniforms.time.value = elapsedTime;
+
+          // Auto-rotate sphere
+          const rotationSpeed = (Math.PI * 2) / CONFIG.rotationSpeed;
+          sphere.rotation.y += rotationSpeed * delta;
+          atmosphere.rotation.y += rotationSpeed * delta;
+          microStars.rotation.y += rotationSpeed * delta;
+          riskPoints.rotation.y += rotationSpeed * delta;
+
+          // Apply parallax tilt
+          camera.rotation.x += (targetRotationX - camera.rotation.x) * 0.05;
+          camera.rotation.y += (targetRotationY - camera.rotation.y) * 0.05;
+
+          // Update arc pulse positions
+          arcs.forEach((arc, index) => {
+            arc.progress += delta * arc.speed;
+            if (arc.progress > 1) arc.progress = 0;
+
+            const point = arc.curve.getPoint(arc.progress);
+            arc.pulse.position.copy(point);
+            
+            // Fade pulse based on position
+            const distance = point.length();
+            arc.pulse.material.opacity = 0.9 * (1.0 - Math.abs(arc.progress - 0.5) * 2);
+          });
+
+          // Slow starfield drift
+          starfield.rotation.y += delta * 0.05;
+          starfield.rotation.x += delta * 0.03;
+
+          // Render
+          composer.render();
+        }
+
+        // Hide loading, start animation
+        loadingEl.style.display = 'none';
+        animate();
+
+        // Initial resize
+        onWindowResize();
+      }
+
+      // Start when DOM ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+/* ==========================================================================
+   SUMMARY_V400 - RESET & BASE (VisionOS v550 Ultra)
+   CSS Reset and base typography with VisionOS v550 design tokens
+   ========================================================================== */
+
+/* ===== CSS VARIABLES - VisionOS v550 Ultra ===== */
+:root {
+    /* Colors - Background (VisionOS v600 Ultra - Gradient xanh tím 2024) */
+    --bg-from: #040A18;
+    --bg-via: #061429;
+    --bg-to: #040B1A;
+    
+    /* Colors - Surfaces (VisionOS v550 Enhanced Glass) */
+    --surface-glass: rgba(255, 255, 255, 0.06);
+    --surface-glass-strong: rgba(10, 22, 40, 0.92);
+    --surface-glass-hover: rgba(255, 255, 255, 0.09);
+    
+    /* Colors - Borders (VisionOS v600 Ultra) */
+    --border-soft: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.12);
+    --border-neon-cyan: rgba(53, 224, 255, 0.4);
+    
+    /* Colors - Accents */
+    --accent-cyan: #35E0FF;
+    --accent-blue: #0DA7FF;
+    --accent-purple: #7B4DFF;
+    --accent-amber: #FFC857;
+    --accent-red: #FF4B5C;
+    --accent-green: #2CE18F;
+    
+    /* Colors - Text */
+    --text-primary: #F5FAFF;
+    --text-secondary: #A7B3C8;
+    --text-muted: #6F7C90;
+    --text-danger: #FF6B83;
+    --text-warning: #FFD86A;
+    --text-success: #4DE8A4;
+    
+    /* Radius - VisionOS v600 Ultra */
+    --radius-xl: 28px;
+    --radius-lg: 24px;
+    --radius-md: 24px;
+    --radius-sm: 20px;
+    --radius-pill: 999px;
+    --radius-input: 20px;
+    
+    /* Card Styling - VisionOS v600 Ultra */
+    --card-bg: rgba(255, 255, 255, 0.08);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 
+                   0 4px 16px rgba(0, 0, 0, 0.25),
+                   0 2px 8px rgba(0, 0, 0, 0.15),
+                   inset 0 0 40px rgba(255, 255, 255, 0.05);
+    --card-blur: blur(24px);
+    --card-blur-strong: blur(30px);
+    
+    /* Shadows - VisionOS v550 Layered */
+    --shadow-depth-1: 0 8px 24px rgba(0, 0, 0, 0.4), 
+                      0 2px 8px rgba(0, 0, 0, 0.2);
+    --shadow-depth-2: 0 16px 48px rgba(0, 0, 0, 0.5), 
+                      0 4px 16px rgba(0, 0, 0, 0.3);
+    --neon-glow-cyan: 0 0 24px rgba(53, 224, 255, 0.5),
+                      0 0 48px rgba(53, 224, 255, 0.3);
+    --neon-glow-purple: 0 0 20px rgba(123, 77, 255, 0.5),
+                        0 0 40px rgba(123, 77, 255, 0.3);
+    --neon-glow-red: 0 0 20px rgba(255, 75, 92, 0.5),
+                     0 0 40px rgba(255, 75, 92, 0.3);
+    
+    /* Spacing - VisionOS v550 */
+    --space-xs: 8px;
+    --space-sm: 12px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 32px;
+    --space-2xl: 48px;
+    
+    /* Section Spacing - VisionOS v600 Ultra */
+    --section-padding: 24px;
+    --section-gap: 24px;
+    --card-radius: 24px;
+    --card-height: auto;
+    
+    /* Transitions */
+    --transition-fast: 150ms cubic-bezier(0.22, 0.61, 0.36, 1);
+    --transition-normal: 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
+    --transition-slow: 350ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* ===== RESET ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+    color: var(--text-primary);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: linear-gradient(135deg, var(--bg-from) 0%, var(--bg-via) 50%, var(--bg-to) 100%);
+    background-attachment: fixed;
+}

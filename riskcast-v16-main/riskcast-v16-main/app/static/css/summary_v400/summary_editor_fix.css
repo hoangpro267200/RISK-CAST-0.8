@@ -1,0 +1,65 @@
+/* ==========================================================================
+   SUMMARY_V400 - EDITOR POSITIONING FIXES
+   Ensure editor bubble is never clipped by parent containers
+   ========================================================================== */
+
+/* Remove all overflow restrictions from summary containers */
+.summary-root,
+.summary-main-grid,
+.summary-matrix,
+.summary-panel,
+.summary-panel__body,
+.mega-summary,
+.mega-summary__grid,
+.summary-banner,
+.summary-banner__grid,
+.advisor-panel,
+.advisor-panel__body,
+.risk-row,
+.risk-row__inner {
+    overflow: visible !important;
+}
+
+/* Remove transforms that create stacking contexts */
+.summary-panel,
+.mega-summary,
+.summary-matrix,
+.advisor-panel,
+.risk-row {
+    transform: none !important;
+}
+
+/* ===== NO TRANSFORMS - v500 ===== */
+/* All hover effects use box-shadow and border changes only */
+.summary-panel:hover,
+.mega-summary:hover,
+.advisor-panel:hover,
+.risk-row:hover {
+    transform: none !important;
+}
+
+.mega-tile:hover,
+.banner-tile:hover,
+.field-tile:hover,
+.risk-card:hover {
+    transform: none !important;
+}
+
+/* Ensure editor bubble is always on top */
+.editor-bubble {
+    position: fixed !important;
+    z-index: 99999 !important;
+    isolation: isolate;
+    will-change: transform, opacity;
+}
+
+/* Ensure body doesn't clip editor */
+body {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+html {
+    overflow-x: hidden;
+}
+

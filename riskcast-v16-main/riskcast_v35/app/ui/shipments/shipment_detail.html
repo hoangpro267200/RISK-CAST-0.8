@@ -1,0 +1,37 @@
+﻿{% extends "base.html" %}
+{% block title %}Shipment Detail - RISKCAST v35{% endblock %}
+{% block content %}
+<div class="shipment-detail">
+    <h1>Shipment Detail</h1>
+    <section class="overview">
+        <h2>Overview</h2>
+    </section>
+    <section class="pricing-info">
+        <h2>Pricing</h2>
+    </section>
+    <section class="consolidation-info">
+        <h2>Consolidation</h2>
+    </section>
+    <section class="documents">
+        <h2>Documents</h2>
+        <ul id="document-list"></ul>
+    </section>
+    <section class="customs">
+        <h2>Customs</h2>
+    </section>
+    <section class="tracking">
+        <h2>Tracking Events</h2>
+        <ul id="tracking-events"></ul>
+    </section>
+    <section class="risk">
+        <h2>Risk History</h2>
+        <div id="risk-chart"></div>
+    </section>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+// TODO: Fetch and render shipment detail data
+</script>
+{% endblock %}
+

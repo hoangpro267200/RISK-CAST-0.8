@@ -1,0 +1,181 @@
+/* ============================================
+   RISKCAST v16 — NEON CYBER LOGISTICS ICON SYSTEM
+   Premium SVG Icon Component with Neon Glow
+   ============================================ */
+
+/* ============ ICON CARD CONTAINER (DEFAULT - INLINE) ============ */
+.icon-card {
+    width: 32px;
+    height: 32px;
+    background: rgba(0, 255, 120, 0.05);
+    border: 1.8px solid rgba(0, 255, 120, 0.55);
+    border-radius: 10px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 8px;
+    transition: 0.25s ease;
+    box-shadow: 0 0 12px rgba(0, 255, 120, 0.25);
+    position: relative;
+    overflow: hidden;
+    vertical-align: middle;
+}
+
+.icon-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(0, 255, 120, 0.1), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.icon-card:hover::before {
+    opacity: 1;
+}
+
+/* ============ NEON ICON SVG (DEFAULT - INLINE) ============ */
+.neon-icon {
+    width: 18px;
+    height: 18px;
+    color: #00ff88;
+    stroke: #00ff88;
+    fill: none;
+    filter: drop-shadow(0 0 4px #00ff88);
+    transition: 0.25s ease;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* ============ HOVER EFFECTS ============ */
+.icon-card:hover {
+    box-shadow: 0 0 20px #00ff88;
+    border-color: rgba(0, 255, 120, 0.8);
+}
+
+.icon-card:hover .neon-icon {
+    filter: drop-shadow(0 0 8px #00ff88);
+}
+
+/* ============ SIZE VARIANTS ============ */
+.icon-card.small {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+}
+
+.icon-card.small .neon-icon {
+    width: 24px;
+    height: 24px;
+}
+
+.icon-card.medium {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+}
+
+.icon-card.medium .neon-icon {
+    width: 32px;
+    height: 32px;
+}
+
+.icon-card.large {
+    width: 96px;
+    height: 96px;
+    border-radius: 24px;
+}
+
+.icon-card.large .neon-icon {
+    width: 48px;
+    height: 48px;
+}
+
+/* ============ INLINE ICON (for buttons, inputs) ============ */
+.icon-inline {
+    width: 20px;
+    height: 20px;
+    color: #00ff88;
+    filter: drop-shadow(0 0 4px rgba(0, 255, 120, 0.5));
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: 0.2s ease;
+}
+
+.icon-inline:hover {
+    filter: drop-shadow(0 0 8px #00ff88);
+    transform: scale(1.1);
+}
+
+/* ============ MODULE ICON (for algorithm modules) ============ */
+.module-icon-wrapper {
+    width: 44px;
+    height: 44px;
+    background: rgba(0, 255, 120, 0.08);
+    border: 1.5px solid rgba(0, 255, 120, 0.4);
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: 0.25s ease;
+}
+
+.module-icon-wrapper .neon-icon {
+    width: 24px;
+    height: 24px;
+}
+
+.module-icon-wrapper:hover {
+    background: rgba(0, 255, 120, 0.15);
+    border-color: rgba(0, 255, 120, 0.7);
+    box-shadow: 0 0 12px rgba(0, 255, 120, 0.3);
+}
+
+/* ============ BRAND ICON (for header) ============ */
+.brand-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    background: rgba(0, 255, 120, 0.1);
+    border: 1.5px solid rgba(0, 255, 120, 0.6);
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 20px rgba(0, 255, 120, 0.3);
+}
+
+.brand-icon-wrapper .neon-icon {
+    width: 24px;
+    height: 24px;
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 768px) {
+    .icon-card {
+        width: 64px;
+        height: 64px;
+    }
+    
+    .icon-card .neon-icon {
+        width: 32px;
+        height: 32px;
+    }
+}
+
+@media (max-width: 480px) {
+    .icon-card {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+    }
+    
+    .icon-card .neon-icon {
+        width: 28px;
+        height: 28px;
+    }
+}
+

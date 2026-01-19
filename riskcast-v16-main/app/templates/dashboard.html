@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flexport Dashboard — Shipment Tracking & Management</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="/static/css/global_visionos.css">
+    <link rel="stylesheet" href="/static/css/theme/particles.css">
+    <link rel="stylesheet" href="/static/css/components/sidebar.css">
+    <link rel="stylesheet" href="/static/css/components/stats_card.css">
+    <link rel="stylesheet" href="/static/css/pages/dashboard.css">
+    
+    <style>
+        /* Additional inline styles for SVG gradients */
+        .circular-progress__svg defs {
+            display: block;
+        }
+    </style>
+</head>
+<body class="visionos has-topbar">
+    {% include "components/topbar.html" %}
+    <div class="topbar-offset">
+        <!-- Particles Background -->
+        <div class="particles-container"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <!-- Logo -->
+        <div class="sidebar__logo">
+            <div class="sidebar__logo-icon">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L22 7L12 12L2 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <span class="sidebar__logo-text">Flexport</span>
+        </div>
+
+        <!-- Main Menu -->
+        <nav class="sidebar__menu">
+            <a href="/dashboard" class="sidebar__menu-item sidebar__menu-item--active">
+                <span class="sidebar__menu-icon">📊</span>
+                <span class="sidebar__menu-text">Dashboard</span>
+            </a>
+            <a href="/shipments" class="sidebar__menu-item">
+                <span class="sidebar__menu-icon">📦</span>
+                <span class="sidebar__menu-text">Shipments</span>
+            </a>
+            <a href="/tracking" class="sidebar__menu-item">
+                <span class="sidebar__menu-icon">🌐</span>
+                <span class="sidebar__menu-text">Tracking</span>
+            </a>
+            <a href="/analytics" class="sidebar__menu-item">
+                <span class="sidebar__menu-icon">📈</span>
+                <span class="sidebar__menu-text">Analytics</span>
+            </a>
+            <a href="/reports" class="sidebar__menu-item">
+                <span class="sidebar__menu-icon">📄</span>
+                <span class="sidebar__menu-text">Reports</span>
+            </a>
+        </nav>
+
+        <!-- Bottom Menu -->
+        <div class="sidebar__bottom">
+            <a href="/settings" class="sidebar__menu-item">
+                <span class="sidebar__menu-icon">⚙️</span>
+                <span class="sidebar__menu-text">Settings</span>
+            </a>
+            <a href="/support" class="sidebar__menu-item">
+                <span class="sidebar__menu-icon">💬</span>
+                <span class="sidebar__menu-text">Support</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="dashboard-container">
+        <main class="dashboard-main">
+            <!-- Header -->
+            <header class="dashboard-header">
+                <h1 class="dashboard-header__title">Sticky Hero</h1>
+                <div class="dashboard-header__actions">
+                    <div class="search-bar">
+                        <span class="search-bar__icon">🔍</span>
+                        <input 
+                            type="text" 
+                            class="search-bar__input" 
+                            placeholder="Q Search shipm"
+                            autocomplete="off"
+                        >
+                    </div>
+                    <div class="notification-icon">
+                        🔔
+                        <span class="notification-icon__badge">3</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Stats Cards Grid -->
+            <div class="stats-grid">
+                <div class="stats-card">
+                    <div class="stats-card__icon">📦</div>
+                    <div class="stats-card__label">Total Shipments</div>
+                    <div class="stats-card__value">1,234</div>
+                    <div class="stats-card__change">
+                        <span>↑</span>
+                        <span>+12% from last month</span>
+                    </div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-card__icon">✅</div>
+                    <div class="stats-card__label">On Time</div>
+                    <div class="stats-card__value">98%</div>
+                    <div class="stats-card__change">
+                        <span>↑</span>
+                        <span>+2% from last month</span>
+                    </div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-card__icon">🚚</div>
+                    <div class="stats-card__label">In Transit</div>
+                    <div class="stats-card__value">456</div>
+                    <div class="stats-card__change">
+                        <span>→</span>
+                        <span>No change</span>
+                    </div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-card__icon">⚠️</div>
+                    <div class="stats-card__label">Delayed</div>
+                    <div class="stats-card__value">12</div>
+                    <div class="stats-card__change stats-card__change--negative">
+                        <span>↓</span>
+                        <span>-3 from last month</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shipment Tracking Card -->
+            <div class="shipment-card">
+                <div class="shipment-card__info">
+                    <div class="shipment-card__field">
+                        <div class="shipment-card__label">Shipment ID</div>
+                        <div class="shipment-card__value" data-field="id">FX-2023-456</div>
+                    </div>
+                    <div class="shipment-card__field">
+                        <div class="shipment-card__label">Origin</div>
+                        <div class="shipment-card__value" data-field="origin">LAX</div>
+                    </div>
+                    <div class="shipment-card__field">
+                        <div class="shipment-card__label">Destination</div>
+                        <div class="shipment-card__value" data-field="destination">JFK</div>
+                    </div>
+                    <div class="shipment-card__field">
+                        <div class="shipment-card__label">ETA</div>
+                        <div class="shipment-card__value" data-field="eta">2023-11-15</div>
+                    </div>
+                </div>
+                <div class="shipment-card__progress">
+                    <div class="shipment-card__progress-label">
+                        <span>In Transit</span>
+                        <span>75%</span>
+                    </div>
+                    <div class="shipment-card__progress-bar">
+                        <div class="shipment-card__progress-fill" data-progress="75"></div>
+                    </div>
+                    <div class="shipment-card__status">In Transit</div>
+                </div>
+                <!-- Circular Progress -->
+                <div class="circular-progress" data-progress="75">
+                    <svg class="circular-progress__svg" viewBox="0 0 100 100">
+                        <defs>
+                            <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#00d4ff" />
+                                <stop offset="100%" stop-color="#00ff88" />
+                            </linearGradient>
+                        </defs>
+                        <circle class="circular-progress__circle circular-progress__circle-bg" cx="50" cy="50" r="40"></circle>
+                        <circle class="circular-progress__circle circular-progress__circle-fill" cx="50" cy="50" r="40"></circle>
+                    </svg>
+                    <div class="circular-progress__text">75%</div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <div class="quick-action">
+                    <div class="quick-action__icon">🚚</div>
+                    <div class="quick-action__text">Create Shipment</div>
+                </div>
+                <div class="quick-action">
+                    <div class="quick-action__icon">🌐</div>
+                    <div class="quick-action__text">Track Shipment</div>
+                </div>
+                <div class="quick-action">
+                    <div class="quick-action__icon">📊</div>
+                    <div class="quick-action__text">Generate Report</div>
+                </div>
+            </div>
+
+            <!-- Recent Activity & Performance Metrics Grid -->
+            <div class="dashboard-grid">
+                <!-- Recent Activity -->
+                <div class="recent-activity">
+                    <div class="recent-activity__header">
+                        <h2 class="recent-activity__title">Recent Activity</h2>
+                        <div class="recent-activity__controls">
+                            <button class="recent-activity__control-btn activity-play-pause">⏸</button>
+                            <button class="recent-activity__control-btn activity-dropdown">▼</button>
+                        </div>
+                    </div>
+                    <div class="recent-activity__list">
+                        <div class="activity-item">
+                            <div class="activity-item__icon">📦</div>
+                            <div class="activity-item__content">
+                                <div class="activity-item__text">Shipment updated - Shipmecking info -</div>
+                                <div class="activity-item__time">6 mo 2 hours ago</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-item__icon">📊</div>
+                            <div class="activity-item__content">
+                                <div class="activity-item__text">New tracking info - New tracking info -</div>
+                                <div class="activity-item__time">6 mo 1 hours ago</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-item__icon">📊</div>
+                            <div class="activity-item__content">
+                                <div class="activity-item__text">Shipment updated - New tracking info -</div>
+                                <div class="activity-item__time">6 mo 1 hours ago</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Metrics -->
+                <div class="performance-metrics">
+                    <h2 class="performance-metrics__title">Performance Metrics</h2>
+                    <div class="performance-metrics__chart">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="/static/js/pages/dashboard.js"></script>
+    
+    <!-- Translations (if needed) -->
+    <script src="/static/js/core/translations.js"></script>
+</body>
+</html>
+

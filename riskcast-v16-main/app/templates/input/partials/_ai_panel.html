@@ -1,0 +1,76 @@
+<aside class="ai-smart-assist-panel" id="ai-smart-assist-panel">
+    <div class="ai-panel-header">
+        <div class="ai-panel-title">
+            <span>🤖</span>
+            <span>AI Smart Assist</span>
+        </div>
+        <button class="ai-panel-close" id="ai-panel-close" aria-label="Close AI panel">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </button>
+    </div>
+    <div class="ai-panel-content lazy-load" id="ai-panel-content">
+        <div class="ai-welcome-message">
+            <p>Xin chào! Tôi là RISKCAST AI Assistant. Tôi có thể giúp bạn:</p>
+            <ul>
+                <li>Điền form tự động</li>
+                <li>Giải thích các trường dữ liệu</li>
+                <li>Đề xuất giá trị phù hợp</li>
+                <li>Phân tích rủi ro nhanh</li>
+            </ul>
+        </div>
+        <div class="ai-chat-messages" id="ai-chat-messages">
+            <!-- Messages will be loaded here -->
+        </div>
+        <div class="ai-chat-input-wrapper">
+            <input type="text" class="ai-chat-input" id="ai-chat-input" placeholder="Hỏi tôi về form nhập liệu..." autocomplete="off">
+            <button class="ai-chat-send" id="ai-chat-send">Send</button>
+        </div>
+    </div>
+</aside>
+
+<!-- Legacy AI Chat Elements for Backward Compatibility -->
+<div class="ai-widget-container" id="ai-widget-container">
+    <button class="ai-chat-button" id="chatButton" aria-label="Mở trợ lý AI" style="display: none;">
+        <i class="ph ph-robot"></i>
+    </button>
+    <div class="ai-bot-3d" id="aiBot" style="display: none;">
+        <div class="bot-head"></div>
+        <div class="bot-body"></div>
+    </div>
+</div>
+
+<div class="ai-chat-popup" id="chatPopup" style="display: none;">
+    <div class="chat-header">
+        <div class="chat-header-content">
+            <span class="chat-icon">🤖</span>
+            <span class="chat-title">RISKCAST AI Assistant</span>
+        </div>
+        <button class="chat-close" id="chatClose">×</button>
+    </div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input-area">
+        <input type="text" id="chatInput" placeholder="Nhập câu hỏi của bạn..." autocomplete="off">
+        <button id="chatSend">Gửi</button>
+    </div>
+</div>
+
+<!-- Premium AI Chat Panel (if using new design) -->
+<div class="ai-toggle" id="ai-toggle" style="display: none;">
+    <i class="ph ph-robot"></i>
+</div>
+
+<div class="ai-panel" id="ai-panel" style="display: none;">
+    <div class="ai-panel-header">
+        <span>AI Assistant</span>
+        <button class="ai-minimize" id="ai-minimize">−</button>
+    </div>
+    <div class="ai-messages" id="ai-messages"></div>
+    <div class="ai-input-area">
+        <input type="text" id="ai-input" placeholder="Hỏi tôi bất cứ điều gì..." autocomplete="off">
+        <button id="ai-send">Gửi</button>
+    </div>
+</div>
+
+

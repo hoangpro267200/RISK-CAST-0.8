@@ -1,0 +1,696 @@
+/* ====================================================
+   TRANSPORT SETUP SECTION - REFACTORED
+   Enterprise-grade, perfectly aligned, compact
+   ==================================================== */
+
+/* Enterprise Section Card - Highest Priority - DARKER BACKGROUND - NO TRANSPARENCY */
+#section-transport.enterprise-section-card,
+#section-transport {
+    background: rgb(10, 13, 18) !important;
+    border: 1px solid #1a1f2e !important;
+    border-radius: 16px !important;
+    padding: 32px !important;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5) !important;
+    margin-bottom: 32px !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    opacity: 1 !important;
+}
+
+/* Section Title & Subtitle - Override ALL inline styles */
+#section-transport .section-title,
+#section-transport h2.section-title {
+    font-size: 22px !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    margin-bottom: 12px !important;
+    letter-spacing: -0.02em !important;
+    writing-mode: horizontal-tb !important;
+    transform: none !important;
+    text-align: left !important;
+    text-transform: none !important;
+    line-height: 1.4 !important;
+    display: block !important;
+    text-orientation: mixed !important;
+    direction: ltr !important;
+    white-space: normal !important;
+}
+
+#section-transport .section-subtitle,
+#section-transport p.section-subtitle {
+    font-size: 13px !important;
+    color: rgba(255, 255, 255, 0.6) !important;
+    line-height: 1.5 !important;
+    margin-bottom: 28px !important;
+    text-align: left !important;
+}
+
+/* 2-Column Grid - Support both Tailwind classes and direct class - FIX GAP */
+#section-transport .grid.grid-cols-2,
+#section-transport .grid-cols-2,
+#section-transport div[class*="grid"][class*="grid-cols-2"],
+#section-transport > div:first-of-type.grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 20px 24px !important;
+    margin-bottom: 0 !important;
+    width: 100% !important;
+    row-gap: 20px !important;
+    column-gap: 24px !important;
+}
+
+/* Responsive: Mobile = 1 column */
+@media (max-width: 768px) {
+    #section-transport .grid.grid-cols-2,
+    #section-transport .grid-cols-2,
+    #section-transport div[class*="grid"][class*="grid-cols-2"],
+    #section-transport > div:first-of-type.grid {
+        grid-template-columns: 1fr !important;
+        gap: 24px !important;
+    }
+}
+
+/* Form Group - Compact - Override ALL conflicting styles - FIX GAP */
+#section-transport .form-group {
+    margin-bottom: 0 !important;
+    margin-top: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    position: relative !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    gap: 0 !important;
+}
+
+/* Remove inline style overrides for form-group */
+#section-transport .form-group[style*="margin-bottom"],
+#section-transport .form-group[style*="display: flex"],
+#section-transport .form-group[style*="flex-direction"] {
+    margin-bottom: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* Labels - Consistent - Override ALL conflicting styles */
+#section-transport .form-label,
+#section-transport label.form-label {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    margin-bottom: 4px !important;
+    display: block !important;
+    line-height: 1.4 !important;
+    text-align: left !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+    overflow-wrap: break-word !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    white-space: normal !important;
+}
+
+/* Override inline styles on labels */
+#section-transport .form-label[style] {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    margin-bottom: 4px !important;
+    display: block !important;
+    line-height: 1.4 !important;
+    text-align: left !important;
+}
+
+/* Required Indicator */
+#section-transport .required-indicator {
+    color: #ef4444;
+    margin-left: 4px;
+}
+
+/* Auto Badge */
+#section-transport .auto-badge {
+    margin-left: 8px;
+    padding: 2px 8px;
+    background: rgba(0, 255, 136, 0.15);
+    color: #00ff88;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    display: inline-block;
+}
+
+/* Custom Dropdown - Equal Height - FIX OVERFLOW */
+#section-transport .custom-dropdown {
+    width: 100%;
+    overflow: hidden !important;
+    position: relative;
+    contain: layout style paint !important;
+}
+
+#section-transport .custom-dropdown .dropdown-trigger {
+    height: 48px;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    background: rgb(20, 24, 32) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.1s ease, background-color 0.1s ease;
+    opacity: 1 !important;
+}
+
+#section-transport .custom-dropdown .dropdown-trigger:hover {
+    border-color: rgba(0, 255, 136, 0.3);
+    background: rgba(0, 255, 136, 0.05);
+}
+
+#section-transport .custom-dropdown .dropdown-trigger:focus {
+    outline: none;
+    border-color: #00ff88;
+    box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
+}
+
+/* Ensure dropdowns are fully clickable and not dimmed */
+#section-transport .custom-dropdown .dropdown-trigger {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+#section-transport .custom-dropdown .dropdown-trigger:not(.disabled) {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+#section-transport .custom-dropdown .dropdown-value {
+    color: #ffffff !important;
+    opacity: 1 !important;
+}
+
+#section-transport .custom-dropdown .dropdown-value::placeholder {
+    color: rgba(255, 255, 255, 0.6) !important;
+    opacity: 1 !important;
+}
+
+#section-transport .custom-dropdown {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+#section-transport .custom-dropdown.active {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/* Input Wrapper */
+#section-transport .input-wrapper {
+    width: 100% !important;
+    position: relative !important;
+    display: block !important;
+}
+
+#section-transport .form-input {
+    width: 100% !important;
+    height: 48px !important;
+    padding: 0 16px !important;
+    background: rgb(20, 24, 32) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 8px !important;
+    color: #ffffff !important;
+    font-size: 14px !important;
+    transition: border-color 0.1s ease, background-color 0.1s ease !important;
+    box-sizing: border-box !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    cursor: text !important;
+}
+
+#section-transport .form-input:not([disabled]):not([readonly]) {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    cursor: text !important;
+}
+
+#section-transport .form-input:focus {
+    outline: none;
+    border-color: #00ff88;
+    box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
+}
+
+#section-transport .form-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+#section-transport .input-icon {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: color 0.2s ease;
+    z-index: 1;
+}
+
+#section-transport .input-icon:hover {
+    color: #00ff88;
+}
+
+#section-transport .input-suffix {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Full-width fields (span both columns) */
+#section-transport .form-group[style*="grid-column: 1 / -1"] {
+    grid-column: 1 / -1;
+}
+
+/* Error Messages */
+#section-transport .error-message {
+    font-size: 12px;
+    color: #ef4444;
+    margin-top: 4px;
+    display: block;
+}
+
+/* Field Hints */
+#section-transport .field-hint {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 4px;
+    display: block;
+}
+
+/* Climate Card - Collapsible */
+#section-transport .climate-card {
+    margin-top: 24px;
+    border: 1px solid rgba(0, 255, 136, 0.2);
+    border-radius: 12px;
+    overflow: hidden;
+    background: rgba(0, 255, 136, 0.05);
+}
+
+#section-transport .climate-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    background: rgba(0, 255, 136, 0.05);
+}
+
+#section-transport .climate-header:hover {
+    background: rgba(0, 255, 136, 0.08);
+}
+
+#section-transport .climate-header-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+#section-transport .climate-header-score {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: rgba(0, 255, 136, 0.15);
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #00ff88;
+}
+
+#section-transport .climate-toggle-icon,
+#section-transport #climate-arrow {
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#section-transport .climate-card.expanded .climate-toggle-icon,
+#section-transport .climate-card.expanded #climate-arrow {
+    transform: rotate(180deg);
+}
+
+/* Climate Body - Collapsible */
+#section-transport .climate-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#section-transport .climate-body.hidden {
+    max-height: 0 !important;
+}
+
+#section-transport .climate-card.expanded .climate-body:not(.hidden) {
+    max-height: 1000px;
+}
+
+#section-transport .climate-body-content {
+    padding: 20px;
+    border-top: 1px solid rgba(0, 255, 136, 0.2);
+}
+
+#section-transport .climate-body-content h3 {
+    margin: 12px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ffffff;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+#section-transport .climate-body-content .slider-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+#section-transport .climate-body-content .slider-labels span {
+    color: rgba(255, 255, 255, 0.8);
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+/* Route Details Panel */
+#section-transport #route_details_panel {
+    margin-top: 12px;
+    padding: 16px;
+    background: rgba(59, 130, 246, 0.05);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 8px;
+}
+
+/* Carrier Note */
+#section-transport #carrier_note {
+    margin-top: 8px;
+    padding: 8px;
+    background: rgba(59, 130, 246, 0.1);
+    border-left: 3px solid #3B82F6;
+    border-radius: 4px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Priority Weights Preview */
+#section-transport #priority-preview,
+#section-transport .priority-box {
+    margin-top: 24px !important;
+    width: 100% !important;
+}
+
+#section-transport #priority_preview_box {
+    background: rgba(0, 255, 136, 0.08) !important;
+    border: 2px solid rgba(0, 255, 136, 0.3) !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+    transition: all 0.3s ease !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Climate Panel Positioning */
+#section-transport #climate-panel.climate-card {
+    margin-top: 24px !important;
+    width: 100% !important;
+}
+
+/* Ensure grid spacing is correct */
+#section-transport .grid.grid-cols-2 {
+    margin-bottom: 0 !important;
+}
+
+/* Full-width fields that span both columns */
+#section-transport .form-group[style*="grid-column: 1 / -1"],
+#section-transport .form-group[style*="grid-column"] {
+    grid-column: 1 / -1 !important;
+}
+
+/* Override any conflicting width constraints */
+#section-transport * {
+    box-sizing: border-box;
+}
+
+/* ====================================================
+   CRITICAL FIX: FORCE ALL ELEMENTS TO BE VISIBLE
+   Override ANY opacity or pointer-events that make elements dimmed
+   ==================================================== */
+
+/* Force all form elements to be fully visible and interactive */
+#section-transport input,
+#section-transport select,
+#section-transport textarea,
+#section-transport .form-input,
+#section-transport .custom-dropdown,
+#section-transport .dropdown-trigger,
+#section-transport .dropdown-menu,
+#section-transport .dropdown-option {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/* Force all text to be visible */
+#section-transport .dropdown-value,
+#section-transport .transport-label,
+#section-transport .transport-description,
+#section-transport .transport-meta,
+#section-transport .transport-time,
+#section-transport .transport-share {
+    opacity: 1 !important;
+    color: #ffffff !important;
+}
+
+/* Override any disabled states that might be applied */
+#section-transport input:not([disabled]),
+#section-transport select:not([disabled]),
+#section-transport textarea:not([disabled]),
+#section-transport .form-input:not([disabled]),
+#section-transport .custom-dropdown:not([disabled]),
+#section-transport .dropdown-trigger:not([disabled]) {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+/* Ensure transport mode group is visible */
+#section-transport .transport-mode-group,
+#section-transport #transport_mode_dropdown,
+#section-transport #transport_mode_dropdown .dropdown-menu {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    display: grid !important;
+}
+
+/* Force all badges and labels to be visible */
+#section-transport .badge-recommended,
+#section-transport .badge,
+#section-transport .auto-badge {
+    opacity: 1 !important;
+    color: #00ff88 !important;
+    background: rgba(0, 255, 136, 0.15) !important;
+}
+
+/* Override ALL possible opacity rules from other CSS files */
+#section-transport .dropdown-option[style*="opacity"],
+#section-transport .dropdown-value[style*="opacity"],
+#section-transport .dropdown-trigger[style*="opacity"],
+#section-transport .form-input[style*="opacity"] {
+    opacity: 1 !important;
+}
+
+/* Ensure transport mode options are fully visible - SOLID BACKGROUND */
+#section-transport #transport_mode_dropdown .dropdown-option,
+#section-transport #transport_mode_dropdown .dropdown-menu .dropdown-option {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    color: #ffffff !important;
+    background: rgb(20, 24, 32) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+#section-transport #transport_mode_dropdown .dropdown-option:hover,
+#section-transport #transport_mode_dropdown .dropdown-menu .dropdown-option:hover {
+    opacity: 1 !important;
+    background: rgba(0, 255, 136, 0.25) !important;
+    border-color: rgba(0, 255, 136, 0.4) !important;
+    color: #ffffff !important;
+}
+
+/* Route dropdown options - SOLID BACKGROUND */
+#section-transport #route_dropdown .dropdown-option {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    color: #ffffff !important;
+    background: rgb(20, 24, 32) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+#section-transport #route_dropdown .dropdown-option:hover {
+    opacity: 1 !important;
+    background: rgba(0, 255, 136, 0.25) !important;
+    border-color: rgba(0, 255, 136, 0.4) !important;
+    color: #ffffff !important;
+}
+
+/* Remove any filter or blur that might make things look dimmed */
+#section-transport .custom-dropdown,
+#section-transport .dropdown-trigger,
+#section-transport .dropdown-menu,
+#section-transport .dropdown-option {
+    filter: none !important;
+    -webkit-filter: none !important;
+}
+
+/* CRITICAL FIX: Prevent ghost dropdowns - ensure only 1 menu is visible - SOLID BACKGROUND */
+#section-transport .custom-dropdown .dropdown-menu {
+    position: absolute !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+    display: none !important;
+    transform: translateY(0) scale(1) !important;
+    transform-style: flat !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    z-index: 9999 !important;
+    background: rgb(15, 18, 25) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8) !important;
+    contain: layout style paint !important;
+    /* CRITICAL: Prevent ghost menu duplication */
+}
+
+#section-transport .custom-dropdown.active .dropdown-menu {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    visibility: visible !important;
+    display: block !important;
+    transform: translateY(0) scale(1) !important;
+    transform-style: flat !important;
+    z-index: 10000 !important;
+    /* CRITICAL: Only active dropdown menu should be visible */
+}
+
+/* Ensure only 1 dropdown is active at a time */
+#section-transport .custom-dropdown:not(.active) .dropdown-menu {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    display: none !important;
+    pointer-events: none !important;
+}
+
+#section-transport .custom-dropdown .dropdown-option {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    color: #ffffff !important;
+    background: rgb(20, 24, 32) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    transition: background-color 0.1s ease, border-color 0.1s ease !important;
+    margin: 0 !important;
+    padding: 12px 16px !important;
+}
+
+#section-transport .custom-dropdown .dropdown-option:hover {
+    opacity: 1 !important;
+    background: rgba(0, 255, 136, 0.25) !important;
+    border-color: rgba(0, 255, 136, 0.4) !important;
+    color: #ffffff !important;
+}
+
+#section-transport .custom-dropdown .dropdown-option.selected {
+    opacity: 1 !important;
+    background: rgba(0, 255, 136, 0.2) !important;
+    color: #ffffff !important;
+}
+
+#section-transport .custom-dropdown .dropdown-option.focused {
+    opacity: 1 !important;
+    background: rgba(0, 255, 136, 0.25) !important;
+    color: #ffffff !important;
+}
+
+/* Transport mode options - ensure they're not dimmed */
+#section-transport .transport-mode-group .dropdown-option,
+#section-transport #transport_mode_dropdown .dropdown-option,
+#section-transport .dropdown-option[data-value*="sea"],
+#section-transport .dropdown-option[data-value*="road"],
+#section-transport .dropdown-option[data-value*="rail"],
+#section-transport .dropdown-option[data-value*="air"] {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    color: #ffffff !important;
+}
+
+/* Transport option content - ensure text is visible */
+#section-transport .transport-option-content,
+#section-transport .transport-label,
+#section-transport .transport-description {
+    opacity: 1 !important;
+    color: #ffffff !important;
+}
+
+#section-transport .transport-label {
+    color: #ffffff !important;
+    opacity: 1 !important;
+}
+
+#section-transport .transport-meta {
+    color: rgba(255, 255, 255, 0.8) !important;
+    opacity: 1 !important;
+}
+
+/* Route options - ensure they're not dimmed */
+#section-transport #route_dropdown .dropdown-option,
+#section-transport .dropdown-option[data-value*="vn_"] {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    color: #ffffff !important;
+}
+
+/* All dropdown options in transport section */
+#section-transport .dropdown-menu .dropdown-option {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    color: #ffffff !important;
+}
+
+/* Dropdown arrow - ensure it's visible */
+#section-transport .dropdown-arrow {
+    opacity: 1 !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+#section-transport .custom-dropdown.active .dropdown-arrow {
+    opacity: 1 !important;
+    color: #00ff88 !important;
+}

@@ -1,0 +1,47 @@
+DEAD FILES REPORT - RISKCAST
+================================================================================
+
+✅ Confirmed used: 53 files
+❌ Dead files: 3 files
+⚠️  Questionable: 25 files
+
+
+================================================================================
+DEAD FILES (Safe to delete)
+================================================================================
+
+css/input_performance.css (8.0 KB)
+css/premium_input_dashboard.css (12.7 KB)
+js/charts.js (4.8 KB)
+
+Total: 3 files, 0.02 MB
+
+================================================================================
+QUESTIONABLE FILES (Review manually)
+================================================================================
+
+css/base/mixins.css (0.0 KB)
+css/base/reset.css (0.5 KB)
+css/base/typography.css (0.3 KB)
+css/base/variables.css (0.0 KB)
+css/components/alerts.css (0.4 KB)
+css/components/buttons.css (0.4 KB)
+css/components/cards.css (1.1 KB)
+css/components/charts.css (0.4 KB)
+css/components/chips.css (0.6 KB)
+css/components/exec.css (0.5 KB)
+css/components/forms.css (0.5 KB)
+css/components/insight.css (0.5 KB)
+css/components/investor.css (0.8 KB)
+css/components/kpi.css (0.6 KB)
+css/components/meta.css (0.2 KB)
+css/components/modules.css (0.2 KB)
+css/components/research.css (0.2 KB)
+css/components/scenario.css (0.5 KB)
+css/pages/investor.css (1.4 KB)
+css/pages/research.css (1.3 KB)
+css/theme/dark.css (0.6 KB)
+css/theme/print.css (0.8 KB)
+css/utils_/animations.css (1.1 KB)
+css/utils_/helpers.css (0.7 KB)
+css/utils_/zindex.css (0.5 KB)

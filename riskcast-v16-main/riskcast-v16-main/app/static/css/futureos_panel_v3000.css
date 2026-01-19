@@ -1,0 +1,455 @@
+/* ============================================
+   FutureOS Panel v3000 - Status Board
+   VisionOS + Palantir OS Style
+   ============================================ */
+
+/* ============================================
+   1. CONTAINER & BASE STYLING
+   ============================================ */
+.futureos-panel-v3000 {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 24px 20px;
+  perspective: 1200px;
+}
+
+.futureos-panel-container {
+  width: 100%;
+  max-width: 1040px;
+  padding: 28px 32px;
+  position: relative;
+  
+  /* Matte black base */
+  background: 
+    linear-gradient(135deg, #020405 0%, #03080a 50%, #020405 100%);
+  
+  /* Border radius smooth - giảm từ 30px */
+  border-radius: 26px;
+  
+  /* Border glow cyan/teal nhẹ */
+  border: 1px solid rgba(0, 240, 255, 0.12);
+  
+  /* Shadow 3 lớp */
+  box-shadow: 
+    /* Base shadow */
+    0 20px 60px rgba(0, 0, 0, 0.6),
+    /* Inner glow cyan */
+    inset 0 0 40px rgba(0, 255, 255, 0.08),
+    /* Edge lighten */
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  
+  /* Transform - nhẹ, không nghiêng quá */
+  transform: 
+    rotateX(2deg) 
+    rotateY(0deg) 
+    translateY(0px);
+  
+  /* Animation: Subtle breathing glow only */
+  animation: breatheGlow 8s ease-in-out infinite;
+  
+  /* Backdrop blur effect */
+  backdrop-filter: blur(20px) saturate(180%);
+  
+  /* Overflow */
+  overflow: hidden;
+}
+
+/* ============================================
+   2. NOISE OVERLAY (Texture layer)
+   ============================================ */
+.futureos-noise-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 26px;
+  opacity: 0.15;
+  background-image: 
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+
+/* ============================================
+   3. INNER GLOW LAYER
+   ============================================ */
+.futureos-inner-glow {
+  position: absolute;
+  inset: -2px;
+  border-radius: 26px;
+  background: radial-gradient(
+    circle at 50% 20%,
+    rgba(0, 240, 255, 0.06) 0%,
+    transparent 60%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ============================================
+   4. HEADER STYLING
+   ============================================ */
+.futureos-panel-header {
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.futureos-panel-title {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: rgba(232, 247, 255, 0.9);
+  letter-spacing: -0.2px;
+  line-height: 1.4;
+}
+
+/* ============================================
+   5. GRID LAYOUT (2 Columns - Compact)
+   ============================================ */
+.futureos-panel-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 36px;
+  row-gap: 0;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.futureos-panel-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Group Label - Visual Hierarchy */
+.futureos-group-label {
+  font-family: 'Inter', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(232, 247, 255, 0.55);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  margin-top: 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================
+   6. BULLET ITEMS (Compact)
+   ============================================ */
+.futureos-bullet-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+}
+
+.futureos-bullet-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  
+  /* Glow nhẹ */
+  box-shadow: 0 0 6px currentColor;
+  
+  /* Animation: Pulse - nhẹ hơn */
+  animation: bulletPulse 3s ease-in-out infinite;
+}
+
+/* Color variants */
+.futureos-bullet-item[data-color="green"] .futureos-bullet-dot {
+  background-color: #36e27b;
+  color: #36e27b;
+}
+
+.futureos-bullet-item[data-color="cyan"] .futureos-bullet-dot {
+  background-color: #00f0ff;
+  color: #00f0ff;
+}
+
+.futureos-bullet-item[data-color="yellow"] .futureos-bullet-dot {
+  background-color: #ffe066;
+  color: #ffe066;
+}
+
+.futureos-bullet-item[data-color="purple"] .futureos-bullet-dot {
+  background-color: #a580ff;
+  color: #a580ff;
+}
+
+.futureos-bullet-text {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+  font-size: 14.5px;
+  font-weight: 400;
+  color: rgba(232, 247, 255, 0.85);
+  letter-spacing: -0.2px;
+  line-height: 1.4;
+}
+
+/* ============================================
+   7. SIMULATION SNAPSHOT BLOCK (Compact Status Strip)
+   ============================================ */
+.futureos-snapshot-block {
+  margin-top: 20px;
+  padding: 14px 18px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 240, 255, 0.08);
+  border-radius: 14px;
+  position: relative;
+  z-index: 1;
+  backdrop-filter: blur(10px);
+  max-height: 84px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.futureos-snapshot-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.futureos-snapshot-label {
+  font-family: 'Inter', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(232, 247, 255, 0.6);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.futureos-snapshot-risk {
+  font-family: 'Inter', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: #ff3366;
+  letter-spacing: 0.1em;
+}
+
+/* Status Strip - AI Log Style */
+.futureos-snapshot-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 20px;
+  align-items: center;
+}
+
+.futureos-snapshot-log {
+  font-family: 'Inter', monospace;
+  font-size: 12px;
+  color: rgba(232, 247, 255, 0.7);
+  letter-spacing: -0.1px;
+  line-height: 1.4;
+}
+
+.futureos-snapshot-value {
+  font-weight: 500;
+  letter-spacing: -0.1px;
+}
+
+.futureos-snapshot-value.weather {
+  color: #00f0ff;
+}
+
+.futureos-snapshot-value.port {
+  color: #ffe066;
+}
+
+.futureos-snapshot-value.carrier {
+  color: #36e27b;
+}
+
+.futureos-snapshot-value.risk {
+  color: #ff3366;
+}
+
+/* ============================================
+   8. RESULT TAGS
+   ============================================ */
+.futureos-tags-container {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+}
+
+.futureos-tag {
+  padding: 6px 14px;
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  border: 1px solid;
+  backdrop-filter: blur(10px);
+}
+
+.futureos-tag.risk {
+  color: #ff3366;
+  background: rgba(255, 51, 102, 0.1);
+  border-color: rgba(255, 51, 102, 0.3);
+}
+
+.futureos-tag.weather {
+  color: #00f0ff;
+  background: rgba(0, 240, 255, 0.1);
+  border-color: rgba(0, 240, 255, 0.3);
+}
+
+.futureos-tag.port {
+  color: #ffe066;
+  background: rgba(255, 224, 102, 0.1);
+  border-color: rgba(255, 224, 102, 0.3);
+}
+
+/* ============================================
+   9. ANIMATIONS
+   ============================================ */
+
+/* Subtle breathing glow - nhẹ hơn */
+@keyframes breatheGlow {
+  0%, 100% {
+    box-shadow: 
+      0 20px 60px rgba(0, 0, 0, 0.6),
+      inset 0 0 40px rgba(0, 255, 255, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    border-color: rgba(0, 240, 255, 0.12);
+  }
+  50% {
+    box-shadow: 
+      0 20px 60px rgba(0, 0, 0, 0.6),
+      inset 0 0 40px rgba(0, 255, 255, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    border-color: rgba(0, 240, 255, 0.15);
+  }
+}
+
+/* Bullet pulse - nhẹ hơn */
+@keyframes bulletPulse {
+  0%, 100% {
+    transform: scale(0.95);
+    opacity: 0.75;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 1;
+  }
+}
+
+/* Stagger animation for bullets */
+.futureos-bullet-item:nth-child(1) .futureos-bullet-dot {
+  animation-delay: 0s;
+}
+
+.futureos-bullet-item:nth-child(2) .futureos-bullet-dot {
+  animation-delay: 0.2s;
+}
+
+.futureos-bullet-item:nth-child(3) .futureos-bullet-dot {
+  animation-delay: 0.4s;
+}
+
+.futureos-bullet-item:nth-child(4) .futureos-bullet-dot {
+  animation-delay: 0.6s;
+}
+
+.futureos-bullet-item:nth-child(5) .futureos-bullet-dot {
+  animation-delay: 0.8s;
+}
+
+/* ============================================
+   10. RESPONSIVE
+   ============================================ */
+
+/* Laptop 1366-1440px - vẫn fit 1 viewport */
+@media (max-width: 1440px) and (min-width: 1280px) {
+  .futureos-panel-container {
+    max-width: 980px;
+    padding: 26px 28px;
+  }
+  
+  .futureos-panel-grid {
+    column-gap: 32px;
+  }
+}
+
+/* Tablet */
+@media (max-width: 1279px) and (min-width: 769px) {
+  .futureos-panel-container {
+    max-width: 900px;
+    padding: 24px 28px;
+  }
+  
+  .futureos-panel-grid {
+    column-gap: 28px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .futureos-panel-v3000 {
+    padding: 20px 12px;
+  }
+
+  .futureos-panel-container {
+    width: 95%;
+    padding: 20px;
+    border-radius: 20px;
+    transform: rotateX(0deg);
+  }
+
+  .futureos-panel-grid {
+    grid-template-columns: 1fr;
+    column-gap: 0;
+    row-gap: 0;
+  }
+  
+  .futureos-group-label {
+    margin-top: 16px;
+    margin-bottom: 6px;
+  }
+  
+  .futureos-group-label:first-child {
+    margin-top: 0;
+  }
+
+  .futureos-snapshot-strip {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .futureos-tags-container {
+    justify-content: flex-start;
+  }
+
+  .futureos-panel-title {
+    font-size: 14px;
+  }
+
+  .futureos-bullet-text {
+    font-size: 13.5px;
+  }
+}
+
+/* ============================================
+   11. HOVER EFFECTS (Optional)
+   ============================================ */
+@media (hover: hover) {
+  .futureos-bullet-item:hover .futureos-bullet-dot {
+    transform: scale(1.2);
+    box-shadow: 0 0 12px currentColor;
+  }
+
+  .futureos-bullet-item:hover .futureos-bullet-text {
+    color: rgba(232, 247, 255, 1);
+  }
+}

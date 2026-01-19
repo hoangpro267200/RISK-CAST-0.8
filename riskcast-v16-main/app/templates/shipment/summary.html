@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipment Summary - RISKCAST</title>
+    
+    <!-- Tailwind CSS with multiple fallbacks -->
+    <link rel="stylesheet" href="/static/css/tailwind_fallback.css">
+    
+    <!-- Try TailwindCSS CDN (Play CDN) - will enhance if available -->
+    <script src="https://cdn.tailwindcss.com" onerror="console.log('TailwindCSS CDN not available, using fallback CSS')"></script>
+    
+    <!-- Alternative: jsDelivr CDN as backup -->
+    <script>
+        // Check if Tailwind loaded, if not, we're using fallback CSS which is fine
+        window.addEventListener('load', function() {
+            if (typeof tailwind === 'undefined') {
+                console.log('Using local Tailwind fallback CSS');
+            }
+        });
+    </script>
+</head>
+<body>
+    <!-- Main Container -->
+    <div id="shipment-summary-root" class="min-h-screen bg-gradient-to-br from-[#0a1628] via-[#0d1b35] to-[#0a1628] relative overflow-hidden">
+        <!-- Ambient glow effects -->
+        <div class="absolute top-0 right-0 w-[800px] h-[800px] bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 w-[600px] h-[600px] bg-violet-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+        
+        <div class="relative z-10 max-w-7xl mx-auto px-6 py-8 space-y-6">
+            <!-- Shipment Header Section -->
+            <div id="shipment-header-container"></div>
+            
+            <!-- Risk Snapshot Strip -->
+            <div id="risk-snapshot-container"></div>
+            
+            <!-- Information Cards Grid -->
+            <div id="information-cards-container"></div>
+            
+            <!-- Intelligence Modules -->
+            <div id="intelligence-modules-container"></div>
+            
+            <!-- System Confirmation -->
+            <div id="system-confirmation-container"></div>
+            
+            <!-- Primary CTA -->
+            <div class="flex justify-center pt-4 pb-8">
+                <button
+                    id="run-analysis-btn"
+                    data-action="run-full-analysis"
+                    class="group relative px-8 py-4 bg-gradient-to-r from-cyan-500 to-teal-500 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-[0_0_40px_rgba(6,182,212,0.4)] hover:scale-[1.02] active:scale-[0.98]"
+                >
+                    <div class="absolute inset-0 bg-gradient-to-r from-cyan-400 to-teal-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div class="relative flex items-center gap-3 text-white">
+                        <span class="tracking-wide">Run Full Risk Analysis</span>
+                        <svg class="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Templates (Hidden) -->
+    <template id="shipment-header-template">
+        <div class="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+            <div class="flex items-start justify-between gap-6">
+                <div class="flex-1 space-y-4">
+                    <!-- Shipment ID -->
+                    <div>
+                        <div class="text-cyan-400/70 text-sm mb-1">Shipment ID</div>
+                        <div class="text-white/90 tracking-wide" data-field="shipment_id">SH-SGN-LAX-1767406112</div>
+                    </div>
+
+                    <!-- Route -->
+                    <div class="flex items-center gap-4">
+                        <div>
+                            <div class="text-cyan-400/70 text-sm mb-1">Origin</div>
+                            <div class="text-white" data-field="origin_code">SGN</div>
+                            <div class="text-white/50 text-sm" data-field="origin_city">Ho Chi Minh City</div>
+                        </div>
+                        
+                        <div class="flex items-center gap-2 pt-6">
+                            <div class="h-px w-12 bg-gradient-to-r from-cyan-500/50 to-teal-500/50"></div>
+                            <svg class="w-5 h-5 text-cyan-400 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            <div class="h-px w-12 bg-gradient-to-r from-teal-500/50 to-cyan-500/50"></div>
+                        </div>
+                        
+                        <div>
+                            <div class="text-cyan-400/70 text-sm mb-1">Destination</div>
+                            <div class="text-white" data-field="destination_code">LAX</div>
+                            <div class="text-white/50 text-sm" data-field="destination_city">Los Angeles</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right side - Mode & ETA -->
+                <div class="flex gap-6">
+                    <div>
+                        <div class="text-cyan-400/70 text-sm mb-1">Transport Mode</div>
+                        <div class="inline-flex items-center gap-2 px-4 py-2 bg-cyan-500/10 border border-cyan-500/30 rounded-xl">
+                            <svg class="w-4 h-4 text-cyan-400" data-transport-icon fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <!-- Icon varies based on mode -->
+                            </svg>
+                            <span class="text-white" data-field="transport_mode">Air</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="text-cyan-400/70 text-sm mb-1">ETA Range</div>
+                        <div class="text-white" data-field="eta_range">Jan 8-10, 2026</div>
+                        <div class="text-white/50 text-sm" data-field="eta_duration">5-7 days</div>
+                    </div>
+
+                    <!-- Data Confidence -->
+                    <div>
+                        <div class="text-cyan-400/70 text-sm mb-1">Data Confidence</div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-24 h-2 bg-white/10 rounded-full overflow-hidden">
+                                <div 
+                                    class="h-full bg-gradient-to-r from-cyan-500 to-teal-500 rounded-full"
+                                    data-confidence-bar
+                                    style="width: 85%"
+                                ></div>
+                            </div>
+                            <span class="text-teal-400" data-field="confidence_percent">85%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="risk-snapshot-template">
+        <div class="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+            <div class="text-cyan-400/70 text-sm mb-4">Risk Preview</div>
+            <div class="grid grid-cols-4 gap-4" id="risk-metrics-grid">
+                <!-- Metrics rendered dynamically -->
+            </div>
+        </div>
+    </template>
+
+    <template id="risk-metric-item">
+        <div 
+            class="flex items-center gap-3 px-4 py-3 rounded-xl border"
+            data-metric-id=""
+        >
+            <svg class="w-5 h-5" data-metric-icon fill="none" stroke="currentColor" viewBox="0 0 24 24"></svg>
+            <div class="flex-1">
+                <div class="text-white/50 text-xs" data-metric-label></div>
+                <div class="mt-0.5" data-metric-value></div>
+            </div>
+        </div>
+    </template>
+
+    <template id="information-cards-template">
+        <div class="grid grid-cols-3 gap-6">
+            <!-- Route & Transit Card -->
+            <div class="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.3)] group hover:border-cyan-500/30 transition-all duration-300" data-card="route-transit">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="p-2 bg-cyan-500/10 border border-cyan-500/30 rounded-xl group-hover:bg-cyan-500/20 transition-colors">
+                        <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-white/90">Route & Transit</h3>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="flex justify-between items-start">
+                        <span class="text-white/50">Departure</span>
+                        <div class="text-right">
+                            <div class="text-white/90" data-field="departure_date">Jan 3, 2026</div>
+                            <div class="text-white/40 text-sm" data-field="departure_time">14:30 UTC+7</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-start">
+                        <span class="text-white/50">Arrival</span>
+                        <div class="text-right">
+                            <div class="text-white/90" data-field="arrival_date">Jan 8-10, 2026</div>
+                            <div class="text-white/40 text-sm">Expected</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-start">
+                        <span class="text-white/50">Transit Duration</span>
+                        <div class="text-white/90" data-field="transit_duration">5-7 days</div>
+                    </div>
+                    
+                    <div class="flex justify-between items-start">
+                        <span class="text-white/50">Incoterms</span>
+                        <div class="text-white/90" data-field="incoterms">FOB</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cargo & Packaging Card -->
+            <div class="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.3)] group hover:border-teal-500/30 transition-all duration-300" data-card="cargo-packaging">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="p-2 bg-teal-500/10 border border-teal-500/30 rounded-xl group-hover:bg-teal-500/20 transition-colors">
+                        <svg class="w-5 h-5 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-white/90">Cargo & Packaging</h3>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="flex justify-between items-start">
+                        <span class="text-white/50">Commodity</span>
+                        <div class="text-white/90" data-field="commodity">Electronics</div>
+                    </div>
+                    
+                    <div class="flex justify-between items-start">
+                        <span class="text-white/50">Value</span>
+                        <div class="text-white/90" data-field="cargo_value">$145,000</div>
+                    </div>
+                    
+                    <div class="flex justify-between items-start">
+                        <span class="text-white/50">Weight</span>
+                        <div class="text-white/90" data-field="cargo_weight">2,450 kg</div>
+                    </div>
+                    
+                    <div class="flex justify-between items-start">
+                        <span class="text-white/50">Packaging</span>
+                        <div class="text-white/90" data-field="packaging">12 Pallets</div>
+                    </div>
+                    
+                    <div class="flex justify-between items-start">
+                        <span class="text-white/50">HS Code</span>
+                        <div class="text-white/90" data-field="hs_code">8471.30</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Parties Card -->
+            <div class="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.3)] group hover:border-violet-500/30 transition-all duration-300" data-card="parties">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="p-2 bg-violet-500/10 border border-violet-500/30 rounded-xl group-hover:bg-violet-500/20 transition-colors">
+                        <svg class="w-5 h-5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-white/90">Parties</h3>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <div class="text-white/50 text-sm mb-1">Shipper</div>
+                        <div class="text-white/90" data-field="shipper_name">TechVN Manufacturing</div>
+                        <div class="text-white/40 text-sm" data-field="shipper_location">Ho Chi Minh City, VN</div>
+                    </div>
+                    
+                    <div class="h-px bg-white/10"></div>
+                    
+                    <div>
+                        <div class="text-white/50 text-sm mb-1">Consignee</div>
+                        <div class="text-white/90" data-field="consignee_name">Pacific Electronics Corp</div>
+                        <div class="text-white/40 text-sm" data-field="consignee_location">Los Angeles, CA, USA</div>
+                    </div>
+                    
+                    <div class="h-px bg-white/10"></div>
+                    
+                    <div>
+                        <div class="text-white/50 text-sm mb-1">Carrier</div>
+                        <div class="text-white/90" data-field="carrier_name">Global Air Freight</div>
+                        <div class="text-white/40 text-sm" data-field="carrier_rating">Rating: 4.7/5.0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="intelligence-modules-template">
+        <div class="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+            <div class="mb-6">
+                <h3 class="text-white/90 mb-1">Intelligence Analysis Layers</h3>
+                <p class="text-white/50 text-sm">Select data signals to include in risk assessment</p>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4" id="modules-grid">
+                <!-- Module buttons rendered dynamically -->
+            </div>
+
+            <!-- Active modules count -->
+            <div class="mt-6 pt-6 border-t border-white/10">
+                <div class="flex items-center justify-between text-sm">
+                    <span class="text-white/50">Active analysis layers</span>
+                    <span class="text-cyan-400" id="active-modules-count">5 of 6</span>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="module-item-template">
+        <button
+            data-module-id=""
+            data-module-active="false"
+            class="relative p-5 rounded-2xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] text-left module-toggle-btn border"
+        >
+            <!-- Toggle indicator -->
+            <div class="absolute top-4 right-4">
+                <div class="module-toggle-track w-10 h-6 rounded-full transition-colors bg-white/10">
+                    <div class="module-toggle-thumb w-4 h-4 bg-white rounded-full mt-1 transition-transform ml-1"></div>
+                </div>
+            </div>
+
+            <div class="flex items-start gap-3 mb-3">
+                <div class="module-icon-wrapper p-2 rounded-xl">
+                    <svg class="w-5 h-5 module-icon" data-icon-type="" fill="none" stroke="currentColor" viewBox="0 0 24 24"></svg>
+                </div>
+                <div class="flex-1 pr-12">
+                    <div class="module-label transition-colors text-white/60" data-module-label></div>
+                    <div class="text-white/40 text-sm" data-module-description></div>
+                </div>
+            </div>
+
+            <div class="module-active-indicator hidden items-center gap-1.5 text-xs text-cyan-400">
+                <div class="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse"></div>
+                <span>Signal active</span>
+            </div>
+        </button>
+    </template>
+
+    <template id="system-confirmation-template">
+        <div class="backdrop-blur-xl bg-gradient-to-br from-teal-500/10 to-cyan-500/10 border border-teal-500/30 rounded-3xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.3)] relative overflow-hidden">
+            <!-- Subtle glow -->
+            <div class="absolute inset-0 bg-gradient-to-r from-teal-500/5 to-cyan-500/5 opacity-50"></div>
+            
+            <div class="relative space-y-4">
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="w-2 h-2 bg-teal-400 rounded-full animate-pulse"></div>
+                    <span class="text-teal-400 text-sm tracking-wide">SYSTEM STATUS</span>
+                </div>
+
+                <div class="grid grid-cols-3 gap-6" id="confirmations-grid">
+                    <!-- Confirmation items rendered dynamically -->
+                </div>
+
+                <!-- Processing indicator -->
+                <div class="mt-6 pt-6 border-t border-teal-500/20">
+                    <div class="flex items-center justify-between">
+                        <div class="text-white/60 text-sm">Analysis engine status</div>
+                        <div class="flex items-center gap-2">
+                            <div class="flex gap-1">
+                                <div class="w-1.5 h-1.5 bg-teal-400 rounded-full animate-pulse" style="animation-delay: 0ms"></div>
+                                <div class="w-1.5 h-1.5 bg-teal-400 rounded-full animate-pulse" style="animation-delay: 150ms"></div>
+                                <div class="w-1.5 h-1.5 bg-teal-400 rounded-full animate-pulse" style="animation-delay: 300ms"></div>
+                            </div>
+                            <span class="text-teal-400 text-sm">Online</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="confirmation-item-template">
+        <div class="flex items-start gap-3">
+            <div class="p-2 bg-teal-500/20 border border-teal-500/40 rounded-xl">
+                <svg class="w-5 h-5 text-teal-400" data-confirmation-icon fill="none" stroke="currentColor" viewBox="0 0 24 24"></svg>
+            </div>
+            <div>
+                <div class="text-white/90 mb-0.5" data-confirmation-text></div>
+                <div class="text-white/40 text-sm" data-confirmation-detail></div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Inject shipment data from Python template -->
+    <script>
+        // Populated by Python/Jinja2 template
+        {% if shipment_data %}
+        window.SHIPMENT_DATA = {{ shipment_data|safe }};
+        {% else %}
+        window.SHIPMENT_DATA = {};
+        {% endif %}
+    </script>
+
+    <!-- Load JavaScript modules -->
+    <script src="/static/js/summary/summary_state_sync_v2.js"></script>
+    <script src="/static/js/summary/summary_renderer_v2.js"></script>
+    <script src="/static/js/summary/summary_controller_v2.js"></script>
+</body>
+</html>
+

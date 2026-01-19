@@ -1,0 +1,23 @@
+﻿{% extends "base.html" %}
+{% block title %}Consolidation Center - RISKCAST v35{% endblock %}
+{% block content %}
+<div class="consolidation-center">
+    <h1>AI Consolidation Engine</h1>
+    <section class="shipment-selection">
+        <h2>Select Shipments to Consolidate</h2>
+        <div id="shipment-list"></div>
+        <button id="create-plan-btn">Create Consolidation Plan</button>
+    </section>
+    <section class="plan-results" style="display:none;">
+        <h2>Consolidation Plan</h2>
+        <div id="container-assignments"></div>
+        <div id="savings-summary"></div>
+    </section>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+// TODO: Fetch shipments and submit plan
+</script>
+{% endblock %}
+

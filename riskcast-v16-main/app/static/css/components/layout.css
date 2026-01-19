@@ -1,0 +1,82 @@
+@import url("../futureos_tokens.css");
+
+.rc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  background: var(--rc-bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--rc-radius);
+  box-shadow: var(--rc-shadow);
+}
+
+.rc-header__brand {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rc-header__title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+}
+
+.rc-header__subtitle {
+  font-size: 13px;
+  color: var(--rc-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.rc-header__actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.rc-main {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.rc-main-left {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.rc-main-right {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  position: sticky;
+  top: 20px;
+  height: fit-content;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.rc-panel--split {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.rc-panel--wide {
+  padding: 16px 16px 12px;
+}
+
+
+
+
+
+
+

@@ -1,0 +1,77 @@
+# RISKCAST v17 - Python Dependencies
+# =====================================
+# Install with: pip install -r requirements_v17.txt
+
+# Core Framework
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+starlette>=0.35.0
+pydantic>=2.5.0
+
+# Database
+sqlalchemy>=2.0.25
+alembic>=1.13.0
+
+# Redis (for rate limiting & caching)
+redis>=5.0.0
+
+# AI Integration
+anthropic>=0.18.0
+
+# Excel Export
+openpyxl>=3.1.2
+
+# HTTP Client (for benchmarks)
+requests>=2.31.0
+httpx>=0.26.0
+
+# Security
+bcrypt>=4.1.0
+python-jose[cryptography]>=3.3.0
+
+# Session Management
+starlette-session>=0.4.0
+
+# Monitoring
+prometheus-client>=0.19.0
+
+# Development Dependencies
+# ========================
+pytest>=7.4.0
+pytest-asyncio>=0.23.0
+pytest-cov>=4.1.0
+
+# Type Checking
+mypy>=1.8.0
+
+# Code Quality
+ruff>=0.1.0
+black>=24.1.0
+
+# Documentation
+mkdocs>=1.5.0
+mkdocs-material>=9.5.0
+
+# Optional Dependencies
+# =====================
+# Uncomment as needed:
+
+# PDF Generation
+# reportlab>=4.0.0
+# weasyprint>=60.0
+
+# Image Processing
+# Pillow>=10.2.0
+
+# Data Analysis
+# numpy>=1.26.0
+# pandas>=2.2.0
+
+# Async HTTP
+# aiohttp>=3.9.0
+
+# Environment Variables
+python-dotenv>=1.0.0
+
+# Note: Pin exact versions in production
+# Use: pip freeze > requirements.lock

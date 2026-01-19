@@ -1,0 +1,152 @@
+@charset "UTF-8";
+/* ===========================================================
+   RISKCAST v12.5 — ENTERPRISE SUPER MODE
+   Layout 2-column • Neon Luxury Pro • Smooth UI
+   Author: Kai × Hoàng
+=========================================================== */
+/* =============================================================================
+   NEON THEME — DEFAULT THEME FOR RISKCAST v12.5
+   Sử dụng biến SCSS convert sang CSS variable để truy cập trong JS/HTML
+============================================================================= */
+:root {
+  --bg-primary: #000000;
+  --bg-secondary: #071018;
+  --bg-card: #0c1117;
+  --accent-green: #00ff88;
+  --accent-cyan: #00d9ff;
+  --accent-yellow: #ffaa00;
+  --accent-red: #ff4444;
+  --text-primary: #e8f5ff;
+  --text-secondary: #9fb3c8;
+  --text-muted: #6b7c92;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-soft: rgba(255, 255, 255, 0.06);
+  --glow: rgba(0, 255, 136, 0.3);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+}
+
+/* ====== GRID TEMPLATE ====== */
+.enterprise-grid {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 22px;
+  margin-top: 20px;
+}
+@media (max-width: 1150px) {
+  .enterprise-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ====== LEFT / RIGHT ====== */
+.left-col,
+.right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* ====== CARD STYLE ====== */
+.card {
+  background: var(--bg-card);
+  padding: 20px;
+  border-radius: 14px;
+  border: 1px solid var(--accent-border);
+  box-shadow: 0 0 12px rgba(0, 255, 136, 0.08);
+  transition: 0.25s ease;
+}
+.card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 18px rgba(0, 255, 136, 0.15);
+  transform: translateY(-2px);
+}
+
+/* ====== PAGE TITLE ====== */
+.page-title {
+  margin-bottom: 12px;
+}
+.page-title h1 {
+  font-size: 26px;
+  font-weight: 600;
+  color: #00ffc3;
+  margin-bottom: 4px;
+}
+.page-title .subtitle {
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+/* ====== KPI CARDS ====== */
+.kpi-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+@media (max-width: 500px) {
+  .kpi-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+.kpi-card {
+  background: var(--bg-card-soft);
+  border: 1px solid var(--accent-border-soft);
+  padding: 18px;
+  border-radius: 12px;
+  text-align: left;
+}
+.kpi-card h4 {
+  font-size: 14px;
+  color: #9ca3af;
+  margin-bottom: 6px;
+}
+.kpi-card .kpi-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* ====== CHART WRAPPER ====== */
+.chart {
+  width: 100%;
+  height: 320px;
+}
+
+#forecast_chart {
+  height: 260px;
+}
+
+/* ====== TABLE STYLE ====== */
+.table-basic {
+  width: 100%;
+  border-collapse: collapse;
+}
+.table-basic th, .table-basic td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #1f2937;
+}
+.table-basic th {
+  font-size: 13px;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+.table-basic td {
+  font-size: 13px;
+  color: #d1d5db;
+}
+
+/* ====== INSIGHT LIST ====== */
+.insight-item {
+  padding: 10px 0;
+  border-bottom: 1px solid #1f2937;
+  font-size: 13.5px;
+  color: #cbd5e1;
+}
+.insight-item:last-child {
+  border-bottom: none;
+}
+
+/*# sourceMappingURL=enterprise.css.map */

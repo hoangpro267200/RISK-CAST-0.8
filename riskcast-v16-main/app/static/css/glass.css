@@ -1,0 +1,76 @@
+@import url("./tokens.css");
+
+.glass-card-lg,
+.glass-card-md,
+.glass-card-sm {
+  position: relative;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-20);
+  box-shadow: var(--shadow-layered);
+  backdrop-filter: var(--blur-30) saturate(140%);
+  overflow: hidden;
+}
+
+.glass-card-md {
+  border-radius: var(--radius-16);
+}
+
+.glass-card-sm {
+  border-radius: var(--radius-12);
+}
+
+.glass-card-lg::before,
+.glass-card-md::before,
+.glass-card-sm::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 20% 20%, rgba(110, 243, 255, 0.12), transparent 35%), radial-gradient(circle at 80% 0%, rgba(139, 123, 255, 0.16), transparent 35%);
+  pointer-events: none;
+}
+
+.glass-card-lg:hover,
+.glass-card-md:hover,
+.glass-card-sm:hover {
+  box-shadow: var(--shadow-neon);
+  transform: translateY(-2px);
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.glass-card-lg:focus-within,
+.glass-card-md:focus-within,
+.glass-card-sm:focus-within {
+  outline: 1px solid rgba(110, 243, 255, 0.5);
+  outline-offset: 2px;
+}
+
+.glass-card-lg.active,
+.glass-card-md.active,
+.glass-card-sm.active {
+  box-shadow: var(--shadow-neon);
+}
+
+.glass-skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--glass-2);
+}
+
+.glass-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+  animation: shimmer 1.6s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+

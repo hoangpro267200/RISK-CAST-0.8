@@ -1,0 +1,200 @@
+/**
+ * ============================================================
+ * GRID.CSS - Grid System
+ * ============================================================
+ * Responsive grid layouts and containers
+ */
+
+/* ============================================
+   CONTAINER
+   ============================================ */
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 var(--container-padding);
+    width: 100%;
+}
+
+.container-sm {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--container-padding);
+    width: 100%;
+}
+
+.container-lg {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 0 var(--container-padding);
+    width: 100%;
+}
+
+.container-full {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+    width: 100%;
+}
+
+/* ============================================
+   GRID SYSTEM
+   ============================================ */
+.grid-system {
+    display: grid;
+    gap: var(--space-xl);
+}
+
+.grid-12 {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: var(--space-xl);
+}
+
+.grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-xl);
+}
+
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-xl);
+}
+
+.grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-xl);
+}
+
+.grid-auto-fit {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-xl);
+}
+
+.grid-auto-fill {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: var(--space-xl);
+}
+
+/* ============================================
+   ENTERPRISE INPUT GRID LAYOUT
+   ============================================ */
+.enterprise-input-container {
+    display: grid;
+    grid-template-columns: 280px 1fr 0;
+    gap: 0;
+    min-height: calc(100vh - var(--nav-height));
+    transition: grid-template-columns var(--transition-smooth);
+    position: relative;
+}
+
+.enterprise-input-container.ai-panel-open {
+    grid-template-columns: 280px 1fr 380px;
+}
+
+.enterprise-input-container.sidebar-collapsed {
+    grid-template-columns: 0 1fr 0;
+}
+
+.enterprise-input-container.sidebar-collapsed.ai-panel-open {
+    grid-template-columns: 0 1fr 380px;
+}
+
+/* ============================================
+   DASHBOARD CONTAINER
+   ============================================ */
+.dashboard-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    width: 100%;
+    overflow-x: hidden;
+    display: block !important;
+    visibility: visible !important;
+}
+
+.dashboard-main {
+    width: 100%;
+    padding-left: calc(var(--sidebar-width) + var(--space-xl));
+    transition: padding-left var(--transition-smooth);
+}
+
+.dashboard-main.sidebar-collapsed {
+    padding-left: var(--space-xl);
+}
+
+/* ============================================
+   RESPONSIVE GRID
+   ============================================ */
+@media (max-width: 1200px) {
+    .grid-4 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .grid-3 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .grid-4,
+    .grid-3,
+    .grid-2 {
+        grid-template-columns: 1fr;
+    }
+    
+    .grid-12 {
+        grid-template-columns: 1fr;
+    }
+    
+    .container,
+    .container-sm,
+    .container-lg {
+        padding: 0 var(--space-lg);
+    }
+    
+    .dashboard-main {
+        padding-left: var(--space-lg);
+    }
+    
+    .enterprise-input-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .enterprise-input-container.ai-panel-open {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .container,
+    .container-sm,
+    .container-lg {
+        padding: 0 var(--space-md);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

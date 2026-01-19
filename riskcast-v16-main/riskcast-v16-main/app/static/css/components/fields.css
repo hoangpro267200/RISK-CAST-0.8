@@ -1,0 +1,50 @@
+@import url("../futureos_tokens.css");
+
+.rc-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.rc-grid--two {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.rc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 12px;
+  background: var(--rc-glass);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+}
+
+.rc-field__label,
+.rc-field-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rc-text-muted);
+  letter-spacing: 0.2px;
+}
+
+.rc-field__value,
+.rc-field-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--rc-text-main);
+  min-height: 18px;
+}
+
+.rc-field__value.rc-editable[contenteditable="true"] {
+  outline: 1px solid var(--rc-primary);
+  box-shadow: 0 0 0 3px rgba(0, 255, 200, 0.15);
+  border-radius: 8px;
+  padding: 4px 6px;
+}
+
+
+
+
+
+
+

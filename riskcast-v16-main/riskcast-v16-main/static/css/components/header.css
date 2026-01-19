@@ -1,0 +1,44 @@
+@import url("../../css/tokens.css");
+
+.app-header {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: var(--space-12);
+  padding: var(--space-16);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  backdrop-filter: var(--blur-20);
+}
+
+.header__titles {
+  display: grid;
+  gap: 4px;
+}
+
+.header__eyebrow {
+  font: var(--font-label);
+  letter-spacing: 0.08em;
+  color: var(--text-soft);
+  text-transform: uppercase;
+}
+
+.header__title {
+  font: var(--font-h1);
+  color: var(--text-strong);
+}
+
+.header__badges {
+  display: flex;
+  gap: var(--space-8);
+}
+
+.header__actions {
+  display: flex;
+  gap: var(--space-8);
+  justify-content: flex-end;
+}
+
+
+
+

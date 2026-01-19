@@ -1,0 +1,141 @@
+<!-- RISKCAST Engine v2 Visualizations Section -->
+<section class="risk-visualizations-section" id="risk-visualizations-section">
+    <div class="container">
+        <!-- Overall Risk Score & Confidence Card -->
+        <div class="visualization-grid">
+            <!-- Risk Score Card -->
+            <div class="riskcast-viz-container risk-score-card">
+                <h3>Overall Risk Score</h3>
+                <div class="risk-score-display">
+                    <div class="risk-score-value" id="risk-score-value">--</div>
+                    <div class="risk-score-level" id="risk-level-value">--</div>
+                </div>
+            </div>
+
+            <!-- Confidence Gauge -->
+            <div class="riskcast-viz-container confidence-gauge-card">
+                <h3>Confidence Level</h3>
+                <div id="confidence-gauge" class="riskcast-gauge">
+                    <div class="viz-loading">Loading gauge...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Impact Matrix Heatmap -->
+        <div class="riskcast-viz-container heatmap-card">
+            <h3>Risk Impact Matrix</h3>
+            <div id="risk-heatmap" class="riskcast-heatmap-wrapper">
+                <div class="viz-loading">Loading heatmap...</div>
+            </div>
+        </div>
+
+        <!-- Charts Grid (2 columns) -->
+        <div class="visualization-grid">
+            <!-- Radar Chart -->
+            <div class="riskcast-viz-container radar-card">
+                <h3>Risk Factor Radar</h3>
+                <div id="risk-radar" class="riskcast-radar">
+                    <div class="viz-loading">Loading radar chart...</div>
+                </div>
+            </div>
+
+            <!-- Driver Bar Chart -->
+            <div class="riskcast-viz-container drivers-card">
+                <h3>Key Risk Drivers</h3>
+                <div id="risk-drivers" class="riskcast-drivers-bar">
+                    <div class="viz-loading">Loading driver chart...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline Chart -->
+        <div class="riskcast-viz-container timeline-card">
+            <h3>Risk Evolution Timeline</h3>
+            <div id="risk-timeline" class="riskcast-timeline">
+                <div class="viz-loading">Loading timeline...</div>
+            </div>
+        </div>
+
+        <!-- Network Graph -->
+        <div class="riskcast-viz-container network-card">
+            <h3>Port Network Risk Map</h3>
+            <div id="risk-network" class="riskcast-network-graph">
+                <div class="viz-loading">Loading network graph...</div>
+            </div>
+        </div>
+
+        <!-- Recommendations Panel -->
+        <div class="riskcast-viz-container recommendations-card">
+            <h3>Risk Mitigation Recommendations</h3>
+            <ul id="risk-recommendations-list" class="recommendations-list">
+                <li>Loading recommendations...</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<style>
+/* Visualization Grid Layout */
+.visualization-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+/* Risk Score Display */
+.risk-score-display {
+    text-align: center;
+    padding: 20px;
+}
+
+.risk-score-value {
+    font-size: 4rem;
+    font-weight: 900;
+    color: var(--neon-primary, #00FFC8);
+    text-shadow: 0 0 20px rgba(0, 255, 200, 0.5);
+    line-height: 1;
+    margin-bottom: 10px;
+}
+
+.risk-score-level {
+    font-size: 1.5rem;
+    color: var(--text-secondary, #8FFFD0);
+    font-weight: 600;
+}
+
+/* Recommendations List */
+.recommendations-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.recommendations-list li {
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    background: rgba(0, 255, 200, 0.1);
+    border-left: 3px solid var(--neon-primary, #00FFC8);
+    border-radius: 4px;
+    color: var(--text-primary, #ffffff);
+}
+
+.recommendations-list li::before {
+    content: '→';
+    margin-right: 10px;
+    color: var(--neon-primary, #00FFC8);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .visualization-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .risk-score-value {
+        font-size: 3rem;
+    }
+}
+</style>
+
+

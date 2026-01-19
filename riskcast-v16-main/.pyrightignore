@@ -1,0 +1,14 @@
+# Ignore standard library files
+**/WindowsApps/PythonSoftwareFoundation.Python.3.12*/Lib/**
+**/asyncio/**
+**/multiprocessing/**
+
+# Ignore third-party packages in site-packages
+**/site-packages/uvicorn/**
+**/site-packages/**/**
+
+# Ignore Python installation paths
+C:/Program Files/WindowsApps/**
+C:/Users/ASUS/AppData/Local/Packages/PythonSoftwareFoundation.Python.3.12*/**
+
+

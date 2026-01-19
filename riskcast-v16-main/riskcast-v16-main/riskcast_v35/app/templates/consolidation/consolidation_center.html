@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consolidation Center - RISKCAST v35</title>
+    <link rel="stylesheet" href="/static/css/global_visionos.css">
+    <link rel="stylesheet" href="/static/css/consolidation_center.css">
+</head>
+<body class="page visionos has-topbar">
+    <nav class="vision-topbar glass-panel">
+        <div class="vision-topbar__brand">
+            <div class="vision-topbar__logo">
+                <svg width="26" height="26" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="rcNeonConsol" x1="2" y1="2" x2="30" y2="30">
+                            <stop offset="0%" stop-color="#00FFC8"/>
+                            <stop offset="100%" stop-color="#00D4FF"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M16 3L27.5 9.5V22.5L16 29L4.5 22.5V9.5L16 3Z" stroke="url(#rcNeonConsol)" stroke-width="2.2" stroke-linejoin="round"/>
+                    <path d="M16 8L23 12V20L16 24L9 20V12L16 8Z" stroke="url(#rcNeonConsol)" stroke-width="1.6" stroke-linejoin="round" opacity="0.7"/>
+                    <path d="M16 11L20 13.5V18.5L16 21L12 18.5V13.5L16 11Z" fill="url(#rcNeonConsol)" opacity="0.9"/>
+                </svg>
+            </div>
+            <div class="vision-topbar__title">
+                <span>RISKCAST</span>
+                <span class="vision-topbar__version">v35 FutureOS</span>
+            </div>
+        </div>
+
+        <div class="vision-topbar__nav">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/shipments" class="nav-link">Shipments</a>
+            <a href="/pricing" class="nav-link">Pricing</a>
+            <a href="/consolidation" class="nav-link active">Consolidation</a>
+            <a href="/documents" class="nav-link">Documents</a>
+            <a href="/customs" class="nav-link">Customs</a>
+            <a href="/tracking" class="nav-link">Tracking</a>
+        </div>
+    </nav>
+
+    <main class="layout fade-in topbar-offset">
+        <section class="glass panel left-panel">
+            <div class="panel-header">
+                <p class="eyebrow">Input Mode</p>
+                <div class="mode-switch">
+                    <button class="mode-btn active" data-mode="ids">By Shipment IDs</button>
+                    <button class="mode-btn" data-mode="lane">By Lane</button>
+                </div>
+            </div>
+
+            <div id="mode-ids" class="mode-panel active">
+                <label>
+                    <span>Shipment IDs (comma-separated)</span>
+                    <textarea id="shipment-ids" placeholder="uuid1, uuid2, uuid3"></textarea>
+                </label>
+            </div>
+
+            <div id="mode-lane" class="mode-panel">
+                <label>
+                    <span>POL</span>
+                    <input id="pol" type="text" placeholder="SGSIN">
+                </label>
+                <label>
+                    <span>POD</span>
+                    <input id="pod" type="text" placeholder="USLAX">
+                </label>
+                <label>
+                    <span>ETD From</span>
+                    <input id="etd-from" type="datetime-local">
+                </label>
+                <label>
+                    <span>ETD To</span>
+                    <input id="etd-to" type="datetime-local">
+                </label>
+            </div>
+
+            <div class="grid-2">
+                <label>
+                    <span>Container Capacity (CBM)</span>
+                    <input id="container-capacity" type="number" step="0.1" value="28">
+                </label>
+                <label>
+                    <span>LCL Rate per CBM</span>
+                    <input id="lcl-rate" type="number" step="0.01" value="50">
+                </label>
+                <label>
+                    <span>FCL Rate per Container</span>
+                    <input id="fcl-rate" type="number" step="0.01" value="1200">
+                </label>
+            </div>
+
+            <button id="btn-generate" class="cta">Generate Consolidation Plan</button>
+        </section>
+
+        <section class="glass panel right-panel">
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">Results</p>
+                    <h2 class="panel-title">Plan Overview</h2>
+                </div>
+                <div id="plan-meta" class="meta"></div>
+            </div>
+
+            <div id="consolidation-saving" class="saving glass"></div>
+
+            <div id="consolidation-results">
+                <div class="section-header">
+                    <p class="eyebrow">Containers</p>
+                    <h3>Assignments</h3>
+                </div>
+                <div id="containers-grid" class="grid"></div>
+            </div>
+        </section>
+    </main>
+
+    <script src="/static/js/consolidation_center.js"></script>
+</body>
+</html>
+

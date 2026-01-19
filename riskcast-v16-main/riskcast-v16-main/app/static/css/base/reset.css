@@ -1,0 +1,180 @@
+/**
+ * ============================================================
+ * RESET.CSS - Global Reset Styles
+ * ============================================================
+ * Consolidates all reset rules from existing CSS files
+ */
+
+/* ============================================
+   UNIVERSAL RESET
+   ============================================ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ============================================
+   HTML & BODY
+   ============================================ */
+html {
+    overflow-y: auto !important;
+    overflow-x: hidden;
+    height: auto !important;
+    scroll-behavior: smooth;
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden !important;
+}
+
+body {
+    font-family: var(--font-family);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    line-height: var(--line-height-relaxed);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+/* ============================================
+   LINKS
+   ============================================ */
+a {
+    text-decoration: none;
+    color: inherit;
+    transition: color var(--transition);
+}
+
+a:hover {
+    color: var(--neon-primary);
+}
+
+/* ============================================
+   IMAGES
+   ============================================ */
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* ============================================
+   HEADINGS
+   ============================================ */
+h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+    color: var(--text-primary);
+}
+
+/* ============================================
+   PARAGRAPHS
+   ============================================ */
+p {
+    margin: 0;
+    line-height: var(--line-height-normal);
+}
+
+/* ============================================
+   LISTS
+   ============================================ */
+ul, ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+button {
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    padding: 0;
+}
+
+button:focus {
+    outline: none;
+}
+
+/* ============================================
+   INPUTS
+   ============================================ */
+input, textarea, select {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    border: none;
+    outline: none;
+    background: transparent;
+}
+
+input::placeholder, textarea::placeholder {
+    color: var(--text-muted);
+}
+
+/* ============================================
+   SCROLLBAR STYLING (Global)
+   ============================================ */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--neon-primary), var(--neon-secondary));
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, var(--accent-green), var(--accent-cyan));
+}
+
+/* ============================================
+   SELECTION
+   ============================================ */
+::selection {
+    background: rgba(0, 255, 200, 0.3);
+    color: var(--text-primary);
+}
+
+::-moz-selection {
+    background: rgba(0, 255, 200, 0.3);
+    color: var(--text-primary);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

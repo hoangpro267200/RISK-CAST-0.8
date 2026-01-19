@@ -1,0 +1,27 @@
+[
+  {"code": "SGN", "name": "Tan Son Nhat International Airport", "city": "Ho Chi Minh City", "country": "Vietnam", "type": "airport"},
+  {"code": "HAN", "name": "Noi Bai International Airport", "city": "Hanoi", "country": "Vietnam", "type": "airport"},
+  {"code": "PVG", "name": "Shanghai Pudong International Airport", "city": "Shanghai", "country": "China", "type": "airport"},
+  {"code": "HKG", "name": "Hong Kong International Airport", "city": "Hong Kong", "country": "Hong Kong", "type": "airport"},
+  {"code": "SIN", "name": "Singapore Changi Airport", "city": "Singapore", "country": "Singapore", "type": "airport"},
+  {"code": "DXB", "name": "Dubai International Airport", "city": "Dubai", "country": "UAE", "type": "airport"},
+  {"code": "LAX", "name": "Los Angeles International Airport", "city": "Los Angeles", "country": "USA", "type": "airport"},
+  {"code": "JFK", "name": "John F. Kennedy International Airport", "city": "New York", "country": "USA", "type": "airport"},
+  {"code": "LHR", "name": "London Heathrow Airport", "city": "London", "country": "UK", "type": "airport"},
+  {"code": "FRA", "name": "Frankfurt Airport", "city": "Frankfurt", "country": "Germany", "type": "airport"},
+  
+  {"code": "VNSGN", "name": "Saigon Port (Cat Lai)", "city": "Ho Chi Minh City", "country": "Vietnam", "type": "port"},
+  {"code": "VNHPH", "name": "Haiphong Port", "city": "Haiphong", "country": "Vietnam", "type": "port"},
+  {"code": "CNSHG", "name": "Port of Shanghai", "city": "Shanghai", "country": "China", "type": "port"},
+  {"code": "CNNGB", "name": "Ningbo-Zhoushan Port", "city": "Ningbo", "country": "China", "type": "port"},
+  {"code": "CNYTN", "name": "Port of Yantian", "city": "Shenzhen", "country": "China", "type": "port"},
+  {"code": "SGSIN", "name": "Port of Singapore", "city": "Singapore", "country": "Singapore", "type": "port"},
+  {"code": "HKHKG", "name": "Port of Hong Kong", "city": "Hong Kong", "country": "Hong Kong", "type": "port"},
+  {"code": "KRPUS", "name": "Port of Busan", "city": "Busan", "country": "South Korea", "type": "port"},
+  {"code": "USNYC", "name": "Port of New York/New Jersey", "city": "New York", "country": "USA", "type": "port"},
+  {"code": "USLAX", "name": "Port of Los Angeles", "city": "Los Angeles", "country": "USA", "type": "port"},
+  {"code": "USLGB", "name": "Port of Long Beach", "city": "Long Beach", "country": "USA", "type": "port"},
+  {"code": "NLRTM", "name": "Port of Rotterdam", "city": "Rotterdam", "country": "Netherlands", "type": "port"},
+  {"code": "DEHAM", "name": "Port of Hamburg", "city": "Hamburg", "country": "Germany", "type": "port"},
+  {"code": "AEJEA", "name": "Jebel Ali Port", "city": "Dubai", "country": "UAE", "type": "port"}
+]

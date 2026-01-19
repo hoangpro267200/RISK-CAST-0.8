@@ -1,0 +1,55 @@
+BATCH 0 - BASELINE RESULTS
+==========================
+
+Date: January 18, 2026
+Time: 08:22 UTC
+
+GIT STATUS:
+-----------
+Not a git repository - cannot run git status
+
+NPM INSTALL:
+------------
+✅ SUCCESS - Dependencies installed with --legacy-peer-deps
+- 515 packages added
+- Storybook/Vite version conflicts resolved with legacy peer deps
+
+TYPECHECK (npm run typecheck):
+-------------------------------
+❌ FAILED - 2 TypeScript errors found:
+
+1. src/adapters/adaptResultV2.ts(1310,1): error TS1005: '}' expected.
+   - Issue: Unexpected end of file or syntax error at line 1310
+
+2. src/components/BasisRiskScore.tsx(147,27): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+   - Issue: JSX syntax error in BasisRiskScore component
+
+BUILD (npm run build):
+----------------------
+NOT TESTED - TypeScript errors prevent build
+
+TESTS (npm test):
+-----------------
+NOT TESTED - TypeScript errors present
+
+BACKEND TESTS (python -m pytest):
+---------------------------------
+NOT TESTED - Frontend issues present
+
+SERVER START (python app/main.py):
+-----------------------------------
+NOT TESTED - Frontend issues present
+
+BASELINE STATUS: ❌ PARTIAL FAIL
+=================================
+- Dependencies: ✅ OK
+- TypeScript: ❌ 2 errors
+- Build/Test: ⏸️  Not tested due to TS errors
+
+RECOMMENDATION: Fix TypeScript errors before proceeding with cleanup, or proceed with caution.
+The errors appear to be in files that may be deleted anyway (BasisRiskScore is unused-HIGH).
+
+
+
+
+

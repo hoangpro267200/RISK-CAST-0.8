@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RISKCAST FutureOS - Summary v550 Ultra</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheets - VisionOS v500 Load order matters! -->
+    <link rel="stylesheet" href="/static/css/summary_v400/summary_reset.css">
+    <link rel="stylesheet" href="/static/css/summary_v400/summary_typography.css">
+    <link rel="stylesheet" href="/static/css/summary_v400/summary_layout_v500.css">
+    <link rel="stylesheet" href="/static/css/summary_v400/summary_components_v500.css">
+    <link rel="stylesheet" href="/static/css/summary_v400/summary_editor.css">
+    <!-- Theme and Effects MUST load last -->
+    <link rel="stylesheet" href="/static/css/summary_v400/summary_theme_visionos.css">
+    <link rel="stylesheet" href="/static/css/summary_v400/summary_effects.css">
+    <!-- Editor positioning fixes MUST load last -->
+    <link rel="stylesheet" href="/static/css/summary_v400/summary_editor_fix.css">
+    <!-- Floating Language Switcher -->
+    <link rel="stylesheet" href="/static/css/components/floating_lang_switcher.css">
+</head>
+<body>
+    <!-- Background Particles -->
+    <div class="particle-field" id="particleField"></div>
+    
+    <!-- Main Container -->
+    <div class="summary-root" id="summaryRoot">
+        
+        <!-- Top Bar -->
+        <header class="summary-topbar">
+            <div class="summary-topbar__left">
+                <div class="summary-logo">
+                    <div class="summary-logo__icon">
+                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                            <path d="M14 2L26 8V20L14 26L2 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                            <path d="M14 14L14 26" stroke="currentColor" stroke-width="2"/>
+                            <path d="M2 8L14 14L26 8" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <div class="summary-logo__text">
+                        <div class="summary-logo__brand">RISKCAST FutureOS</div>
+                        <div class="summary-logo__subtitle">Summary v550 Ultra — VisionOS Shipment Overview</div>
+                    </div>
+                </div>
+            </div>
+            <div class="summary-topbar__right">
+                <button class="btn btn--ghost" id="btnBack">
+                    <span class="btn__icon">←</span>
+                    <span class="btn__text">Quay lại</span>
+                </button>
+                <button class="btn btn--secondary" id="btnSaveDraft">
+                    <span class="btn__icon">💾</span>
+                    <span class="btn__text">Lưu bản nháp</span>
+                </button>
+                <button class="btn btn--primary" id="btnConfirm">
+                    <span class="btn__text">Xác nhận & Phân tích</span>
+                    <span class="btn__icon">→</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- MEGA SUMMARY TILE -->
+        <section class="mega-summary">
+            <div class="mega-summary__grid" id="megaSummaryGrid">
+                <!-- Will be populated by renderer -->
+            </div>
+        </section>
+
+        <!-- Main Grid -->
+        <section class="summary-main-grid">
+            
+            <!-- 2x2 Matrix -->
+            <div class="summary-matrix">
+                
+                <!-- Panel 01: Trade & Route -->
+                <div class="summary-panel" data-panel="trade">
+                    <div class="summary-section-header">
+                        <div class="summary-panel__title">
+                            <span class="summary-panel__icon">
+                                <svg class="visionos-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2Z" fill="url(#iconGradient1)" opacity="0.6"/>
+                                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="url(#iconGradient1)"/>
+                                    <defs>
+                                        <linearGradient id="iconGradient1" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                                            <stop stop-color="#35E0FF" stop-opacity="0.8"/>
+                                            <stop offset="1" stop-color="#7B4DFF" stop-opacity="0.8"/>
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                            </span>
+                            <span class="summary-panel__label">01 • Tuyến đường & Giao thương</span>
+                        </div>
+                        <div class="section-badge auto-verified">TỰ ĐỘNG XÁC THỰC</div>
+                    </div>
+                    <div class="summary-panel__body" id="panelTrade">
+                        <!-- Populated by renderer -->
+                    </div>
+                </div>
+
+                <!-- Panel 02: Cargo & Packing -->
+                <div class="summary-panel" data-panel="cargo">
+                    <div class="summary-section-header">
+                        <div class="summary-panel__title">
+                            <span class="summary-panel__icon">
+                                <svg class="visionos-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M4 6H20V18H4V6Z" fill="url(#iconGradient2)" opacity="0.6"/>
+                                    <path d="M4 6L12 2L20 6V18H4V6ZM12 7L7 9.5V16H17V9.5L12 7Z" fill="url(#iconGradient2)"/>
+                                    <defs>
+                                        <linearGradient id="iconGradient2" x1="4" y1="2" x2="20" y2="18" gradientUnits="userSpaceOnUse">
+                                            <stop stop-color="#35E0FF" stop-opacity="0.8"/>
+                                            <stop offset="1" stop-color="#7B4DFF" stop-opacity="0.8"/>
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                            </span>
+                            <span class="summary-panel__label">02 • Hàng hóa & Đóng gói</span>
+                        </div>
+                        <div class="section-badge auto-verified">TỰ ĐỘNG XÁC THỰC</div>
+                    </div>
+                    <div class="summary-panel__body" id="panelCargo">
+                        <!-- Populated by renderer -->
+                    </div>
+                </div>
+
+                <!-- Panel 03: Seller Details -->
+                <div class="summary-panel" data-panel="seller">
+                    <div class="summary-section-header">
+                        <div class="summary-panel__title">
+                            <span class="summary-panel__icon">
+                                <svg class="visionos-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M4 20H20V22H4V20Z" fill="url(#iconGradient3)" opacity="0.6"/>
+                                    <path d="M12 2L2 7L12 12L22 7L12 2ZM4 10.5V17.5L12 21.5L20 17.5V10.5L12 14.5L4 10.5Z" fill="url(#iconGradient3)"/>
+                                    <defs>
+                                        <linearGradient id="iconGradient3" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                                            <stop stop-color="#35E0FF" stop-opacity="0.8"/>
+                                            <stop offset="1" stop-color="#7B4DFF" stop-opacity="0.8"/>
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                            </span>
+                            <span class="summary-panel__label">03 • Thông tin người bán</span>
+                        </div>
+                        <div class="section-badge auto-verified">TỰ ĐỘNG XÁC THỰC</div>
+                    </div>
+                    <div class="summary-panel__body" id="panelSeller">
+                        <!-- Populated by renderer -->
+                    </div>
+                </div>
+
+                <!-- Panel 04: Buyer Details -->
+                <div class="summary-panel" data-panel="buyer">
+                    <div class="summary-section-header">
+                        <div class="summary-panel__title">
+                            <span class="summary-panel__icon">
+                                <svg class="visionos-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M4 20H20V22H4V20Z" fill="url(#iconGradient4)" opacity="0.6"/>
+                                    <path d="M12 2L4 6V18L12 22L20 18V6L12 2ZM12 4.5L17.5 7L12 9.5L6.5 7L12 4.5ZM6 9L12 12L18 9V16L12 19L6 16V9Z" fill="url(#iconGradient4)"/>
+                                    <defs>
+                                        <linearGradient id="iconGradient4" x1="4" y1="2" x2="20" y2="22" gradientUnits="userSpaceOnUse">
+                                            <stop stop-color="#35E0FF" stop-opacity="0.8"/>
+                                            <stop offset="1" stop-color="#7B4DFF" stop-opacity="0.8"/>
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                            </span>
+                            <span class="summary-panel__label">04 • Thông tin người mua</span>
+                        </div>
+                        <div class="section-badge auto-verified">TỰ ĐỘNG XÁC THỰC</div>
+                    </div>
+                    <div class="summary-panel__body" id="panelBuyer">
+                        <!-- Populated by renderer -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- AI Advisor Panel -->
+            <aside class="advisor-panel">
+                <div class="summary-section-header">
+                    <div class="advisor-panel__title">
+                        <span class="advisor-panel__icon">
+                            <svg class="visionos-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2Z" fill="url(#iconGradient5)" opacity="0.5"/>
+                                <path d="M9 11C9 11.55 9.45 12 10 12C10.55 12 11 11.55 11 11C11 10.45 10.55 10 10 10C9.45 10 9 10.45 9 11ZM15 11C15 11.55 14.55 12 14 12C13.45 12 13 11.55 13 11C13 10.45 13.45 10 14 10C14.55 10 15 10.45 15 11ZM12 14C10.34 14 8.84 14.81 7.87 16.09L9.24 17.46C9.88 16.86 10.91 16.86 11.55 17.46L12.93 16.09C11.96 14.81 10.46 14 8.8 14H12ZM17 9H15V7H17V9ZM7 9H9V7H7V9Z" fill="url(#iconGradient5)"/>
+                                <defs>
+                                    <linearGradient id="iconGradient5" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                                        <stop stop-color="#35E0FF" stop-opacity="0.9"/>
+                                        <stop offset="1" stop-color="#7B4DFF" stop-opacity="0.9"/>
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </span>
+                        <span class="advisor-panel__label ai-header">Trợ lý Logistics AI</span>
+                    </div>
+                </div>
+                <div class="advisor-panel__body" id="advisorBody">
+                    <!-- Populated by AI advisor -->
+                </div>
+            </aside>
+
+        </section>
+
+        <!-- Risk Module Row -->
+        <section class="risk-row">
+            <div class="risk-row__inner" id="riskRow">
+                <!-- Populated by risk row renderer -->
+            </div>
+        </section>
+
+        <!-- Bottom Action Strip -->
+        <footer class="action-strip" id="actionStrip">
+            <div class="action-strip__left">
+                <div class="completeness-bar">
+                    <div class="completeness-bar__label">Hoàn thiện</div>
+                    <div class="completeness-bar__track">
+                        <div class="completeness-bar__fill" id="completenessBar" style="width: 0%"></div>
+                    </div>
+                    <div class="completeness-bar__value" id="completenessValue">0%</div>
+                </div>
+                <div class="error-chips">
+                    <div class="error-chip error-chip--critical" id="chipCritical">
+                        <span class="error-chip__icon">⚠️</span>
+                        <span class="error-chip__label">Lỗi nghiêm trọng</span>
+                        <span class="error-chip__count">0</span>
+                    </div>
+                    <div class="error-chip error-chip--warning" id="chipWarning">
+                        <span class="error-chip__icon">⚡</span>
+                        <span class="error-chip__label">Cảnh báo</span>
+                        <span class="error-chip__count">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="action-strip__right">
+                <button class="btn btn--secondary" id="btnSaveDraftBottom">
+                    <span class="btn__text">Lưu bản nháp</span>
+                </button>
+                <button class="btn btn--primary" id="btnConfirmBottom">
+                    <span class="btn__text">Xác nhận & Phân tích</span>
+                    <span class="btn__icon">→</span>
+                </button>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- Inline Editor Bubble (Template) -->
+    <div class="editor-bubble" id="editorBubble">
+        <div class="editor-bubble__header">
+            <div class="editor-bubble__info">
+                <span class="editor-bubble__label" id="editorLabel">Field Name</span>
+                <span class="editor-bubble__path" id="editorPath">Section</span>
+            </div>
+            <button class="editor-bubble__close" id="editorClose">×</button>
+        </div>
+        <div class="editor-bubble__body" id="editorBody">
+            <!-- Dynamic content -->
+        </div>
+        <div class="editor-bubble__footer">
+            <div class="editor-bubble__status" id="editorStatus"></div>
+            <div class="editor-bubble__actions">
+                <button class="btn btn--ghost btn--sm" id="editorCancel">Cancel</button>
+                <button class="btn btn--primary btn--sm" id="editorSave">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/static/js/summary_v400/v400_state.js"></script>
+    <script src="/static/js/summary_v400/v400_validator.js"></script>
+    <script src="/static/js/summary_v400/v400_renderer.js"></script>
+    <script src="/static/js/summary_v400/v400_inline_editor.js"></script>
+    <script src="/static/js/summary_v400/v400_ai_advisor.js"></script>
+    <script src="/static/js/summary_v400/v400_risk_row.js"></script>
+    <script type="module" src="/static/js/summary_export.js"></script>
+    <script src="/static/js/summary_v400/v400_controller.js"></script>
+    
+    <!-- Floating Language Switcher (Global) -->
+    <script src="/static/js/core/floating_lang_switcher.js"></script>
+
+</body>
+</html>
+
