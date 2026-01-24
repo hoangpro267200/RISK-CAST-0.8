@@ -21,7 +21,7 @@ export interface ExecutiveSummaryProps {
   /** Risk score (0-100) */
   riskScore: number;
   /** Risk level */
-  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' | undefined;
+  riskLevel: 'Low' | 'Medium' | 'High' | 'Critical' | 'Unknown' | undefined;
   /** Top 3 risk drivers with impact */
   topRisks: Array<{ name: string; impact: number; contribution: number }>;
   /** Confidence score (0-1) */

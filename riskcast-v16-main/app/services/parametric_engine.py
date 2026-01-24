@@ -268,7 +268,53 @@ class ParametricPricingEngine:
 class ParametricTriggerEvaluator:
     """
     Evaluates parametric triggers based on real-time data.
+    Includes safety guards to prevent evaluation with stub/mock data.
     """
+    
+    @staticmethod
+    def _validate_oracle_data(
+        current_data: Dict[str, Any],
+        trigger_type: str
+    ) -> None:
+        """
+        Validate that oracle data is real (not stub/mock).
+        
+        Args:
+            current_data: Current data dictionary
+            trigger_type: Type of trigger being evaluated
+            
+        Raises:
+            InvalidTriggerEvaluationError: If data is from stub provider
+        """
+        from app.core.parametric.exceptions import InvalidTriggerEvaluationError
+        
+        # Check for stub indicators
+        data_source = current_data.get("data_source", "").upper()
+        source = current_data.get("source", "").upper()
+        
+        if "STUB" in data_source or "STUB" in source:
+            raise InvalidTriggerEvaluationError(
+                f"Cannot evaluate {trigger_type} trigger with stub oracle data. "
+                f"Configure real oracle providers before enabling trigger evaluation."
+            )
+        
+        # Check for mock indicators
+        if "MOCK" in data_source or "MOCK" in source:
+            raise InvalidTriggerEvaluationError(
+                f"Cannot evaluate {trigger_type} trigger with mock oracle data. "
+                f"Configure real oracle providers before enabling trigger evaluation."
+            )
+        
+        # Check if data_source is missing (indicates potential stub)
+        if not data_source and not source:
+            # This might be from a stub provider that doesn't set source
+            # We'll allow it but log a warning
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(
+                f"Oracle data for {trigger_type} trigger missing data_source field. "
+                f"Ensure oracle provider is properly configured."
+            )
     
     @staticmethod
     def evaluate_rainfall_trigger(
@@ -284,7 +330,13 @@ class ParametricTriggerEvaluator:
             
         Returns:
             TriggerEvaluation result
+            
+        Raises:
+            InvalidTriggerEvaluationError: If data is from stub provider
         """
+        # Validate oracle data is real (not stub)
+        ParametricTriggerEvaluator._validate_oracle_data(current_data, "weather_rainfall")
+        
         current_rainfall = current_data.get("cumulative_rainfall_mm", 0)
         threshold = trigger.threshold
         
@@ -332,7 +384,13 @@ class ParametricTriggerEvaluator:
             
         Returns:
             TriggerEvaluation result
+            
+        Raises:
+            InvalidTriggerEvaluationError: If data is from stub provider
         """
+        # Validate oracle data is real (not stub)
+        ParametricTriggerEvaluator._validate_oracle_data(current_data, "port_congestion")
+        
         dwell_days = current_data.get("dwell_days", 0)
         threshold_days = trigger.threshold
         
@@ -393,7 +451,13 @@ class ParametricTriggerEvaluator:
             
         Returns:
             TriggerEvaluation result
+            
+        Raises:
+            InvalidTriggerEvaluationError: If data is from stub provider
         """
+        # Validate oracle data is real (not stub)
+        ParametricTriggerEvaluator._validate_oracle_data(cyclone_data, "natcat_cyclone")
+        
         # Check if cyclone entered coverage area
         coverage_center = trigger.location.get("coordinates", {})
         coverage_radius = trigger.location.get("radius_km", 100)

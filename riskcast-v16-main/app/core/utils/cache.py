@@ -76,7 +76,8 @@ def normalize_request_for_cache(request: Dict[str, Any]) -> Dict[str, Any]:
         'climate_resilience', 'green_packaging',
         'buyer', 'seller',
         'use_fuzzy', 'use_forecast', 'use_mc', 'use_var',
-        'mc_iterations', 'language'
+        'mc_iterations', 'language',
+        'seed', 'seed_strategy',
     ]
     
     for field in cache_relevant_fields:

@@ -17,8 +17,9 @@ export function reportWebVital(metric: {
   delta: number;
   entries: PerformanceEntry[];
 }) {
-  // Log in development
-  if (process.env.NODE_ENV === 'development') {
+  // Suppress verbose logging in development to reduce console noise
+  // Only log in development if explicitly enabled via environment variable
+  if (import.meta.env.MODE === 'development' && import.meta.env.VITE_DEBUG_WEB_VITALS === 'true') {
     console.log(`[Web Vital] ${metric.name}: ${metric.value.toFixed(2)}`);
   }
   
@@ -36,6 +37,25 @@ export function reportWebVital(metric: {
   
   const threshold = thresholds[metric.name];
   if (threshold) {
+    // In development, suppress most performance warnings to reduce noise
+    // This is especially important when server is slow or network is unstable
+    const isDevelopment = import.meta.env.MODE === 'development';
+    
+    // In development, only warn for extremely poor performance (5x threshold)
+    // This prevents console spam during development when server/network is slow
+    if (isDevelopment) {
+      // Only warn if performance is extremely poor (likely a real issue, not just slow server)
+      if (metric.value > threshold.needsImprovement * 5) {
+        console.warn(
+          `[Performance] ${metric.name} is extremely poor: ${metric.value.toFixed(2)}ms (target: <${threshold.good}ms). ` +
+          `This may indicate a real performance issue.`
+        );
+      }
+      // Suppress all other warnings in development
+      return;
+    }
+    
+    // In production, show warnings for poor performance
     if (metric.value > threshold.needsImprovement) {
       console.warn(`[Performance] ${metric.name} is poor: ${metric.value.toFixed(2)} (target: <${threshold.good})`);
     } else if (metric.value > threshold.good) {

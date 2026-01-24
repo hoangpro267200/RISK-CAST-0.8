@@ -57,11 +57,17 @@ export function HeroOverview({ data }: HeroOverviewProps) {
           <div className="text-white/40 text-xs mt-1">{data.cargo.volume_cbm} CBM</div>
         </div>
 
-        {/* Shipment Value */}
+        {/* Shipment Value - Reactively updates from canonical data.value */}
         <div>
           <div className="text-cyan-400/70 text-xs uppercase tracking-wider mb-3">Shipment Value</div>
-          <div className="text-white/90 text-xl">${data.value.toLocaleString()}</div>
-          <div className="text-white/50 text-sm mt-1">USD</div>
+          {data.value != null && data.value > 0 ? (
+            <>
+              <div className="text-white/90 text-xl">${data.value.toLocaleString('en-US')}</div>
+              <div className="text-white/50 text-sm mt-1">{data.currency || 'USD'}</div>
+            </>
+          ) : (
+            <div className="text-white/40 text-xl">—</div>
+          )}
         </div>
       </div>
 

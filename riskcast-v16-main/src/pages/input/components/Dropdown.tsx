@@ -39,7 +39,9 @@ export const Dropdown: React.FC<DropdownProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const optionsRef = useRef<HTMLDivElement>(null);
   
   const selectedOption = options.find(opt => opt.value === value);
   const filteredOptions = searchable && searchQuery
@@ -48,16 +50,89 @@ export const Dropdown: React.FC<DropdownProps> = ({
       )
     : options;
   
+  // Keyboard navigation in dropdown
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          setSelectedIndex(prev => 
+            prev < filteredOptions.length - 1 ? prev + 1 : 0
+          );
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          setSelectedIndex(prev => 
+            prev > 0 ? prev - 1 : filteredOptions.length - 1
+          );
+          break;
+        case 'Enter':
+          e.preventDefault();
+          if (selectedIndex >= 0 && filteredOptions[selectedIndex]) {
+            handleSelect(filteredOptions[selectedIndex].value);
+          }
+          break;
+        case 'Escape':
+          e.preventDefault();
+          setIsOpen(false);
+          setSearchQuery('');
+          break;
+        case 'Home':
+          e.preventDefault();
+          setSelectedIndex(0);
+          break;
+        case 'End':
+          e.preventDefault();
+          setSelectedIndex(filteredOptions.length - 1);
+          break;
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, selectedIndex, filteredOptions]);
+  
+  // Scroll selected option into view
+  useEffect(() => {
+    if (selectedIndex >= 0 && optionsRef.current) {
+      const selectedOption = optionsRef.current.children[selectedIndex] as HTMLElement;
+      if (selectedOption) {
+        selectedOption.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    }
+  }, [selectedIndex]);
+  
+  // Reset selected index when dropdown opens/closes or options change
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedIndex(-1);
+    }
+  }, [isOpen, filteredOptions.length]);
+  
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
+        setSearchQuery('');
       }
     };
     
+    const handleCloseDropdown = () => {
+      setIsOpen(false);
+      setSearchQuery('');
+    };
+    
     if (isOpen) {
+      dropdownRef.current?.setAttribute('data-dropdown-open', 'true');
       document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      dropdownRef.current?.addEventListener('closeDropdown', handleCloseDropdown);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+        dropdownRef.current?.removeEventListener('closeDropdown', handleCloseDropdown);
+        dropdownRef.current?.setAttribute('data-dropdown-open', 'false');
+      };
     }
   }, [isOpen]);
   
@@ -189,6 +264,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
             )}
             
             <div
+              ref={optionsRef}
               style={{
                 overflowY: 'auto',
                 padding: designTokens.spacing.sm,
@@ -207,44 +283,54 @@ export const Dropdown: React.FC<DropdownProps> = ({
                   No results found
                 </div>
               ) : (
-                filteredOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => !option.disabled && handleSelect(option.value)}
-                    disabled={option.disabled}
-                    style={{
-                      width: '100%',
-                      padding: `${designTokens.spacing.sm} ${designTokens.spacing.md}`,
-                      backgroundColor: option.value === value ? 'rgba(110, 243, 255, 0.15)' : 'transparent',
-                      border: 'none',
-                      borderRadius: designTokens.radii.md,
-                      color: option.value === value ? designTokens.colors.primaryNeon : designTokens.colors.textDefault,
-                      fontSize: '15px',
-                      fontFamily: designTokens.typography.fontFamily,
-                      textAlign: 'left',
-                      cursor: option.disabled ? 'not-allowed' : 'pointer',
-                      opacity: option.disabled ? 0.5 : 1,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: designTokens.spacing.sm,
-                      transition: designTokens.transitions.fast,
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!option.disabled && option.value !== value) {
-                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (option.value !== value) {
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                      }
-                    }}
-                  >
-                    {option.value === value && <Check size={16} />}
-                    <span>{option.label}</span>
-                  </button>
-                ))
+                filteredOptions.map((option, index) => {
+                  const isSelected = option.value === value;
+                  const isKeyboardSelected = index === selectedIndex;
+                  
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => !option.disabled && handleSelect(option.value)}
+                      disabled={option.disabled}
+                      style={{
+                        width: '100%',
+                        padding: `${designTokens.spacing.sm} ${designTokens.spacing.md}`,
+                        backgroundColor: isSelected
+                          ? 'rgba(110, 243, 255, 0.15)'
+                          : isKeyboardSelected
+                          ? 'rgba(110, 243, 255, 0.1)'
+                          : 'transparent',
+                        border: 'none',
+                        borderRadius: designTokens.radii.md,
+                        color: isSelected ? designTokens.colors.primaryNeon : designTokens.colors.textDefault,
+                        fontSize: '15px',
+                        fontFamily: designTokens.typography.fontFamily,
+                        textAlign: 'left',
+                        cursor: option.disabled ? 'not-allowed' : 'pointer',
+                        opacity: option.disabled ? 0.5 : 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: designTokens.spacing.sm,
+                        transition: designTokens.transitions.fast,
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!option.disabled && !isSelected) {
+                          e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                          setSelectedIndex(index);
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                        }
+                      }}
+                    >
+                      {isSelected && <Check size={16} />}
+                      <span>{option.label}</span>
+                    </button>
+                  );
+                })
               )}
             </div>
           </div>

@@ -108,9 +108,35 @@
           <button data-scroll="#simulation" class="rc-nav-link">What-if</button>
           <button data-scroll="#impact" class="rc-nav-link">Impact</button>
         </nav>
-        <a href="/input" class="rc-nav-cta text-slate-50/80 hover:text-emerald-300">
-          Khởi động mô phỏng
-        </a>
+        
+        {% if auth_enabled %}
+          {% if is_authenticated and user %}
+            <!-- User Menu (Authenticated) -->
+            <div class="flex items-center gap-3">
+              <a href="/overview" class="text-xs text-slate-300/80 hover:text-emerald-300 transition">
+                {{ user_name or user_email }}
+              </a>
+              <a href="/input" class="rc-nav-cta text-slate-50/80 hover:text-emerald-300">
+                Khởi động mô phỏng
+              </a>
+            </div>
+          {% else %}
+            <!-- Auth Buttons (Not Authenticated) -->
+            <div class="flex items-center gap-3">
+              <a href="/login" class="text-xs text-slate-300/80 hover:text-emerald-300 transition px-3 py-1.5 border border-slate-700/50 rounded-lg hover:border-emerald-400/50">
+                Đăng nhập
+              </a>
+              <a href="/signup" class="rc-nav-cta text-slate-50/80 hover:text-emerald-300 bg-emerald-500/20 hover:bg-emerald-500/30 px-4 py-1.5 rounded-lg border border-emerald-400/30 hover:border-emerald-400/50">
+                Đăng ký
+              </a>
+            </div>
+          {% endif %}
+        {% else %}
+          <!-- No Auth (Default) -->
+          <a href="/input" class="rc-nav-cta text-slate-50/80 hover:text-emerald-300">
+            Khởi động mô phỏng
+          </a>
+        {% endif %}
       </div>
     </header>
 

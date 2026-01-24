@@ -249,11 +249,14 @@ export function generatePersonalizedNarrative(input: NarrativeGeneratorInput): s
   const actions = generateActionRecommendations(input);
   
   // Loss expectations
-  const lossExpectations = financial && financial.expectedLoss > 0
+  const el = financial?.expectedLoss ?? null;
+  const p95 = financial?.p95 ?? null;
+  const p99 = financial?.p99 ?? null;
+  const lossExpectations = el !== null && el > 0 && p95 !== null && p99 !== null
     ? `**LOSS EXPECTATIONS:**\n` +
-      `• Most likely: ${formatCurrency(financial.expectedLoss)} (50th percentile)\n` +
-      `• Bad case: ${formatCurrency(financial.p95)} (95th percentile)\n` +
-      `• Worst case: ${formatCurrency(financial.p99)} (99th percentile)`
+      `• Most likely: ${formatCurrency(el)} (50th percentile)\n` +
+      `• Bad case: ${formatCurrency(p95)} (95th percentile)\n` +
+      `• Worst case: ${formatCurrency(p99)} (99th percentile)`
     : '';
   
   // Combine all sections

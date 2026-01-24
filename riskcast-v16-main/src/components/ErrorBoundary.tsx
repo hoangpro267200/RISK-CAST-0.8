@@ -84,11 +84,40 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 
   componentDidCatch(error: Error, info: React.ErrorInfo): void {
     this.lastErrorInfo = info;
-    captureException(error, {
-      errorId: this.state.errorId,
-      componentStack: info.componentStack,
-      ...this.props.context,
-    });
+    
+    // Check if it's a network error (don't log as exception, just as warning)
+    const isNetworkError = 
+      error.message.includes('Failed to fetch') ||
+      error.message.includes('Failed to fetch dynamically imported module') ||
+      error.message.includes('NetworkError') ||
+      error.message.includes('ERR_NETWORK_CHANGED') ||
+      error.message.includes('Failed to load module after') ||
+      (error as any)?.isNetworkError === true ||
+      (error.name === 'TypeError' && error.message.includes('fetch'));
+    
+    if (isNetworkError) {
+      // Log network errors as warnings, not exceptions
+      // In development, only log if explicitly enabled to reduce console noise
+      if (import.meta.env.MODE !== 'development' || import.meta.env.VITE_DEBUG_NETWORK_ERRORS === 'true') {
+        captureMessage(
+          `Network error during component load: ${error.message}`,
+          'warning',
+          {
+            errorId: this.state.errorId,
+            componentStack: info.componentStack,
+            ...this.props.context,
+          }
+        );
+      }
+    } else {
+      // Log other errors as exceptions
+      captureException(error, {
+        errorId: this.state.errorId,
+        componentStack: info.componentStack,
+        ...this.props.context,
+      });
+    }
+    
     this.props.onError?.(error, info);
   }
 

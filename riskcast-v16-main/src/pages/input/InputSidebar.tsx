@@ -231,3 +231,5 @@ export const InputSidebar: React.FC<InputSidebarProps> = ({
     </div>
   );
 };
+
+export default InputSidebar;

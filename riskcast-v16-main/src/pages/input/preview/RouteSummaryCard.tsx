@@ -6,6 +6,7 @@ import React from 'react';
 import { Ship, Package, Clock } from 'lucide-react';
 import { designTokens } from '@/ui/design-tokens';
 import { GlassCard } from '@/components/GlassCard';
+import { Skeleton } from '../components/Skeleton';
 
 interface RouteSummaryCardProps {
   pol: string;
@@ -13,6 +14,7 @@ interface RouteSummaryCardProps {
   mode: string;
   carrier?: string;
   transitDays: number;
+  isLoading?: boolean;
 }
 
 export const RouteSummaryCard: React.FC<RouteSummaryCardProps> = ({
@@ -21,7 +23,22 @@ export const RouteSummaryCard: React.FC<RouteSummaryCardProps> = ({
   mode,
   carrier,
   transitDays,
+  isLoading = false,
 }) => {
+  if (isLoading || !pol || !pod) {
+    return (
+      <GlassCard padding="lg" variant="default">
+        <Skeleton width="40%" height="20px" style={{ marginBottom: designTokens.spacing.lg }} />
+        <Skeleton width="100%" height="60px" style={{ marginBottom: designTokens.spacing.md }} />
+        <div style={{ display: 'flex', gap: designTokens.spacing.sm }}>
+          <Skeleton width="80px" height="32px" borderRadius={designTokens.radii.md} />
+          <Skeleton width="80px" height="32px" borderRadius={designTokens.radii.md} />
+          <Skeleton width="80px" height="32px" borderRadius={designTokens.radii.md} />
+        </div>
+      </GlassCard>
+    );
+  }
+  
   return (
     <GlassCard padding="lg" variant="default">
       <h3

@@ -13,7 +13,6 @@ import { PartiesSection } from './sections/PartiesSection';
 import { RiskModulesSection } from './sections/RiskModulesSection';
 import { UploadSection } from './sections/UploadSection';
 import { GlassCard } from '@/components/GlassCard';
-import type { InputFormState } from './hooks/useFormState';
 
 interface InputFormPanelProps {
   formState: InputFormState;
@@ -21,6 +20,8 @@ interface InputFormPanelProps {
   onSectionChange: (section: keyof InputFormState, data: Partial<InputFormState[keyof InputFormState]>) => void;
   mode: 'basic' | 'advanced';
   activeSection: string;
+  getFieldError?: (section: keyof InputFormState, field: string) => string | null;
+  markFieldTouched?: (section: keyof InputFormState, field: string) => void;
 }
 
 export const InputFormPanel: React.FC<InputFormPanelProps> = ({
@@ -29,6 +30,8 @@ export const InputFormPanel: React.FC<InputFormPanelProps> = ({
   onSectionChange,
   mode,
   activeSection,
+  getFieldError,
+  markFieldTouched,
 }) => {
   return (
     <div
@@ -42,8 +45,12 @@ export const InputFormPanel: React.FC<InputFormPanelProps> = ({
       <section id="section-route">
         <RouteServiceSection
           data={formState.route}
-          onChange={(field, value) => onFieldChange('route', field, value)}
+          onChange={(field, value) => {
+            onFieldChange('route', field, value);
+            markFieldTouched?.('route', field);
+          }}
           mode={mode}
+          getFieldError={(field) => getFieldError?.('route', field) || undefined}
         />
       </section>
       

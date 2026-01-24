@@ -145,7 +145,7 @@ export const QuoteComparison: React.FC<QuoteComparisonProps> = ({
         })}
       </div>
       
-      <style jsx>{`
+      <style>{`
         .insurance-quote-comparison {
           padding: 2rem;
         }

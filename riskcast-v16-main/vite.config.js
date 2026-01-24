@@ -58,6 +58,9 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
+      outDir: 'dist',
+      assetsDir: 'assets',
+      emptyOutDir: true,
       reportCompressedSize: true,
       sourcemap: true, // Enable sourcemap for debugging
       minify: false, // Disable minify to avoid terser dependency

@@ -102,7 +102,9 @@ export const FinancialModule: React.FC<FinancialModuleProps> = ({ financial }) =
   }
 
   // Find max probability for domain
-  const maxProbability = Math.max(...financial.lossCurve.map(d => d.probability || 0));
+  const maxProbability = financial.lossCurve 
+    ? Math.max(...financial.lossCurve.map(d => d.probability || 0))
+    : 0;
   
   // Calculate risk severity indicator
   const riskSeverity = financial.expectedLoss > 10000 ? 'high' : financial.expectedLoss > 5000 ? 'medium' : 'low';

@@ -9,6 +9,7 @@ import { GlassCard } from '@/components/GlassCard';
 import { Dropdown } from '../components/Dropdown';
 import { Input } from '../components/Input';
 import { PillGroup } from '../components/PillGroup';
+import { Autosuggest } from '../components/Autosuggest';
 import { Zap, Activity, DollarSign, ShieldCheck } from 'lucide-react';
 
 interface RouteServiceSectionProps {
@@ -25,6 +26,7 @@ interface RouteServiceSectionProps {
   };
   onChange: (field: string, value: unknown) => void;
   mode: 'basic' | 'advanced';
+  getFieldError?: (field: string) => string | undefined;
 }
 
 // Mock data - should come from API or data file
@@ -52,6 +54,7 @@ export const RouteServiceSection: React.FC<RouteServiceSectionProps> = ({
   data,
   onChange,
   mode,
+  getFieldError,
 }) => {
   return (
     <GlassCard padding="lg" variant="default">
@@ -135,6 +138,7 @@ export const RouteServiceSection: React.FC<RouteServiceSectionProps> = ({
           options={TRADE_LANES}
           searchable
           required
+          error={getFieldError?.('tradeLane')}
           onChange={(value) => onChange('tradeLane', value)}
         />
         
@@ -205,23 +209,23 @@ export const RouteServiceSection: React.FC<RouteServiceSectionProps> = ({
           helperText="Filter service routes by priority"
         />
         
-        <Input
+        <Autosuggest
           label="Origin Port (POL)"
-          placeholder="e.g., LAX, SGN, SHA"
-          value={data?.pol || ''}
-          icon={MapPin}
+          placeholder="Type to search ports..."
+          value={data?.pol}
           required
-          onChange={(e) => onChange('pol', e.target.value)}
+          error={getFieldError?.('pol')}
+          onChange={(value) => onChange('pol', value)}
           helperText="Port where cargo is loaded"
         />
         
-        <Input
+        <Autosuggest
           label="Destination Port (POD)"
-          placeholder="e.g., Rotterdam, Dubai"
-          value={data?.pod || ''}
-          icon={MapPin}
+          placeholder="Type to search ports..."
+          value={data?.pod}
           required
-          onChange={(e) => onChange('pod', e.target.value)}
+          error={getFieldError?.('pod')}
+          onChange={(value) => onChange('pod', value)}
           helperText="Port where cargo is unloaded"
         />
       </div>

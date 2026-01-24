@@ -1,0 +1,193 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # ==========================================================================
+  # Deploy to Staging
+  # ==========================================================================
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event.inputs.environment == 'staging'
+    environment:
+      name: staging
+      url: https://staging-api.riskcast.com
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+            --name ${{ secrets.EKS_CLUSTER_NAME_STAGING || 'riskcast-staging' }} \
+            --region ${{ secrets.AWS_REGION || 'us-east-1' }}
+
+      - name: Deploy to staging
+        run: |
+          IMAGE_TAG=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          
+          # Update API deployment
+          kubectl set image deployment/riskcast-api \
+            api=$IMAGE_TAG \
+            -n riskcast-staging || kubectl set image deployment/riskcast-api \
+            api=$IMAGE_TAG \
+            -n riskcast
+          
+          # Update Worker deployment
+          kubectl set image deployment/riskcast-worker \
+            worker=$IMAGE_TAG \
+            -n riskcast-staging || kubectl set image deployment/riskcast-worker \
+            worker=$IMAGE_TAG \
+            -n riskcast
+          
+          # Wait for rollout
+          kubectl rollout status deployment/riskcast-api \
+            -n riskcast-staging --timeout=300s || \
+          kubectl rollout status deployment/riskcast-api \
+            -n riskcast --timeout=300s
+
+      - name: Run smoke tests
+        run: |
+          STAGING_URL=${{ secrets.STAGING_API_URL || 'https://staging-api.riskcast.com' }}
+          
+          # Health check
+          echo "Testing health endpoint..."
+          curl -f $STAGING_URL/health || exit 1
+          
+          # Basic API check
+          echo "Testing API endpoint..."
+          curl -f $STAGING_URL/api/v3/health || curl -f $STAGING_URL/health || exit 1
+
+  # ==========================================================================
+  # Deploy to Production
+  # ==========================================================================
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [deploy-staging]
+    if: github.event.inputs.environment == 'production'
+    environment:
+      name: production
+      url: https://api.riskcast.com
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+            --name ${{ secrets.EKS_CLUSTER_NAME_PRODUCTION || 'riskcast-production' }} \
+            --region ${{ secrets.AWS_REGION || 'us-east-1' }}
+
+      - name: Run database migrations
+        run: |
+          # Create migration job from existing job template or run directly
+          kubectl create job --from=cronjob/riskcast-migrations \
+            riskcast-migrations-${{ github.sha }} \
+            -n riskcast-production --dry-run=client -o yaml | \
+          kubectl apply -f - || \
+          kubectl run riskcast-migrations-${{ github.sha }} \
+            --image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            --restart=Never \
+            --namespace=riskcast-production \
+            --command -- alembic upgrade head
+          
+          # Wait for migration job to complete
+          kubectl wait --for=condition=complete \
+            job/riskcast-migrations-${{ github.sha }} \
+            -n riskcast-production \
+            --timeout=300s || echo "Migration job not found, continuing..."
+
+      - name: Deploy to production
+        run: |
+          IMAGE_TAG=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          
+          # Update API deployment
+          kubectl set image deployment/riskcast-api \
+            api=$IMAGE_TAG \
+            -n riskcast-production || kubectl set image deployment/riskcast-api \
+            api=$IMAGE_TAG \
+            -n riskcast
+          
+          # Update Worker deployment
+          kubectl set image deployment/riskcast-worker \
+            worker=$IMAGE_TAG \
+            -n riskcast-production || kubectl set image deployment/riskcast-worker \
+            worker=$IMAGE_TAG \
+            -n riskcast
+          
+          # Wait for rollout
+          kubectl rollout status deployment/riskcast-api \
+            -n riskcast-production --timeout=600s || \
+          kubectl rollout status deployment/riskcast-api \
+            -n riskcast --timeout=600s
+
+      - name: Verify deployment
+        run: |
+          PROD_URL=${{ secrets.PRODUCTION_API_URL || 'https://api.riskcast.com' }}
+          
+          # Health check
+          echo "Testing health endpoint..."
+          curl -f $PROD_URL/health || exit 1
+          
+          # Version check (if available)
+          echo "Verifying deployment..."
+          VERSION_RESPONSE=$(curl -s $PROD_URL/health || echo '{}')
+          echo "Health response: $VERSION_RESPONSE"
+
+      - name: Notify Slack
+        if: always()
+        uses: slackapi/slack-github-action@v1
+        with:
+          channel-id: ${{ secrets.SLACK_CHANNEL_ID || 'C1234567890' }}
+          slack-message: |
+            🚀 Production deployment ${{ job.status }}
+            
+            Commit: ${{ github.sha }}
+            Actor: ${{ github.actor }}
+            Workflow: ${{ github.workflow }}
+            
+            ${{ job.status == 'success' && '✅ Deployment successful!' || '❌ Deployment failed!' }}
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}

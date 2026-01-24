@@ -5,7 +5,7 @@
  */
 
 import React, { useState } from 'react';
-import { InsuranceProduct } from '../../types/insurance';
+import type { InsuranceProduct } from '../../types/insurance';
 
 interface ProductSelectorProps {
   products: InsuranceProduct[];
@@ -49,6 +49,9 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({
     };
     
     const badge = badges[status] || badges.concept;
+    if (!badge) {
+      return null;
+    }
     return (
       <span
         style={{
@@ -122,7 +125,7 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({
         })}
       </div>
       
-      <style jsx>{`
+      <style>{`
         .product-selector {
           padding: 2rem;
         }

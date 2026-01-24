@@ -128,7 +128,7 @@ export const SummaryBreadcrumb: React.FC<SummaryBreadcrumbProps> = ({ className 
     },
     {
       label: 'Input',
-      href: '/input_v20'
+      href: '/input_react'
     },
     {
       label: 'Summary',

@@ -87,7 +87,7 @@ describe('port-lookup', () => {
     it('should search by port code', () => {
       const results = searchPorts('SGN');
       expect(results.length).toBeGreaterThan(0);
-      expect(results[0].code).toContain('SGN');
+      expect(results[0]?.code).toContain('SGN');
     });
 
     it('should search by city name', () => {

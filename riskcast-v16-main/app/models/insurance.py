@@ -595,3 +595,20 @@ class CarrierBindResponse:
     
     def to_dict(self) -> Dict:
         return asdict(self)
+
+
+# ============================================================================
+# TRIGGER EVALUATION MODEL
+# ============================================================================
+
+@dataclass
+class TriggerEvaluation:
+    """Result of parametric trigger evaluation."""
+    triggered: bool
+    payout_amount: float = 0.0
+    trigger_evidence: Optional[Dict[str, Any]] = None
+    reason: Optional[str] = None
+    escalate_to_manual: bool = False
+    
+    def to_dict(self) -> Dict:
+        return asdict(self)

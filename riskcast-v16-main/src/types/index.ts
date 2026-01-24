@@ -7,7 +7,7 @@
  * - Defensive: fields that can be missing are optional to avoid runtime crashes.
  */
 
-export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH';
+export type RiskLevel = 'Low' | 'Medium' | 'High' | 'Critical' | 'Unknown';
 
 export type TraceSource = 'rule' | 'model' | 'external';
 

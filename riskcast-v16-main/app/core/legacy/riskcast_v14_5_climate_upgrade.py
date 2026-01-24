@@ -227,31 +227,32 @@ class ClimateMonteCarloExtension:
     def generate_climate_tail_shocks(
         n_samples: int,
         climate_vars: ClimateVariables,
-        base_tail_prob: float = 0.05
+        base_tail_prob: float = 0.05,
+        rng: Optional[np.random.Generator] = None,
     ) -> np.ndarray:
-        """Generate climate-driven tail shock distribution"""
-        
-        # Combined tail probability
+        """Generate climate-driven tail shock distribution.
+        When rng is provided, use it for reproducibility (no global np.random).
+        """
         combined_prob = base_tail_prob + climate_vars.climate_tail_event_probability * 0.5
         combined_prob = np.clip(combined_prob, 0.0, 0.15)
         
-        # Generate shocks
         shocks = np.zeros(n_samples)
-        
-        # Identify tail event samples
-        tail_mask = np.random.random(n_samples) < combined_prob
+        if rng is not None:
+            tail_mask = rng.random(n_samples) < combined_prob
+        else:
+            tail_mask = np.random.random(n_samples) < combined_prob
         
         if np.any(tail_mask):
-            # Calculate shock magnitude based on climate variables
             base_magnitude = 2.0
             enso_mult = 1.0 + abs(climate_vars.ENSO_index) * 0.3
             typhoon_mult = 1.0 + climate_vars.seasonal_typhoon_frequency * 0.5
             volatility_mult = climate_vars.long_term_climate_volatility_index / 5.0
-            
             magnitude = base_magnitude * enso_mult * typhoon_mult * volatility_mult
-            
-            # Generate gamma-distributed shocks
-            shocks[tail_mask] = np.random.gamma(2.0, magnitude, size=np.sum(tail_mask))
+            n_tail = int(np.sum(tail_mask))
+            if rng is not None:
+                shocks[tail_mask] = rng.gamma(2.0, magnitude, size=n_tail)
+            else:
+                shocks[tail_mask] = np.random.gamma(2.0, magnitude, size=n_tail)
         
         return shocks
     

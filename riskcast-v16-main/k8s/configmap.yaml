@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: riskcast-config
+  namespace: riskcast
+data:
+  APP_ENV: "production"
+  ENVIRONMENT: "production"
+  LOG_LEVEL: "INFO"
+  CORS_ORIGINS: "https://app.riskcast.com"
+  WORKERS: "4"
+  DB_POOL_SIZE: "10"
+  DB_MAX_OVERFLOW: "20"
+  USE_REDIS: "false"
+  MC_ITERATIONS_DEFAULT: "50000"
+  ENABLE_AUDIT_LOGGING: "true"
+  TENANT_ISOLATION_ENABLED: "true"

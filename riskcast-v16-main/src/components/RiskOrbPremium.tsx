@@ -6,7 +6,7 @@ export type OrbSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'responsive';
 
 export interface RiskOrbPremiumProps {
   score: number;
-  riskLevel?: 'LOW' | 'MEDIUM' | 'HIGH';
+  riskLevel?: 'Low' | 'Medium' | 'High' | 'Critical' | 'Unknown';
   /** Size variant - 'responsive' auto-adjusts based on breakpoint */
   size?: OrbSize;
   /** Enable compact mode toggle */
@@ -29,11 +29,12 @@ const SIZE_CONFIG: Record<Exclude<OrbSize, 'responsive'>, { width: number; fontS
 
 function getRiskColor(level: string): string {
   switch (level) {
-    case 'HIGH':
+    case 'High':
+    case 'Critical':
       return '#ef4444'; // red-500
-    case 'MEDIUM':
+    case 'Medium':
       return '#f59e0b'; // amber-500
-    case 'LOW':
+    case 'Low':
       return '#10b981'; // emerald-500
     default:
       return '#6b7280'; // gray-500

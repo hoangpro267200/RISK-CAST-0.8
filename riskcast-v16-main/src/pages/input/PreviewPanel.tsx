@@ -45,6 +45,7 @@ interface PreviewPanelProps {
   completeness: number;
   completedFields: string[];
   missingFields: string[];
+  isLoading?: boolean;
 }
 
 export const PreviewPanel: React.FC<PreviewPanelProps> = ({
@@ -52,6 +53,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
   completeness,
   completedFields,
   missingFields,
+  isLoading = false,
 }) => {
   return (
     <div
@@ -62,38 +64,37 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
       }}
     >
       {/* Route Summary */}
-      {data.route.pol && data.route.pod && (
-        <RouteSummaryCard
-          pol={data.route.pol}
-          pod={data.route.pod}
-          mode={data.route.mode}
-          carrier={data.route.carrier}
-          transitDays={data.route.transitDays}
-        />
-      )}
+      <RouteSummaryCard
+        pol={data.route.pol}
+        pod={data.route.pod}
+        mode={data.route.mode}
+        carrier={data.route.carrier}
+        transitDays={data.route.transitDays}
+        isLoading={isLoading || !data.route.pol || !data.route.pod}
+      />
       
       {/* Cargo Summary */}
-      {data.cargo.type && (
-        <CargoSummaryCard
-          type={data.cargo.type}
-          weight={data.cargo.weight}
-          volume={data.cargo.volume}
-          packages={data.cargo.packages}
-          sensitivity={data.cargo.sensitivity}
-          insuranceValue={data.value.insuranceValue}
-          incoterm={data.value.incoterm}
-        />
-      )}
+      <CargoSummaryCard
+        type={data.cargo.type}
+        weight={data.cargo.weight}
+        volume={data.cargo.volume}
+        packages={data.cargo.packages}
+        sensitivity={data.cargo.sensitivity}
+        insuranceValue={data.value.insuranceValue}
+        incoterm={data.value.incoterm}
+        isLoading={isLoading || !data.cargo.type}
+      />
       
       {/* Completeness Meter */}
       <CompletenessMeter
         completeness={completeness}
         completedFields={completedFields}
         missingFields={missingFields}
+        isLoading={isLoading}
       />
       
       {/* What You'll Get */}
-      <WhatYoullGetCard />
+      <WhatYoullGetCard isLoading={isLoading} />
     </div>
   );
 };

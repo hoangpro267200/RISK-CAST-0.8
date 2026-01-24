@@ -15,27 +15,44 @@ interface CheckoutFlowProps {
 
 type CheckoutStep = 'config' | 'kyc' | 'payment' | 'review' | 'processing' | 'complete';
 
+interface CoverageConfig {
+  sum_insured: number;
+  deductible: number;
+  trigger_threshold?: number;
+  payout_per_day?: number;
+}
+
+interface KycData {
+  legal_name?: string;
+  registration_number?: string;
+  country?: string;
+}
+
+interface PaymentData {
+  payment_method?: string;
+}
+
 export const CheckoutFlow: React.FC<CheckoutFlowProps> = ({
   quote,
   onComplete,
   onCancel
 }) => {
   const [currentStep, setCurrentStep] = useState<CheckoutStep>('config');
-  const [coverageConfig, setCoverageConfig] = useState({
-    sum_insured: quote.coverage?.sum_insured || 0,
-    deductible: quote.coverage?.deductible || 0,
+  const [coverageConfig, setCoverageConfig] = useState<CoverageConfig>({
+    sum_insured: quote.coverage?.sum_insured ?? 0,
+    deductible: quote.coverage?.deductible ?? 0,
     trigger_threshold: quote.trigger?.threshold,
     payout_per_day: quote.payout_structure?.payout_per_unit
   });
-  const [kycData, setKycData] = useState<any>(null);
-  const [paymentData, setPaymentData] = useState<any>(null);
+  const [kycData, setKycData] = useState<KycData | null>(null);
+  const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
   const [transactionId, setTransactionId] = useState<string | null>(null);
 
   const handleNext = () => {
     const steps: CheckoutStep[] = ['config', 'kyc', 'payment', 'review', 'processing', 'complete'];
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex < steps.length - 1) {
-      setCurrentStep(steps[currentIndex + 1]);
+      setCurrentStep(steps[currentIndex + 1] as CheckoutStep);
     }
   };
 
@@ -43,7 +60,7 @@ export const CheckoutFlow: React.FC<CheckoutFlowProps> = ({
     const steps: CheckoutStep[] = ['config', 'kyc', 'payment', 'review', 'processing', 'complete'];
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex > 0) {
-      setCurrentStep(steps[currentIndex - 1]);
+      setCurrentStep(steps[currentIndex - 1] as CheckoutStep);
     }
   };
 
@@ -62,25 +79,30 @@ export const CheckoutFlow: React.FC<CheckoutFlowProps> = ({
         })
       });
       
-      const result = await response.json();
-      const txId = result.data.transaction_id;
-      setTransactionId(txId);
-      
-      // Process payment
-      if (paymentData) {
-        await fetch(`/api/v2/insurance/transactions/${txId}/payment`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(paymentData)
-        });
+      const result = await response.json() as { data?: { transaction_id?: string } };
+      const txId = result?.data?.transaction_id;
+      if (txId) {
+        setTransactionId(txId);
+        
+        // Process payment if provided
+        if (paymentData) {
+          await fetch(`/api/v2/insurance/transactions/${txId}/payment`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(paymentData)
+          });
+        }
+        
+        setCurrentStep('complete');
+        onComplete(txId);
+      } else {
+        throw new Error('Missing transaction id from response');
       }
-      
-      setCurrentStep('complete');
-      onComplete(txId);
       
     } catch (error) {
       console.error('Checkout error:', error);
       // Handle error
+      setCurrentStep('review');
     }
   };
 
@@ -123,7 +145,7 @@ export const CheckoutFlow: React.FC<CheckoutFlowProps> = ({
                 onChange={(e) =>
                   setCoverageConfig({
                     ...coverageConfig,
-                    sum_insured: parseFloat(e.target.value)
+                    sum_insured: Number.parseFloat(e.target.value) || 0
                   })
                 }
               />
@@ -136,7 +158,7 @@ export const CheckoutFlow: React.FC<CheckoutFlowProps> = ({
                 onChange={(e) =>
                   setCoverageConfig({
                     ...coverageConfig,
-                    deductible: parseFloat(e.target.value)
+                    deductible: Number.parseFloat(e.target.value) || 0
                   })
                 }
               />
@@ -146,11 +168,11 @@ export const CheckoutFlow: React.FC<CheckoutFlowProps> = ({
                 Trigger Threshold:
                 <input
                   type="number"
-                  value={coverageConfig.trigger_threshold || quote.trigger.threshold}
+                  value={coverageConfig.trigger_threshold ?? quote.trigger.threshold ?? 0}
                   onChange={(e) =>
                     setCoverageConfig({
                       ...coverageConfig,
-                      trigger_threshold: parseFloat(e.target.value)
+                      trigger_threshold: Number.parseFloat(e.target.value)
                     })
                   }
                 />
@@ -173,7 +195,7 @@ export const CheckoutFlow: React.FC<CheckoutFlowProps> = ({
               <input
                 type="text"
                 onChange={(e) =>
-                  setKycData({ ...kycData, legal_name: e.target.value })
+                  setKycData({ ...(kycData ?? {}), legal_name: e.target.value })
                 }
               />
             </label>
@@ -182,7 +204,7 @@ export const CheckoutFlow: React.FC<CheckoutFlowProps> = ({
               <input
                 type="text"
                 onChange={(e) =>
-                  setKycData({ ...kycData, registration_number: e.target.value })
+                  setKycData({ ...(kycData ?? {}), registration_number: e.target.value })
                 }
               />
             </label>
@@ -190,7 +212,7 @@ export const CheckoutFlow: React.FC<CheckoutFlowProps> = ({
               Country:
               <select
                 onChange={(e) =>
-                  setKycData({ ...kycData, country: e.target.value })
+                  setKycData({ ...(kycData ?? {}), country: e.target.value })
                 }
               >
                 <option value="">Select Country</option>
@@ -220,7 +242,7 @@ export const CheckoutFlow: React.FC<CheckoutFlowProps> = ({
               Payment Method:
               <select
                 onChange={(e) =>
-                  setPaymentData({ ...paymentData, payment_method: e.target.value })
+                  setPaymentData({ ...(paymentData ?? {}), payment_method: e.target.value })
                 }
               >
                 <option value="credit_card">Credit/Debit Card</option>
@@ -269,7 +291,7 @@ export const CheckoutFlow: React.FC<CheckoutFlowProps> = ({
         </div>
       )}
 
-      <style jsx>{`
+      <style>{`
         .checkout-flow {
           max-width: 800px;
           margin: 0 auto;

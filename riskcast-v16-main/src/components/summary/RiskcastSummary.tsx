@@ -19,6 +19,7 @@ import {
   loadDomainCaseFromStorage,
   saveDomainCaseToStorage,
 } from '@/domain';
+import { computeInputHash } from '@/engine/inputHash';
 import { CaseStepper } from '../ui/CaseStepper';
 import { SummaryBreadcrumb } from '../ui/Breadcrumb';
 
@@ -54,6 +55,8 @@ const FIELD_CONFIG: Record<string, { type: SmartFieldType; label: string; option
   'cargo.stackability': { type: 'checkbox', label: 'Stackable' },
   'cargo.temp_control_required': { type: 'checkbox', label: 'Temperature Controlled' },
   'cargo.is_dg': { type: 'checkbox', label: 'Dangerous Goods' },
+  // Shipment Value (top-level field)
+  'value': { type: 'number', label: 'Shipment Value (USD)' },
   'seller.company': { type: 'text', label: 'Company' },
   'seller.name': { type: 'text', label: 'Contact Name' },
   'seller.email': { type: 'text', label: 'Email' },
@@ -70,7 +73,6 @@ const FIELD_CONFIG: Record<string, { type: SmartFieldType; label: string; option
   'buyer.city': { type: 'text', label: 'City' },
   'buyer.address': { type: 'textarea', label: 'Address' },
   'buyer.tax_id': { type: 'text', label: 'Tax ID' },
-  'value': { type: 'number', label: 'Shipment Value (USD)' },
 };
 
 // Get nested value from object
@@ -458,245 +460,54 @@ export function RiskcastSummary({ initialData }: RiskcastSummaryProps) {
           console.log('[RiskcastSummary] API response parsed:', results);
         }
       } catch (apiError) {
-        console.warn('[RiskcastSummary] API not available, generating mock results:', apiError);
+        console.error('[RiskcastSummary] API request failed:', apiError);
+        // CRITICAL: Do NOT generate fake data. Show error instead.
+        setIsAnalyzing(false);
+        setSaveState('error');
+        alert('Risk analysis engine is unavailable. Please ensure the backend server is running and try again.');
+        return; // Exit early - do not proceed without real engine data
       }
 
-      // If no API results, generate mock results matching expected engine format
+      // CRITICAL: If no results from engine, show error - NEVER generate fake data
       if (!results) {
-        // Calculate realistic risk score based on data completeness
-        const hasRoute = data.trade.pol && data.trade.pod;
-        const hasCarrier = !!data.trade.carrier;
-        const hasCargo = !!data.cargo.cargo_type;
-        const hasParties = !!data.seller.company || !!data.buyer.company;
-        
-        // Base score: lower is better, start moderate and adjust
-        let baseRisk = 45;
-        if (!hasRoute) baseRisk += 15;
-        if (!hasCarrier) baseRisk += 10;
-        if (!hasCargo) baseRisk += 8;
-        if (!hasParties) baseRisk += 5;
-        
-        // Add some variance
-        const riskScoreValue = Math.min(95, Math.max(15, baseRisk + Math.floor(Math.random() * 15) - 7));
-        const transitDays = data.trade.transit_time_days || 7;
-        
-        // Determine risk level based on score
-        const getRiskLevel = (score: number): 'Low' | 'Medium' | 'High' | 'Critical' => {
-          if (score < 30) return 'Low';
-          if (score < 50) return 'Medium';
-          if (score < 75) return 'High';
-          return 'Critical';
-        };
-        
-        const riskLevel = getRiskLevel(riskScoreValue);
-        
-        results = {
-          // Use snake_case to match engine format expected by adapter
-          risk_score: riskScoreValue,
-          risk_level: riskLevel,
-          confidence: 85,
-          overall_risk: riskScoreValue,
-          profile: {
-            score: riskScoreValue,
-            level: riskLevel,
-            confidence: 85,
-            // Factors for radar chart - grouped by category
-            factors: {
-              // By Category (for radar)
-              transport: Math.floor(Math.random() * 20) + 55,      // Mode, Carrier, Route, Transit
-              cargo: Math.floor(Math.random() * 25) + 50,          // Sensitivity, Packing, DG
-              commercial: Math.floor(Math.random() * 20) + 60,     // Incoterm, Seller, Buyer, Insurance
-              compliance: Math.floor(Math.random() * 20) + 45,     // Documentation, Trade
-              external: Math.floor(Math.random() * 25) + 40,       // Port, Weather, Market
-              // Individual key metrics
-              carrier_performance: Math.floor(Math.random() * 25) + 55,
-              route_complexity: Math.floor(Math.random() * 20) + 60,
-              cargo_sensitivity: Math.floor(Math.random() * 30) + 50,
-              weather_exposure: Math.floor(Math.random() * 35) + 35,
-              port_congestion: Math.floor(Math.random() * 30) + 40,
-            },
-            // Risk matrix
-            matrix: {
-              probability: Math.floor(riskScoreValue / 20) + 2, // 1-9
-              severity: Math.floor(riskScoreValue / 15) + 2, // 1-9
-              quadrant: riskScoreValue >= 75 ? 'High-High' : riskScoreValue >= 50 ? 'Medium-Medium' : 'Low-Low',
-              description: riskScoreValue >= 75 
-                ? 'High probability and severity - immediate attention required'
-                : riskScoreValue >= 50 
-                  ? 'Moderate risk profile - monitor closely'
-                  : 'Low risk profile - standard monitoring sufficient',
-            },
-            explanation: [
-              `Risk score of ${riskScoreValue} indicates ${riskScoreValue >= 75 ? 'elevated' : 'manageable'} risk level`,
-              `Transit from ${data.trade.pol} to ${data.trade.pod} via ${data.trade.mode || 'SEA'}`,
-              `${transitDays} days estimated transit time`,
-            ],
-          },
-          shipment: {
-            id: data.shipmentId || `SH-${data.trade.pol}-${data.trade.pod}-${Date.now()}`,
-            // Use keys that adapter expects
-            pol_code: data.trade.pol,
-            pod_code: data.trade.pod,
-            origin: data.trade.pol,
-            destination: data.trade.pod,
-            route: `${data.trade.pol} → ${data.trade.pod}`,
-            carrier: data.trade.carrier || 'Maersk',
-            etd: data.trade.etd,
-            eta: data.trade.eta,
-            transit_time: transitDays,
-            container: data.trade.container_type,
-            cargo: data.cargo.cargo_type,
-            incoterm: data.trade.incoterm,
-            cargo_value: data.value || 100000,
-            value: data.value || 100000,
-          },
-          // Drivers - Top risk factors impacting this shipment
-          drivers: [
-            { name: 'Carrier Performance', impact: 32, description: 'Historical carrier on-time delivery rate' },
-            { name: 'Cargo Sensitivity', impact: 28, description: 'Cargo fragility and special handling needs' },
-            { name: 'Route Complexity', impact: 22, description: 'Distance, transhipments, and route reliability' },
-            { name: 'Weather Exposure', impact: 18, description: 'Climate conditions along route' },
-            { name: 'Port Congestion', impact: 15, description: 'Origin/destination port utilization' },
-            { name: 'Transit Variance', impact: 12, description: 'Schedule reliability and delays' },
-            { name: 'Incoterm Risk', impact: 10, description: 'Responsibility transfer points' },
-            { name: 'Trade Compliance', impact: 8, description: 'Customs and regulatory requirements' },
-          ],
-          // 16 Risk Layers matching RiskScoringEngineV21 - ALL ENABLED
-          layers: [
-            // TRANSPORT (4 layers - 35%)
-            { name: 'Mode Reliability', score: Math.floor(Math.random() * 25) + 55, contribution: 10, category: 'TRANSPORT' },
-            { name: 'Carrier Performance', score: Math.floor(Math.random() * 30) + 50, contribution: 12, category: 'TRANSPORT' },
-            { name: 'Route Complexity', score: Math.floor(Math.random() * 25) + 60, contribution: 8, category: 'TRANSPORT' },
-            { name: 'Transit Time Variance', score: Math.floor(Math.random() * 20) + 45, contribution: 5, category: 'TRANSPORT' },
-            // CARGO (3 layers - 25%)
-            { name: 'Cargo Sensitivity', score: Math.floor(Math.random() * 30) + 55, contribution: 12, category: 'CARGO' },
-            { name: 'Packing Quality', score: Math.floor(Math.random() * 25) + 50, contribution: 8, category: 'CARGO' },
-            { name: 'DG Compliance', score: Math.floor(Math.random() * 20) + 30, contribution: 5, category: 'CARGO' },
-            // COMMERCIAL (4 layers - 20%)
-            { name: 'Incoterm Risk', score: Math.floor(Math.random() * 25) + 45, contribution: 8, category: 'COMMERCIAL' },
-            { name: 'Seller Credibility', score: Math.floor(Math.random() * 20) + 60, contribution: 6, category: 'COMMERCIAL' },
-            { name: 'Buyer Credibility', score: Math.floor(Math.random() * 20) + 65, contribution: 4, category: 'COMMERCIAL' },
-            { name: 'Insurance Adequacy', score: Math.floor(Math.random() * 15) + 70, contribution: 2, category: 'COMMERCIAL' },
-            // COMPLIANCE (2 layers - 10%)
-            { name: 'Documentation', score: Math.floor(Math.random() * 20) + 50, contribution: 5, category: 'COMPLIANCE' },
-            { name: 'Trade Compliance', score: Math.floor(Math.random() * 25) + 45, contribution: 5, category: 'COMPLIANCE' },
-            // EXTERNAL (3 layers - 10%)
-            { name: 'Port Congestion', score: Math.floor(Math.random() * 30) + 40, contribution: 4, category: 'EXTERNAL' },
-            { name: 'Weather Climate', score: Math.floor(Math.random() * 35) + 35, contribution: 3, category: 'EXTERNAL' },
-            { name: 'Market Volatility', score: Math.floor(Math.random() * 25) + 30, contribution: 3, category: 'EXTERNAL' },
-          ],
-          // Financial loss metrics
-          loss: {
-            expectedLoss: Math.round((data.value || 100000) * (riskScoreValue / 100) * 0.05), // ~5% of value * risk
-            p95: Math.round((data.value || 100000) * (riskScoreValue / 100) * 0.08), // VaR 95%
-            p99: Math.round((data.value || 100000) * (riskScoreValue / 100) * 0.12), // CVaR 99%
-            tailContribution: 25,
-          },
-          // Timeline projections
-          timeline: {
-            projections: Array.from({ length: 7 }, (_, i) => ({
-              date: new Date(Date.now() + i * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-              p10: Math.max(0, riskScoreValue - 15 - Math.random() * 5),
-              p50: riskScoreValue + (Math.random() - 0.5) * 10,
-              p90: Math.min(100, riskScoreValue + 15 + Math.random() * 5),
-            })),
-          },
-          // Risk scenario projections (for fan chart)
-          riskScenarioProjections: Array.from({ length: 7 }, (_, i) => ({
-            date: new Date(Date.now() + i * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            p10: Math.max(0, riskScoreValue - 15 - Math.random() * 5),
-            p50: riskScoreValue + (Math.random() - 0.5) * 10,
-            p90: Math.min(100, riskScoreValue + 15 + Math.random() * 5),
-            phase: i < 2 ? 'Loading' : i < 5 ? 'Transit' : 'Discharge',
-          })),
-          // Scenarios for recommendations
-          scenarios: [
-            {
-              title: 'Expedited Shipping',
-              description: 'Use express carrier to reduce transit time',
-              riskReduction: 15,
-              costImpact: 2.5,
-            },
-            {
-              title: 'Alternative Route',
-              description: 'Route via less congested ports',
-              riskReduction: 10,
-              costImpact: 1.0,
-            },
-            {
-              title: 'Enhanced Insurance',
-              description: 'Comprehensive cargo protection',
-              riskReduction: 20,
-              costImpact: 1.5,
-            },
-          ],
-          recommendations: [
-            {
-              type: 'primary',
-              title: 'Consider Alternative Route',
-              description: 'A direct route via alternative carrier may reduce transit time by 2 days.',
-              impact: 'medium',
-            },
-            {
-              type: 'secondary',
-              title: 'Monitor Weather Conditions',
-              description: 'Seasonal weather patterns may affect schedule reliability.',
-              impact: 'low',
-            },
-          ],
-          reasoning: {
-            explanation: `Risk analysis for shipment from ${data.trade.pol} to ${data.trade.pod}. The overall risk score of ${riskScoreValue} indicates ${riskLevel.toUpperCase()} risk level with ${transitDays} days transit time via ${data.trade.mode || 'SEA'} transport.`,
-          },
-          // Decision support data (use snake_case for adapter)
-          decision_summary: {
-            insurance: {
-              status: riskScoreValue >= 60 ? 'RECOMMENDED' : riskScoreValue >= 40 ? 'OPTIONAL' : 'NOT_NEEDED',
-              recommendation: riskScoreValue >= 60 ? 'BUY' : riskScoreValue >= 40 ? 'CONSIDER' : 'SKIP',
-              rationale: riskScoreValue >= 60 
-                ? `High risk score (${riskScoreValue}) suggests comprehensive cargo insurance is advisable`
-                : riskScoreValue >= 40
-                  ? `Moderate risk level - insurance optional based on cargo value ($${(data.value || 100000).toLocaleString()})`
-                  : `Low risk profile - standard coverage should be sufficient`,
-              risk_delta_points: riskScoreValue >= 60 ? -15 : riskScoreValue >= 40 ? -8 : -3,
-              cost_impact_usd: Math.round((data.value || 100000) * 0.005), // ~0.5% of cargo value
-              providers: ['Allianz', 'AIG', 'Zurich'],
-            },
-            timing: {
-              status: riskScoreValue >= 50 ? 'RECOMMENDED' : 'OPTIONAL',
-              recommendation: riskScoreValue >= 50 ? 'ADJUST_ETD' : 'KEEP_ETD',
-              rationale: riskScoreValue >= 50
-                ? `Consider adjusting departure to avoid peak congestion periods`
-                : `Current timing is acceptable for this risk profile`,
-              optimal_window: {
-                start: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-              },
-              risk_reduction_points: riskScoreValue >= 50 ? -10 : -3,
-              cost_impact_usd: riskScoreValue >= 50 ? 500 : 0,
-            },
-            routing: {
-              status: riskScoreValue >= 70 ? 'RECOMMENDED' : 'NOT_NEEDED',
-              recommendation: riskScoreValue >= 70 ? 'CHANGE_ROUTE' : 'KEEP_ROUTE',
-              rationale: riskScoreValue >= 70
-                ? `Alternative routing via less congested ports may reduce risk significantly`
-                : `Current route ${data.trade.pol} → ${data.trade.pod} is optimal for this shipment`,
-              best_alternative: riskScoreValue >= 70 ? 'Via transshipment hub (Singapore)' : null,
-              tradeoff: riskScoreValue >= 70 ? '+2 days transit, -15% risk' : null,
-              risk_reduction_points: riskScoreValue >= 70 ? -12 : 0,
-              cost_impact_usd: riskScoreValue >= 70 ? 1200 : 0,
-            },
-          },
-          insights: [
-            { type: 'info', message: 'Route analysis completed successfully' },
-            { type: 'warning', message: 'Consider transit time variability' },
-          ],
-          timestamp: new Date().toISOString(),
-          engine_version: '2.0-mock',
-          modules: modules,
-        };
+        console.error('[RiskcastSummary] No results received from engine');
+        setIsAnalyzing(false);
+        setSaveState('error');
+        alert('No analysis results received from engine. Please check the API connection and try again.');
+        return; // Exit early - do not proceed without real engine data
       }
+
+      // Validate that results came from real engine (not mock)
+      if (results.engine_version && results.engine_version.includes('mock')) {
+        console.error('[RiskcastSummary] CRITICAL: Mock data detected - rejecting');
+        throw new Error('Mock data is not allowed in production');
+      }
+
+      // Compute input hash for stale result detection
+      const inputHash = computeInputHash(domainCase);
+      const runId = results.run_id ?? results.runId ?? results.analysis_id ?? `run-${Date.now()}`;
       
-      // Save results
+      // Store expected context for integrity validation
+      const expectedContext = {
+        expectedCaseId: domainCase.caseId || undefined,
+        expectedRunId: String(runId),
+        expectedInputHash: inputHash,
+        expectedCargoValue: domainCase.cargoValue || undefined,
+        expectedCurrency: domainCase.currency || undefined,
+        expectedPol: domainCase.pol || undefined,
+        expectedPod: domainCase.pod || undefined,
+      };
+      
+      // Save context for Results page to use
+      localStorage.setItem('RISKCAST_EXPECTED_CONTEXT', JSON.stringify(expectedContext));
+      
+      // Attach input hash to results for backend verification
+      if (results && typeof results === 'object') {
+        (results as Record<string, unknown>).input_hash = inputHash;
+        (results as Record<string, unknown>).run_id = runId;
+      }
+
+      // Save ONLY real engine results
       localStorage.setItem('RISKCAST_RESULTS_V2', JSON.stringify(results));
       
       // Short delay for UX
@@ -743,6 +554,12 @@ export function RiskcastSummary({ initialData }: RiskcastSummaryProps) {
     { label: 'Priority', value: data.trade.priority, path: 'trade.priority' },
   ];
 
+  // Format money value for display
+  const formatMoney = (val: number | null | undefined): string => {
+    if (val == null || isNaN(val)) return '—';
+    return `$${val.toLocaleString('en-US')} ${data.currency || 'USD'}`;
+  };
+
   const cargoFields = [
     { label: 'Cargo Type', value: data.cargo.cargo_type, path: 'cargo.cargo_type' },
     { label: 'HS Code', value: data.cargo.hs_code, path: 'cargo.hs_code' },
@@ -753,6 +570,8 @@ export function RiskcastSummary({ initialData }: RiskcastSummaryProps) {
     { label: 'Stackable', value: data.cargo.stackability, path: 'cargo.stackability' },
     { label: 'Temp Control', value: data.cargo.temp_control_required, path: 'cargo.temp_control_required' },
     { label: 'Dangerous', value: data.cargo.is_dg, path: 'cargo.is_dg' },
+    // SHIPMENT VALUE - editable money field (last tile)
+    { label: 'Shipment Value', value: formatMoney(data.value), path: 'value' },
   ];
 
   const sellerFields = [

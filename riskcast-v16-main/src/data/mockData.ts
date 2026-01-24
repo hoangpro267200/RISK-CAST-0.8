@@ -15,7 +15,7 @@ export const mockRiskData: RiskAnalysisResult = {
   },
   riskScore: {
     overallScore: 68,
-    riskLevel: 'MEDIUM',
+    riskLevel: 'Medium',
     verdict: 'Moderate risk - recommend insurance coverage',
     dataConfidence: 0.87,
   },

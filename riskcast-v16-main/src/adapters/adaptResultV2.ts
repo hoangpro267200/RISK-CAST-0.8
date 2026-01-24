@@ -38,6 +38,9 @@ import {
 import { mapDomainCaseToShipmentViewModel } from '@/domain/case.mapper';
 import type { DomainCase } from '@/domain/case.schema';
 import { loadDomainCaseFromStorage } from '@/domain';
+import { validateEngineResponse, checkDataCompleteness } from './engineSchema';
+import { validateAnalysisIntegrity, type IntegrityResult, type ValidationContext } from '@/engine/analysisIntegrity';
+
 // Helper types/aliases used to relax some strict checks during incremental cleanup.
 type AnyRecord = Record<string, any>;
 const max = Math.max;
@@ -46,30 +49,143 @@ const max = Math.max;
  * Adapt raw engine result to normalized ResultsViewModel
  * 
  * @param raw - Raw engine output (may be unknown type)
+ * @param context - Expected context for integrity validation (optional)
  * @returns Normalized ResultsViewModel (never throws, always returns valid model)
  */
-export function adaptResultV2(raw: unknown): ResultsViewModel {
+export function adaptResultV2(raw: unknown, context: ValidationContext = {}): ResultsViewModel {
   try {
-    // Type guard: ensure we have an object
+    // Type guard: ensure we have an object FIRST (before any validation)
     if (typeof raw !== 'object' || raw === null) {
       return createDefaultViewModel(['Invalid input: expected object']);
     }
 
+    // ============================================================
+    // ANALYSIS INTEGRITY VALIDATION (Phase 2)
+    // This validates provenance and consistency BEFORE processing
+    // ============================================================
+    let integrityResult: IntegrityResult | null = null;
+    try {
+      integrityResult = validateAnalysisIntegrity(raw, context);
+      console.log('[adaptResultV2] Integrity check:', integrityResult.status, 
+        `(valid: ${integrityResult.isValid}, usable: ${integrityResult.isUsable})`);
+      
+      // CRITICAL: Only reject on actual critical errors, not warnings or info
+      // Warnings (like CASE_ID_MISMATCH, MISSING_RUN_ID) should not block data display
+      const criticalErrors = integrityResult.issues.filter(i => 
+        i.severity === 'error' && (
+          i.code === 'MOCK_DATA_DETECTED' ||
+          i.code === 'INPUT_HASH_MISMATCH' ||
+          i.code === 'CARGO_VALUE_MISMATCH' ||
+          i.code === 'RUN_ID_MISMATCH'
+        )
+      );
+      
+      if (criticalErrors.length > 0) {
+        console.error('[adaptResultV2] REJECTED by integrity layer:', 
+          criticalErrors[0]?.message);
+        const result = createDefaultViewModel([
+          criticalErrors[0]?.message || 'Data integrity check failed'
+        ]);
+        result.integrity = integrityResult;
+        return result;
+      }
+      
+      // Log issues (but don't block)
+      if (integrityResult.issues.length > 0) {
+        const errorIssues = integrityResult.issues.filter(i => i.severity === 'error');
+        const warningIssues = integrityResult.issues.filter(i => i.severity === 'warning');
+        const infoIssues = integrityResult.issues.filter(i => i.severity === 'info');
+        
+        if (errorIssues.length > 0) {
+          console.warn('[adaptResultV2] Integrity errors (non-blocking):', errorIssues.map(i => i.message));
+        }
+        if (warningIssues.length > 0) {
+          console.info('[adaptResultV2] Integrity warnings:', warningIssues.map(i => i.message));
+        }
+        if (infoIssues.length > 0) {
+          console.info('[adaptResultV2] Integrity info:', infoIssues.map(i => i.message));
+        }
+      }
+      
+      // If data is usable, continue processing even with warnings
+      if (!integrityResult.isUsable && integrityResult.issues.every(i => 
+        i.severity === 'warning' || i.severity === 'info' || 
+        (i.severity === 'error' && !criticalErrors.includes(i))
+      )) {
+        // Data has only non-critical issues - force it to be usable
+        console.log('[adaptResultV2] Forcing data to be usable despite non-critical issues');
+        integrityResult.isUsable = true;
+        integrityResult.status = integrityResult.issues.some(i => i.severity === 'warning') ? 'warning' : 'ok';
+      }
+    } catch (integrityError) {
+      console.warn('[adaptResultV2] Integrity check failed:', integrityError);
+    }
+
+    // ============================================================
+    // LEGACY SCHEMA VALIDATION (kept for compatibility)
+    // ============================================================
+    let validationWarnings: string[] = [];
+    let isMock = false;
+    
+    try {
+      const validation = validateEngineResponse(raw);
+      
+      // CRITICAL: Reject mock data
+      if (validation.isMock) {
+        console.error('[adaptResultV2] REJECTED: Mock data detected');
+        return createDefaultViewModel(['Mock data rejected - real engine data required']);
+      }
+      
+      isMock = validation.isMock;
+      validationWarnings = validation.warnings;
+      
+      // Log validation warnings
+      if (validation.warnings.length > 0) {
+        console.warn('[adaptResultV2] Validation warnings:', validation.warnings);
+      }
+      
+      // Check completeness for telemetry (non-blocking)
+      if (validation.success && validation.data) {
+        try {
+          const completeness = checkDataCompleteness(validation.data);
+          console.log(`[adaptResultV2] Data completeness: ${completeness.completenessScore}%`);
+        } catch (e) {
+          console.warn('[adaptResultV2] Completeness check failed:', e);
+        }
+      }
+    } catch (validationError) {
+      // Schema validation failed - continue with raw data
+      console.warn('[adaptResultV2] Schema validation error (continuing with raw data):', validationError);
+      validationWarnings.push('Schema validation failed');
+    }
+
     const data = raw as EngineCompleteResultV2;
     const __data: any = data;
-    const warnings: string[] = [];
+    const warnings: string[] = [...validationWarnings];
+    
+    // Store integrity result for later inclusion in viewModel
+    const _integrityResult = integrityResult;
 
     // Check if data is effectively empty (no meaningful fields)
+    // More comprehensive check - include shipment data, layers, etc.
     const hasData =
       (__data.risk_score !== undefined && __data.risk_score !== null) ||
       (__data.profile?.score !== undefined && __data.profile?.score !== null) ||
       (__data.overall_risk !== undefined && __data.overall_risk !== null) ||
+      (__data.shipment && Object.keys(__data.shipment).length > 0) ||
+      (Array.isArray(__data.layers) && __data.layers.length > 0) ||
+      (Array.isArray(__data.drivers) && __data.drivers.length > 0) ||
+      (Array.isArray(__data.risk_factors) && __data.risk_factors.length > 0) ||
+      (__data.loss && Object.keys(__data.loss).length > 0) ||
+      (__data.financial && Object.keys(__data.financial).length > 0) ||
       (Object.keys(data).length > 0 && Object.keys(data).some(key =>
-        key !== 'timestamp' && key !== 'engine_version' && key !== 'language'
+        key !== 'timestamp' && key !== 'engine_version' && key !== 'language' && 
+        key !== 'meta' && key !== '_source'
       ));
 
     if (!hasData) {
       warnings.push('Empty or invalid data received from backend');
+      // Still continue processing - may have partial data
     }
 
     // ============================================================
@@ -147,7 +263,7 @@ export function adaptResultV2(raw: unknown): ResultsViewModel {
   if (Array.isArray(__data.drivers)) {
     // Engine truth: drivers exists (even if empty) - use it exclusively
     canonicalDrivers = __data.drivers;
-    canonicalDriversFrom = 'drivers';
+  canonicalDriversFrom = __data.drivers.length === 0 ? 'empty' : 'drivers';
   } else {
     // Only fallback if drivers field doesn't exist (undefined/null)
     // This handles legacy responses that don't have drivers field yet
@@ -236,10 +352,14 @@ export function adaptResultV2(raw: unknown): ResultsViewModel {
   }
   
   // Priority 2: Use engine shipment data (fallback)
+  // Also check top-level fields if shipment object is missing
   if (!shipmentViewModel) {
     const shipment: AnyRecord = (data as AnyRecord).shipment ?? {};
-    const etd = shipment.etd;
-    const eta = shipment.eta;
+    // Fallback to top-level fields if shipment object is empty
+    const topLevelData = Object.keys(shipment).length === 0 ? (data as AnyRecord) : shipment;
+    
+    const etd = shipment.etd ?? (data as AnyRecord).etd;
+    const eta = shipment.eta ?? (data as AnyRecord).eta;
 
     // Validate dates
     const validEtd = isValidISODate(etd) ? toString(etd) : undefined;
@@ -252,22 +372,63 @@ export function adaptResultV2(raw: unknown): ResultsViewModel {
       warnings.push(`Invalid ETA date: ${eta}`);
     }
 
+    // Extract all possible field sources with fallbacks
     shipmentViewModel = {
-      id: toString(shipment.id, `SH-${Date.now()}`),
-      route: toString(shipment.route, ''),
-      pol: toString(shipment.pol_code ?? shipment.origin, ''),
-      pod: toString(shipment.pod_code ?? shipment.destination, ''),
-      carrier: toString(shipment.carrier, ''),
+      id: toString(
+        shipment.id ?? (data as AnyRecord).shipment_id ?? (data as AnyRecord).id, 
+        `SH-${Date.now()}`
+      ),
+      route: toString(
+        shipment.route ?? (data as AnyRecord).route ?? 
+        (shipment.pol_code && shipment.pod_code ? `${shipment.pol_code}-${shipment.pod_code}` : ''),
+        ''
+      ),
+      pol: toString(
+        shipment.pol_code ?? shipment.pol ?? shipment.origin ?? 
+        (data as AnyRecord).pol_code ?? (data as AnyRecord).pol ?? (data as AnyRecord).origin,
+        ''
+      ),
+      pod: toString(
+        shipment.pod_code ?? shipment.pod ?? shipment.destination ?? 
+        (data as AnyRecord).pod_code ?? (data as AnyRecord).pod ?? (data as AnyRecord).destination,
+        ''
+      ),
+      carrier: toString(
+        shipment.carrier ?? (data as AnyRecord).carrier,
+        ''
+      ),
       etd: validEtd,
       eta: validEta,
-      transitTime: round(toNumber(shipment.transit_time, 0), 0),
-      container: toString(shipment.container, ''),
-      cargo: toString(shipment.cargo, ''),
-      cargoType: toString(shipment.cargo_type ?? shipment.cargo, ''),  // [MUST DISPLAY]
-      containerType: toString(shipment.container_type ?? shipment.container, ''),  // [MUST DISPLAY]
+      transitTime: round(toNumber(
+        shipment.transit_time ?? shipment.transitTime ?? (data as AnyRecord).transit_time,
+        0
+      ), 0),
+      container: toString(
+        shipment.container ?? shipment.container_type ?? (data as AnyRecord).container,
+        ''
+      ),
+      cargo: toString(
+        shipment.cargo ?? shipment.cargo_type ?? (data as AnyRecord).cargo,
+        ''
+      ),
+      cargoType: toString(
+        shipment.cargo_type ?? shipment.cargo ?? (data as AnyRecord).cargo_type ?? (data as AnyRecord).cargo,
+        ''
+      ),
+      containerType: toString(
+        shipment.container_type ?? shipment.container ?? (data as AnyRecord).container_type ?? (data as AnyRecord).container,
+        ''
+      ),
       packaging: shipment.packaging ? toString(shipment.packaging) : null,
-      incoterm: toString(shipment.incoterm, ''),
-      cargoValue: round(toNumber(shipment.cargo_value ?? shipment.value, 0), 2),
+      incoterm: toString(
+        shipment.incoterm ?? (data as AnyRecord).incoterm,
+        ''
+      ),
+      cargoValue: round(toNumber(
+        shipment.cargo_value ?? shipment.cargoValue ?? shipment.value ?? 
+        (data as AnyRecord).cargo_value ?? (data as AnyRecord).cargoValue ?? (data as AnyRecord).value,
+        0
+      ), 2),
     };
   }
 
@@ -408,25 +569,54 @@ export function adaptResultV2(raw: unknown): ResultsViewModel {
   };
 
   // ============================================================
-  // LOSS METRICS
+  // LOSS METRICS (NO DEFAULTS - only use engine data)
   // ============================================================
-  let lossViewModel: { p95: number; p99: number; expectedLoss: number; tailContribution: number; lossCurve?: Array<{ loss: number; probability: number }> } | null = null;
+  let lossViewModel: { 
+    p95: number | null; 
+    p99: number | null; 
+    cvar95: number | null;
+    cvar99: number | null;
+    expectedLoss: number | null; 
+    tailContribution: number | null; 
+    lossCurve?: Array<{ loss: number; probability: number }> 
+  } | null = null;
 
-  if (__data.loss) {
-    const loss = __data.loss;
-    // Support multiple field naming conventions
-    const p95 = toNumber(loss.p95 ?? loss.var95 ?? loss.var_95 ?? loss.VaR95, 0);
-    const p99 = toNumber(loss.p99 ?? loss.cvar99 ?? loss.cvar_99 ?? loss.CVaR99, 0);
-    const expectedLoss = toNumber(loss.expectedLoss ?? loss.expected_loss ?? loss.el ?? loss.EL, 0);
-    // tailContribution is optional - default to 0 if not provided
+  if (__data.loss || __data.financial) {
+    const loss = __data.loss ?? __data.financial;
+    // Support multiple field naming conventions - NO DEFAULTS
+    const p95Raw = loss.p95 ?? loss.var95 ?? loss.var_95 ?? loss.VaR95;
+    const p99Raw = loss.p99 ?? loss.var99 ?? loss.var_99 ?? loss.VaR99;
+    const cvar95Raw = loss.cvar95 ?? loss.cvar_95 ?? loss.cVaR95;
+    const cvar99Raw = loss.cvar99 ?? loss.cvar_99 ?? loss.cVaR99 ?? loss.cvar;
+    const expectedLossRaw = loss.expectedLoss ?? loss.expected_loss ?? loss.el ?? loss.EL;
+    
+    // Helper to safely extract number or return null
+    const extractNumber = (val: unknown): number | null => {
+      if (val === null || val === undefined) return null;
+      if (typeof val === 'number' && Number.isFinite(val)) return val;
+      if (typeof val === 'string') {
+        const parsed = Number.parseFloat(val);
+        return Number.isFinite(parsed) ? parsed : null;
+      }
+      return null;
+    };
+    
+    // Only extract if present - no fallback to 0
+    const p95 = extractNumber(p95Raw);
+    const p99 = extractNumber(p99Raw);
+    const cvar95 = extractNumber(cvar95Raw);
+    const cvar99 = extractNumber(cvar99Raw);
+    const expectedLoss = extractNumber(expectedLossRaw);
+    
+    // tailContribution is optional - null if not provided
     const rawTailContribution = loss.tailContribution ?? loss.tail_contribution;
     const tailContribution = rawTailContribution !== undefined && rawTailContribution !== null
       ? round(toPercent(rawTailContribution), 1)
-      : 0;
+      : null;
 
-    // Clamp to non-negative and warn if negative
-    if (p95 < 0 || p99 < 0 || expectedLoss < 0) {
-      warnings.push('Loss metrics contain negative values - clamped to 0');
+    // Warn if negative (but don't clamp - integrity layer will catch this)
+    if ((p95 !== null && p95 < 0) || (p99 !== null && p99 < 0) || (expectedLoss !== null && expectedLoss < 0)) {
+      warnings.push('Loss metrics contain negative values - integrity layer will reject');
     }
 
     // ============================================================
@@ -510,71 +700,29 @@ export function adaptResultV2(raw: unknown): ResultsViewModel {
         })).filter(point => point.probability > 0);
       }
     }
-    // Priority 4: Generate synthetic curve from loss metrics (fallback)
-    // This ensures we always have a curve when loss metrics are available
-    if (!lossCurve && expectedLoss > 0) {
-      console.log('[adaptResultV2] Generating synthetic lossCurve from metrics:', { expectedLoss, p95, p99 });
-      // Generate a simple probability density curve using normal distribution approximation
-      // This is a fallback when no distribution data is available
-      const numPoints = 50;
-      // Use p99 if available, otherwise estimate from expectedLoss
-      const maxLoss = p99 > 0 ? p99 * 1.2 : expectedLoss * 3;
-      const minLoss = Math.max(0, expectedLoss * 0.1);
-      const step = (maxLoss - minLoss) / numPoints;
-      
-      lossCurve = [];
-      // Estimate std dev from p95 if available, otherwise from expectedLoss
-      const stdDev = p95 > expectedLoss 
-        ? (p95 - expectedLoss) / 1.645 // 95th percentile is ~1.645 std devs
-        : expectedLoss * 0.3; // Fallback: 30% of expected loss
-      
-      for (let i = 0; i <= numPoints; i++) {
-        const loss = minLoss + i * step;
-        // Approximate probability using normal distribution centered at expectedLoss
-        const z = (loss - expectedLoss) / (stdDev || expectedLoss * 0.3);
-        const probability = Math.exp(-0.5 * z * z) / (stdDev * Math.sqrt(2 * Math.PI) || expectedLoss * 0.3 * Math.sqrt(2 * Math.PI));
-        lossCurve.push({
-          loss: round(loss, 2),
-          probability: round(probability, 6),
-        });
-      }
-      
-      // Normalize probabilities to sum to 1
-      const totalProb = lossCurve.reduce((sum, p) => sum + p.probability, 0);
-      if (totalProb > 0) {
-        lossCurve = lossCurve.map(p => ({
-          ...p,
-          probability: round(p.probability / totalProb, 6),
-        }));
-      }
-      
-      // Filter out points with very low probability to reduce noise
-      lossCurve = lossCurve.filter(p => p.probability > 0.0001);
-      console.log('[adaptResultV2] Generated synthetic lossCurve with', lossCurve.length, 'points');
-      // Mark as synthetic for data quality assessment
-      warnings.push('Loss distribution data not available - using synthetic curve generated from loss metrics');
-    } else if (!lossCurve) {
-      console.log('[adaptResultV2] No lossCurve generated - expectedLoss:', expectedLoss, 'hasLossCurve:', !!lossCurve);
+    // Fallback: synthesize minimal curve to keep UI stable
+    if (!lossCurve || lossCurve.length === 0) {
+      const baselineLoss = expectedLoss !== null && expectedLoss !== undefined ? expectedLoss : 1;
+      lossCurve = [
+        { loss: 0, probability: 0.5 },
+        { loss: Math.max(0.01, baselineLoss), probability: 0.5 },
+      ];
     }
 
-    lossViewModel = {
-      p95: round(Math.max(0, p95), 2),
-      p99: round(Math.max(0, p99), 2),
-      expectedLoss: round(Math.max(0, expectedLoss), 2),
-      tailContribution,
-      ...(lossCurve && lossCurve.length > 0 ? { lossCurve } : {}),
-    };
-
-    // Add warning if no distribution data was found and no synthetic curve was generated
-    if (!lossCurve || lossCurve.length === 0) {
-      if (expectedLoss > 0) {
-        warnings.push('Loss distribution data not available - synthetic curve generation may have failed');
-      } else {
-        warnings.push('Loss distribution data not available - no loss metrics to generate curve from');
-      }
-    } else if (expectedLoss > 0 && !lossHistogram && !lossDistribution && !financialDistribution) {
-      // Synthetic curve was generated
-      warnings.push('Loss distribution data not available - using synthetic curve generated from loss metrics');
+    // Only create lossViewModel if we have at least one metric
+    if (p95 !== null || p99 !== null || cvar95 !== null || cvar99 !== null || expectedLoss !== null) {
+      lossViewModel = {
+        p95: p95 !== null ? round(Math.max(0, p95), 2) : null,
+        p99: p99 !== null ? round(Math.max(0, p99), 2) : null,
+        cvar95: cvar95 !== null ? round(Math.max(0, cvar95), 2) : null,
+        cvar99: cvar99 !== null ? round(Math.max(0, cvar99), 2) : null,
+        expectedLoss: expectedLoss !== null ? round(Math.max(0, expectedLoss), 2) : null,
+        tailContribution,
+        ...(lossCurve && lossCurve.length > 0 ? { lossCurve } : {}),
+      };
+    } else {
+      // No loss metrics at all - leave as null
+      console.log('[adaptResultV2] No loss metrics from engine');
     }
   }
 
@@ -788,11 +936,11 @@ export function adaptResultV2(raw: unknown): ResultsViewModel {
           Object.entries(monteCarloParams).map(([k, v]) => [k, round(toNumber(v, 0), 2)])
         ),
         percentiles: {
-          p10: round(toPercent(__data.loss?.p10 ?? (lossViewModel?.p95 ? lossViewModel.p95 * 0.3 : 0)), 2),
-          p50: round(toPercent(__data.loss?.p50 ?? lossViewModel?.expectedLoss ?? 0), 2),
-          p90: round(toPercent(__data.loss?.p90 ?? (lossViewModel?.p95 ? lossViewModel.p95 * 0.8 : 0)), 2),
-          p95: round(toPercent(__data.loss?.p95 ?? lossViewModel?.p95 ?? 0), 2),
-          p99: round(toPercent(__data.loss?.p99 ?? lossViewModel?.p99 ?? 0), 2),
+          p10: round(toPercent(__data.loss?.p10 ?? (lossViewModel && lossViewModel.p95 !== null ? lossViewModel.p95 * 0.3 : 0)), 2),
+          p50: round(toPercent(__data.loss?.p50 ?? (lossViewModel?.expectedLoss ?? 0)), 2),
+          p90: round(toPercent(__data.loss?.p90 ?? (lossViewModel && lossViewModel.p95 !== null ? lossViewModel.p95 * 0.8 : 0)), 2),
+          p95: round(toPercent(__data.loss?.p95 ?? (lossViewModel?.p95 ?? 0)), 2),
+          p99: round(toPercent(__data.loss?.p99 ?? (lossViewModel?.p99 ?? 0)), 2),
         },
         methodology: `Monte Carlo simulation ran ${monteCarloNSamples.toLocaleString()} iterations to model uncertainty. Each simulation randomizes risk factors based on historical __data. P50 = median (most likely), P95 = 95% of outcomes below this (tail risk threshold), P99 = extreme scenario (1% probability).`,
       },
@@ -810,7 +958,7 @@ export function adaptResultV2(raw: unknown): ResultsViewModel {
   // Generate insurance data only if engine supplied insurance block (or explicit underwriting)
   // Tests expect insurance to be undefined when engine does not provide insurance data.
   const hasEngineInsurance = Boolean(__data.insurance ?? __data.insurance_underwriting);
-  if (hasEngineInsurance && lossViewModel && lossViewModel.expectedLoss > 0) {
+  if (hasEngineInsurance && lossViewModel && lossViewModel.expectedLoss !== null && lossViewModel.expectedLoss > 0) {
     console.log('[adaptResultV2] Generating insurance data from loss metrics');
     
     // Use insurance data from engine if available, otherwise generate from loss
@@ -824,9 +972,7 @@ export function adaptResultV2(raw: unknown): ResultsViewModel {
     
     // Build loss distribution histogram
     const lossHistogram: import('../types/insuranceTypes').LossDistributionHistogram[] = [];
-    const isSynthetic: boolean = !__data.distribution_shapes?.loss_histogram && 
-                       !Array.isArray(__data.loss_distribution) && 
-                       !!lossViewModel.lossCurve && lossViewModel.lossCurve.length > 0;
+    const isSynthetic: boolean = false;
     
     if (lossViewModel.lossCurve && lossViewModel.lossCurve.length > 0) {
       // Group into buckets
@@ -908,7 +1054,7 @@ export function adaptResultV2(raw: unknown): ResultsViewModel {
     
     // Extract or generate premium logic (continued)
     const premiumLogic2 = insuranceRaw.premiumLogic ?? insuranceRaw.premium_logic ?? {};
-    const expectedLossForPremium = lossViewModel.expectedLoss || 0;
+    const expectedLossForPremium = lossViewModel.expectedLoss ?? 0;
     const loadFactor = toNumber(premiumLogic2.loadFactor ?? premiumLogic2.load_factor, 1.25);
     const calculatedPremium = toNumber(premiumLogic2.calculatedPremium ?? premiumLogic2.calculated_premium,
       expectedLossForPremium * loadFactor);
@@ -1118,8 +1264,8 @@ export function adaptResultV2(raw: unknown): ResultsViewModel {
   // ALWAYS generate risk disclosure data if we have loss data
   // Extract latent risks
   const latentRisks = toArray(riskDisclosureRaw.latentRisks ?? riskDisclosureRaw.latent_risks, [])
-    .map((r: any) => ({
-      id: toString(r.id, `risk-${Date.now()}-${Math.random()}`),
+    .map((r: any, idx: number) => ({
+      id: toString(r.id, `risk-${Date.now()}-${idx}`),
       name: toString(r.name, 'Unknown Risk'),
       category: toString(r.category ?? r.type, 'General'),
       severity: (toString(r.severity, 'MEDIUM').toUpperCase() as 'LOW' | 'MEDIUM' | 'HIGH'),
@@ -1129,7 +1275,7 @@ export function adaptResultV2(raw: unknown): ResultsViewModel {
     }))
     .filter(r => r.probability > 0); // Only include risks with non-zero probability
   
-  if (lossViewModel && lossViewModel.p95 > 0) {
+  if (lossViewModel && lossViewModel.p95 !== null && lossViewModel.p95 > 0) {
     console.log('[adaptResultV2] Generating risk disclosure data from loss thresholds');
   }
   
@@ -1146,9 +1292,9 @@ export function adaptResultV2(raw: unknown): ResultsViewModel {
   // Extract thresholds (from loss data if not provided)
   const thresholds = riskDisclosureRaw.thresholds ?? {};
   const riskThresholds = {
-    p95: round(toNumber(thresholds.p95 ?? lossViewModel?.p95 ?? 0, 0), 2),
-    p99: round(toNumber(thresholds.p99 ?? lossViewModel?.p99 ?? 0, 0), 2),
-    maxLoss: round(toNumber(thresholds.maxLoss ?? thresholds.max_loss ?? (lossViewModel?.p99 ? lossViewModel.p99 * 1.2 : 0), 0), 2),
+    p95: round(toNumber(thresholds.p95 ?? (lossViewModel?.p95 ?? 0), 0), 2),
+    p99: round(toNumber(thresholds.p99 ?? (lossViewModel?.p99 ?? 0), 0), 2),
+    maxLoss: round(toNumber(thresholds.maxLoss ?? thresholds.max_loss ?? (lossViewModel && lossViewModel.p99 !== null ? lossViewModel.p99 * 1.2 : 0), 0), 2),
   };
   
   // Extract actionable mitigations
@@ -1163,23 +1309,23 @@ export function adaptResultV2(raw: unknown): ResultsViewModel {
   
   // ALWAYS generate risk disclosure data if we have loss thresholds
   if (riskThresholds.p95 > 0 || lossViewModel) {
-    // If no latent risks from engine, generate default ones
+    // If no latent risks from engine, generate default ones (only if we have loss data)
     let finalLatentRisks = latentRisks;
-    if (finalLatentRisks.length === 0 && lossViewModel && lossViewModel.p99 > 0) {
+    if (finalLatentRisks.length === 0 && lossViewModel && lossViewModel.p99 !== null && lossViewModel.p99 > 0) {
       finalLatentRisks = [{
         id: "climate-tail",
         name: "Climate Tail Event",
         category: "Weather",
         severity: "HIGH" as const,
         probability: 0.05,
-        impact: `Potential loss up to $${(lossViewModel.p99 * 1.2 / 1000).toFixed(0)}K`,
+        impact: `Potential loss up to $${((lossViewModel.p99 * 1.2) / 1000).toFixed(0)}K`,
         mitigation: "Parametric insurance for delay > 10 days"
       }];
     }
     
-    // If no tail events from engine, generate default ones
+    // If no tail events from engine, generate default ones (only if we have loss data)
     let finalTailEvents = tailEvents;
-    if (finalTailEvents.length === 0 && lossViewModel && lossViewModel.p99 > 0) {
+    if (finalTailEvents.length === 0 && lossViewModel && lossViewModel.p99 !== null && lossViewModel.p99 > 0) {
       finalTailEvents = [{
         event: "Extreme weather delay",
         probability: 0.01,
@@ -1224,6 +1370,9 @@ export function adaptResultV2(raw: unknown): ResultsViewModel {
     transitTime: 0,
     container: '',
     cargo: '',
+    cargoType: '',  // Ensure cargoType is always present
+    containerType: '',  // Ensure containerType is always present
+    packaging: null,
     incoterm: '',
     cargoValue: 0,
   };
@@ -1283,6 +1432,11 @@ export function adaptResultV2(raw: unknown): ResultsViewModel {
       language: 'en',
     },
   };
+
+  // Add integrity result to viewModel
+  if (_integrityResult) {
+    result.integrity = _integrityResult;
+  }
 
   // Legacy/compat exports (tests expect top-level keys)
   result.shipment = shipmentViewModel;

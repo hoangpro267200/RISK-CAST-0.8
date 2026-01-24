@@ -10,6 +10,7 @@ import { GlassCard } from '@/components/GlassCard';
 import { Input } from '../components/Input';
 import { Dropdown } from '../components/Dropdown';
 import { PillGroup } from '../components/PillGroup';
+import { Toggle } from '../components/Toggle';
 import { ChevronDown } from 'lucide-react';
 
 interface CargoDetailsSectionProps {
@@ -293,15 +294,10 @@ export const CargoDetailsSection: React.FC<CargoDetailsSectionProps> = ({
             </>
           )}
           
-          <PillGroup
+          <Toggle
             label="Dangerous Goods (DG)"
-            options={[
-              { value: 'false', label: 'Not DG' },
-              { value: 'true', label: 'DG Cargo' },
-            ]}
-            value={data?.dangerousGoods?.toString() || 'false'}
-            onChange={(value) => onChange('dangerousGoods', value === 'true')}
-            helperText="Hazardous materials declaration"
+            checked={data?.dangerousGoods || false}
+            onChange={(checked) => onChange('dangerousGoods', checked)}
           />
           
           {data?.dangerousGoods && (

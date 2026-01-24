@@ -87,9 +87,12 @@ export default function RiskOverview(props: RiskOverviewProps) {
               <strong>ETA:</strong> {props.shipment.eta}
             </p>
           )}
-          {props.shipment.cargoValue > 0 && (
+          {((typeof props.shipment.cargoValue === 'number' && props.shipment.cargoValue > 0) ||
+            (typeof props.shipment.cargoValue === 'object' && props.shipment.cargoValue.amount > 0)) && (
             <p>
-              <strong>Cargo Value:</strong> ${props.shipment.cargoValue.toLocaleString()}
+              <strong>Cargo Value:</strong> ${typeof props.shipment.cargoValue === 'number' 
+                ? props.shipment.cargoValue.toLocaleString()
+                : props.shipment.cargoValue.amount.toLocaleString()}
             </p>
           )}
         </div>

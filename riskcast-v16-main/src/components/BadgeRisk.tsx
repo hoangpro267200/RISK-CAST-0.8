@@ -8,9 +8,11 @@ interface BadgeRiskProps {
 
 export const BadgeRisk: React.FC<BadgeRiskProps> = ({ level, size = 'md' }) => {
   const colorMap: Record<RiskLevel, string> = {
-    LOW: 'bg-green-500/20 text-green-400',
-    MEDIUM: 'bg-amber-500/20 text-amber-400',
-    HIGH: 'bg-red-500/20 text-red-400',
+    Low: 'bg-green-500/20 text-green-400',
+    Medium: 'bg-amber-500/20 text-amber-400',
+    High: 'bg-red-500/20 text-red-400',
+    Critical: 'bg-red-600/30 text-red-300',
+    Unknown: 'bg-gray-500/20 text-gray-400',
   };
 
   const sizeMap = {

@@ -27,8 +27,8 @@ CSP_NONCE = os.getenv("CSP_NONCE", generate_csp_nonce())
 # Production CSP (strict, with nonces)
 CSP_POLICY_PRODUCTION = (
     f"default-src 'self'; "
-    f"script-src 'self' 'nonce-{CSP_NONCE}' blob: https://unpkg.com https://cdn.jsdelivr.net https://cesium.com; "
-    f"style-src 'self' 'nonce-{CSP_NONCE}' https://fonts.googleapis.com https://unpkg.com https://cesium.com; "
+    f"script-src 'self' 'nonce-{CSP_NONCE}'; "
+    f"style-src 'self' 'nonce-{CSP_NONCE}' https://fonts.googleapis.com; "
     f"img-src 'self' data: blob: https://*; "
     f"connect-src 'self' https://*; "
     f"font-src 'self' data: https://fonts.gstatic.com https://fonts.googleapis.com; "

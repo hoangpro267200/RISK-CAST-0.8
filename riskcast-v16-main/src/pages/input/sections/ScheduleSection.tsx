@@ -7,6 +7,7 @@ import { Calendar, Clock, CalendarClock, Award } from 'lucide-react';
 import { designTokens } from '@/ui/design-tokens';
 import { GlassCard } from '@/components/GlassCard';
 import { Input } from '../components/Input';
+import { DatePicker } from '../components/DatePicker';
 
 interface ScheduleSectionProps {
   data?: {
@@ -94,16 +95,15 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
           gap: designTokens.spacing['2xl'],
         }}
       >
-        <Input
+        <DatePicker
           label="ETD (Estimated Departure)"
-          type="date"
-          value={data?.etd || ''}
-          icon={Calendar}
-          onChange={(e) => {
-            onChange('etd', e.target.value);
+          value={data?.etd}
+          minDate={new Date().toISOString().split('T')[0]}
+          onChange={(value) => {
+            onChange('etd', value);
             // Auto-calculate ETA
             if (data?.transitDays) {
-              const newETA = calculateETA(e.target.value, data.transitDays);
+              const newETA = calculateETA(value, data.transitDays);
               onChange('eta', newETA);
             }
           }}
@@ -119,12 +119,10 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
           helperText="From service route data"
         />
         
-        <Input
+        <DatePicker
           label="ETA (Estimated Arrival)"
-          type="date"
           value={eta}
-          icon={CalendarClock}
-          readOnly
+          onChange={(value) => onChange('eta', value)}
           helperText="Calculated from ETD + transit"
         />
         

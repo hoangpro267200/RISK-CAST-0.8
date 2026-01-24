@@ -18,16 +18,28 @@ import { DollarSign, AlertTriangle, Info } from 'lucide-react';
 
 interface LossDistributionHistogramProps {
   lossDistribution: LossDistributionData;
-  expectedLoss: number;
-  p95: number;
-  p99: number;
+  expectedLoss: number | null;
+  p95: number | null;
+  p99: number | null;
+}
+
+interface TooltipPayload {
+  dataKey?: string;
+  value?: number;
+  payload?: Record<string, unknown>;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayload[];
+  label?: string;
 }
 
 // Custom tooltip
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
-    const frequency = payload.find((p: any) => p.dataKey === 'frequency')?.value || 0;
-    const cumulative = payload.find((p: any) => p.dataKey === 'cumulative')?.value || 0;
+    const frequency = payload.find((p) => p.dataKey === 'frequency')?.value ?? 0;
+    const cumulative = payload.find((p) => p.dataKey === 'cumulative')?.value ?? 0;
     
     return (
       <div className="bg-black/95 backdrop-blur-xl border border-white/20 rounded-xl p-4 shadow-2xl min-w-[200px]">
@@ -89,17 +101,24 @@ export const LossDistributionHistogram: React.FC<LossDistributionHistogramProps>
 
   // Find bucket for markers
   const findBucketForValue = (value: number): number => {
+    if (!Number.isFinite(value) || chartData.length === 0) return -1;
     const bucket = chartData.find(d => {
       const range = d.bucket.match(/\$?([\d.]+)[KMB]?/g);
-      if (range && range.length >= 2) {
-        const min = parseFloat(range[0].replace(/[^0-9.]/g, '')) * (range[0].includes('K') ? 1000 : range[0].includes('M') ? 1000000 : 1);
-        const max = parseFloat(range[1].replace(/[^0-9.]/g, '')) * (range[1].includes('K') ? 1000 : range[1].includes('M') ? 1000000 : 1);
-        return value >= min && value <= max;
-      }
-      return false;
+      if (!range || range.length < 2) return false;
+      const [minStr, maxStr] = range as [string, string];
+      const min = parseFloat(minStr.replace(/[^0-9.]/g, '')) * (minStr.includes('K') ? 1000 : minStr.includes('M') ? 1000000 : 1);
+      const max = parseFloat(maxStr.replace(/[^0-9.]/g, '')) * (maxStr.includes('K') ? 1000 : maxStr.includes('M') ? 1000000 : 1);
+      return value >= min && value <= max;
     });
     return bucket ? chartData.indexOf(bucket) : -1;
   };
+
+  const safeExpected = expectedLoss ?? 0;
+  const safeP95 = p95 ?? 0;
+  const safeP99 = p99 ?? 0;
+  const p50Bucket = chartData.length > 0 ? chartData[Math.floor(chartData.length * 0.5)]?.bucket : undefined;
+  const p95Bucket = safeP95 > 0 ? chartData[findBucketForValue(safeP95)]?.bucket : undefined;
+  const p99Bucket = safeP99 > 0 ? chartData[findBucketForValue(safeP99)]?.bucket : undefined;
 
   const chartWidth = containerSize.width > 0 ? containerSize.width : 800;
   const chartHeight = 400;
@@ -200,27 +219,33 @@ export const LossDistributionHistogram: React.FC<LossDistributionHistogramProps>
               />
               
               {/* Percentile markers */}
-              <ReferenceLine 
-                yAxisId="left"
-                x={chartData[Math.floor(chartData.length * 0.5)]?.bucket}
-                stroke="#22c55e"
-                strokeDasharray="3 3"
-                label={{ value: 'P50', position: 'top', fill: '#22c55e', fontSize: 11 }}
-              />
-              <ReferenceLine 
-                yAxisId="left"
-                x={chartData[Math.floor(chartData.length * 0.95)]?.bucket}
-                stroke="#f59e0b"
-                strokeDasharray="3 3"
-                label={{ value: 'P95', position: 'top', fill: '#f59e0b', fontSize: 11 }}
-              />
-              <ReferenceLine 
-                yAxisId="left"
-                x={chartData[Math.floor(chartData.length * 0.99)]?.bucket}
-                stroke="#ef4444"
-                strokeDasharray="3 3"
-                label={{ value: 'P99', position: 'top', fill: '#ef4444', fontSize: 11 }}
-              />
+              {p50Bucket && (
+                <ReferenceLine 
+                  yAxisId="left"
+                  x={p50Bucket}
+                  stroke="#22c55e"
+                  strokeDasharray="3 3"
+                  label={{ value: 'P50', position: 'top', fill: '#22c55e', fontSize: 11 }}
+                />
+              )}
+              {p95Bucket && (
+                <ReferenceLine 
+                  yAxisId="left"
+                  x={p95Bucket}
+                  stroke="#f59e0b"
+                  strokeDasharray="3 3"
+                  label={{ value: 'P95', position: 'top', fill: '#f59e0b', fontSize: 11 }}
+                />
+              )}
+              {p99Bucket && (
+                <ReferenceLine 
+                  yAxisId="left"
+                  x={p99Bucket}
+                  stroke="#ef4444"
+                  strokeDasharray="3 3"
+                  label={{ value: 'P99', position: 'top', fill: '#ef4444', fontSize: 11 }}
+                />
+              )}
             </BarChart>
           </ResponsiveContainer>
         ) : (
@@ -232,17 +257,17 @@ export const LossDistributionHistogram: React.FC<LossDistributionHistogramProps>
       <div className="mt-6 grid grid-cols-3 gap-4">
         <div className="p-4 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
           <div className="text-xs text-emerald-400 mb-1">P50 (Median)</div>
-          <div className="text-lg font-bold text-white">{formatCurrency(expectedLoss)}</div>
+          <div className="text-lg font-bold text-white">{formatCurrency(safeExpected)}</div>
           <div className="text-xs text-white/50 mt-1">Most likely outcome</div>
         </div>
         <div className="p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
           <div className="text-xs text-amber-400 mb-1">P95 (Tail Risk)</div>
-          <div className="text-lg font-bold text-white">{formatCurrency(p95)}</div>
+          <div className="text-lg font-bold text-white">{formatCurrency(safeP95)}</div>
           <div className="text-xs text-white/50 mt-1">95% of outcomes below</div>
         </div>
         <div className="p-4 bg-red-500/10 rounded-lg border border-red-500/20">
           <div className="text-xs text-red-400 mb-1">P99 (Extreme)</div>
-          <div className="text-lg font-bold text-white">{formatCurrency(p99)}</div>
+          <div className="text-lg font-bold text-white">{formatCurrency(safeP99)}</div>
           <div className="text-xs text-white/50 mt-1">99% of outcomes below</div>
         </div>
       </div>

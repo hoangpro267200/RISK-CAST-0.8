@@ -77,7 +77,7 @@ export function getValidationIssues(data: ShipmentData): ValidationIssue[] {
   }
 
   // 6. HS_DG_ENFORCED
-  const hsChapter = data.cargo.hs_code ? parseInt(data.cargo.hs_code.split('.')[0]) : 0;
+  const hsChapter = data.cargo.hs_code ? parseInt(data.cargo.hs_code.split('.')[0] || '0') : 0;
   if ((hsChapter === 28 || hsChapter === 29) && !data.cargo.is_dg) {
     issues.push({
       id: 'HS_DG_ENFORCED',

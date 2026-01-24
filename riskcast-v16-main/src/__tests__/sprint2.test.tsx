@@ -218,7 +218,7 @@ describe('Sprint 2: Logistics Realism', () => {
 
 describe('Sprint 2: Cargo-Container Validation Logic', () => {
   test('Perishable + Dry Container = MISMATCH', () => {
-    const validation = {
+    const validation: { isValid: boolean; warnings: { code: string; message: string; severity: 'error' | 'warning' | 'info' }[] } = {
       isValid: false,
       warnings: [{
         code: 'PERISHABLE_NON_REEFER',
@@ -228,15 +228,16 @@ describe('Sprint 2: Cargo-Container Validation Logic', () => {
     };
     expect(validation.isValid).toBe(false);
     expect(validation.warnings.length).toBeGreaterThan(0);
-    expect(validation.warnings[0].severity).toBe('error');
+    expect(validation.warnings[0]?.severity).toBe('error');
   });
 
   test('Electronics + Dry Container = VALID', () => {
-    const validation = {
+    const validation: { isValid: boolean; warnings: { code: string; message: string; severity?: 'error' | 'warning' | 'info' }[] } = {
       isValid: true,
       warnings: [],
     };
     expect(validation.isValid).toBe(true);
+    expect(validation.warnings.length).toBe(0);
   });
 
   test('Electronics + Open Top = WARNING', () => {
@@ -248,7 +249,7 @@ describe('Sprint 2: Cargo-Container Validation Logic', () => {
         severity: 'warning' as const,
       }],
     };
-    expect(validation.warnings[0].severity).toBe('warning');
+    expect(validation.warnings[0]?.severity).toBe('warning');
   });
 });
 

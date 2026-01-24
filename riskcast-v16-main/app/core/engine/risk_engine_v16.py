@@ -35,12 +35,16 @@ from scipy import stats
 from scipy.optimize import minimize
 from scipy.stats import t as student_t
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import Dict, List, Tuple, Optional, Any
 from enum import Enum
+import hashlib
 import warnings
 from functools import lru_cache
 import time
 import json
+
+from app.core.utils.rng_contract import create_seeded_rng, derive_seed, DeterministicRNG
 from app.core.legacy.riskcast_v14_5_climate_upgrade import (
     ClimateVariables,
     ClimateRiskLayerExtensions,
@@ -156,7 +160,9 @@ class RiskConfig:
         }
     }
     
-    # V16.0: Port Risk Database (Sample)
+    # V16.0: Port Risk Database (DEPRECATED - Use real-time API instead)
+    # This is kept as fallback only when MarineTraffic API is unavailable
+    # Real-time port data is fetched from app.integrations.ports
     PORT_RISK_DATABASE = {
         # Vietnam Ports
         'VNSGN': {'congestion': 7.2, 'efficiency': 6.8, 'customs': 6.5},
@@ -285,6 +291,52 @@ class RiskMetrics:
     layer_interactions: Dict
     ai_summary: str
     forecast: Dict
+
+
+@dataclass
+class RiskEngineResult:
+    """Engine output with provenance for reproducibility and auditing."""
+    risk_score: float
+    risk_factors: List[Dict]
+    seed: int
+    seed_strategy: str
+    iterations: int
+    engine_version: str
+    result_hash: str
+    computed_at: datetime
+    raw: Dict[str, Any] = field(default_factory=dict)
+
+
+def compute_result_hash(result_data: Dict[str, Any]) -> str:
+    """
+    Compute SHA256 hash of result for reproducibility verification.
+    Uses canonical JSON (sorted keys). Excludes computed_at and calculation_timestamp.
+    """
+    exclude = frozenset({"computed_at", "calculation_timestamp"})
+    out: Dict[str, Any] = {}
+
+    def _serialize(val: Any) -> Any:
+        if isinstance(val, dict):
+            return {k: _serialize(v) for k, v in sorted(val.items()) if k not in exclude}
+        if isinstance(val, list):
+            return [_serialize(v) for v in val]
+        if isinstance(val, (int, float, str, type(None), bool)):
+            return val
+        if hasattr(val, "item"):  # numpy scalar
+            return float(val.item()) if np.issubdtype(type(val), np.floating) else int(val.item())
+        if hasattr(val, "tolist"):  # numpy array
+            return _serialize(val.tolist())
+        if hasattr(val, "isoformat"):
+            return val.isoformat()
+        return str(val)
+
+    for k, v in sorted(result_data.items()):
+        if k in exclude:
+            continue
+        out[k] = _serialize(v)
+
+    canonical = json.dumps(out, sort_keys=True, separators=(",", ":"), default=str)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 # ===============================================================
@@ -899,6 +951,16 @@ class InteractionEngine:
 # ADVANCED MONTE CARLO WITH FAT TAILS
 # ===============================================================
 
+
+@dataclass
+class MonteCarloResult:
+    """Result of a seeded Monte Carlo simulation."""
+    risk_distribution: np.ndarray
+    seed: int
+    iterations: int
+    metrics: Dict[str, float]
+
+
 class MonteCarloEngine:
     """
     Advanced Monte Carlo simulation with:
@@ -918,7 +980,8 @@ class MonteCarloEngine:
                                    means: np.ndarray, 
                                    volatilities: np.ndarray,
                                    correlation_matrix: np.ndarray,
-                                   scenario_volatility: float = 1.0) -> np.ndarray:
+                                   scenario_volatility: float,
+                                   rng: np.random.Generator) -> np.ndarray:
         """
         Generate correlated samples with fat-tailed distribution
         
@@ -933,6 +996,7 @@ class MonteCarloEngine:
             volatilities: Volatility for each layer
             correlation_matrix: Correlation between layers
             scenario_volatility: Scenario-driven volatility multiplier
+            rng: Seeded numpy random Generator (no global state)
         
         Returns:
             Correlated samples (iterations × n_layers)
@@ -952,18 +1016,19 @@ class MonteCarloEngine:
         except np.linalg.LinAlgError:
             L = self._nearest_pd_cholesky(cov_matrix)
         
-        # Generate base samples with fat tails (Student-t)
+        # Generate base samples with fat tails (Student-t); use random_state for reproducibility
         if RiskConfig.ANTITHETIC_SAMPLING:
             half_iterations = self.iterations // 2
             
-            # Student-t for heavy tails
             z1 = student_t.rvs(df=RiskConfig.STUDENT_T_DF, 
-                              size=(half_iterations, n_vars))
+                              size=(half_iterations, n_vars),
+                              random_state=rng)
             z2 = -z1  # Antithetic variates
             z = np.vstack([z1, z2])
         else:
             z = student_t.rvs(df=RiskConfig.STUDENT_T_DF, 
-                            size=(self.iterations, n_vars))
+                            size=(self.iterations, n_vars),
+                            random_state=rng)
         
         # Normalize Student-t to standard normal scale
         z = z / np.sqrt(RiskConfig.STUDENT_T_DF / (RiskConfig.STUDENT_T_DF - 2))
@@ -975,8 +1040,8 @@ class MonteCarloEngine:
         samples = means + correlated
         
         # Add extreme event shocks (tail events)
-        shock_mask = np.random.random(self.iterations) < RiskConfig.TAIL_SHOCK_PROBABILITY
-        shock_size = np.random.gamma(2, 1.5, size=self.iterations)
+        shock_mask = rng.random(self.iterations) < RiskConfig.TAIL_SHOCK_PROBABILITY
+        shock_size = rng.gamma(2, 1.5, size=self.iterations)
         samples[shock_mask] += shock_size[shock_mask][:, np.newaxis]
         
         # Clip to valid range
@@ -1004,6 +1069,7 @@ class MonteCarloEngine:
                                   layers: Dict[str, RiskLayer],
                                   weights: np.ndarray,
                                   context: Dict,
+                                  rng: np.random.Generator,
                                   climate_vars: Optional[ClimateVariables] = None) -> np.ndarray:
         """
         Run full Monte Carlo simulation with scenario context
@@ -1012,6 +1078,7 @@ class MonteCarloEngine:
             layers: Risk layers with volatility
             weights: Layer importance weights
             context: Scenario-driven context variables
+            rng: Seeded numpy random Generator (no global state)
             climate_vars: Optional climate variables for tail shocks (v14.5)
         
         Returns:
@@ -1040,7 +1107,7 @@ class MonteCarloEngine:
         
         # Generate samples
         samples = self.generate_correlated_samples(
-            means, volatilities, correlation, scenario_vol
+            means, volatilities, correlation, scenario_vol, rng
         )
         
         # Calculate weighted risk for each simulation
@@ -1055,7 +1122,8 @@ class MonteCarloEngine:
             climate_shocks = ClimateMonteCarloExtension.generate_climate_tail_shocks(
                 n_samples=self.iterations,
                 climate_vars=climate_vars,
-                base_tail_prob=RiskConfig.TAIL_SHOCK_PROBABILITY
+                base_tail_prob=RiskConfig.TAIL_SHOCK_PROBABILITY,
+                rng=rng,
             )
             # Scale theo mức độ ảnh hưởng khí hậu (balanced)
             risk_distribution += climate_shocks * RiskConfig.CLIMATE_TAIL_STRENGTH
@@ -1853,23 +1921,42 @@ class PortRiskAnalyzer:
         """
         Comprehensive port risk analysis
         
+        NOW USES REAL-TIME DATA from MarineTraffic API when available.
+        Falls back to hardcoded PORT_RISK_DATABASE if API unavailable.
+        
         Factors:
-        - Congestion level (from usage %)
-        - Efficiency rating
+        - Congestion level (from real-time API)
+        - Efficiency rating (from real-time API)
         - Customs complexity (for POD)
         - Climate exposure
         - Seasonal patterns
         """
+        from app.core.engine.port_risk_adapter import get_cached_port_risk
         
-        # Get port data from database
-        port_data = RiskConfig.PORT_RISK_DATABASE.get(
-            port_code, 
-            RiskConfig.PORT_RISK_DATABASE['DEFAULT']
-        )
+        # Try to get real-time data from API (cached from async pre-fetch)
+        api_data = get_cached_port_risk(port_code, port_type)
         
-        base_congestion = port_data['congestion']
-        efficiency = port_data['efficiency']
-        customs = port_data['customs']
+        if api_data and api_data.get("from_api"):
+            # Use real-time data
+            base_congestion = api_data['congestion']
+            efficiency = api_data['efficiency']
+            customs = api_data.get('customs', 5.0)
+            data_quality = api_data.get('data_quality', 'FALLBACK')
+            
+            logger.debug(f"Using real-time port data for {port_code} (quality: {data_quality})")
+        else:
+            # Fallback to hardcoded database
+            port_data = RiskConfig.PORT_RISK_DATABASE.get(
+                port_code, 
+                RiskConfig.PORT_RISK_DATABASE['DEFAULT']
+            )
+            
+            base_congestion = port_data['congestion']
+            efficiency = port_data['efficiency']
+            customs = port_data['customs']
+            data_quality = 'HARDCODED'
+            
+            logger.debug(f"Using hardcoded port data for {port_code} (real-time data unavailable)")
         
         # Climate adjustment
         if climate_data:
@@ -1915,7 +2002,7 @@ class PortRiskAnalyzer:
             port_code, port_type, risk_score, climate_data
         )
         
-        return {
+        result = {
             'port_code': port_code,
             'port_type': port_type,
             'risk_score': float(risk_score),
@@ -1928,6 +2015,16 @@ class PortRiskAnalyzer:
             'expected_delay_days': float(delay_days),
             'recommendations': recommendations
         }
+        
+        # Add data quality indicator
+        if api_data and api_data.get("from_api"):
+            result['data_quality'] = api_data.get('data_quality', 'UNKNOWN')
+            result['data_source'] = 'marinetraffic'
+        else:
+            result['data_quality'] = 'HARDCODED'
+            result['data_source'] = 'PORT_RISK_DATABASE'
+        
+        return result
     
     @staticmethod
     def _estimate_port_delay(risk_score: float) -> float:
@@ -2646,20 +2743,52 @@ class EnterpriseRiskEngine:
     @staticmethod
     def _build_climate_variables(shipment_data: Dict) -> ClimateVariables:
         """
-        Map shipment_data -> ClimateVariables (v14.5)
-        Nếu thiếu thì dùng default (trung tính).
+        Build climate variables for risk calculation.
+        
+        NOW USES REAL-TIME DATA from NOAA API when available.
+        Falls back to synthetic/user-provided data if API unavailable.
         """
-        return ClimateVariables(
-            ENSO_index=shipment_data.get('ENSO_index', 0.0),
-            seasonal_typhoon_frequency=shipment_data.get('typhoon_frequency', 0.5),
-            sea_surface_temperature_anomaly=shipment_data.get('sst_anomaly', 0.0),
-            port_climate_stress_score=shipment_data.get('port_climate_stress', 5.0),
-            long_term_climate_volatility_index=shipment_data.get('climate_volatility_index', 5.0),
-            climate_tail_event_probability=shipment_data.get('climate_tail_event_probability', 0.05),
-            ESG_score=shipment_data.get('ESG_score', 50.0),
-            climate_resilience_score=shipment_data.get('climate_resilience', 5.0),
-            green_packaging_score=shipment_data.get('green_packaging', 5.0),
-        )
+        from app.core.engine.climate_risk_adapter import get_cached_climate_data, convert_to_climate_variables_dict
+        
+        # Try to get real-time climate data (cached from async pre-fetch)
+        api_climate_data = get_cached_climate_data()
+        
+        if api_climate_data and api_climate_data.get("from_api"):
+            # Use real-time climate data
+            logger.debug(
+                f"Using real-time climate data "
+                f"(quality: {api_climate_data.get('data_quality', 'UNKNOWN')})"
+            )
+            
+            # Convert to ClimateVariables format
+            climate_dict = convert_to_climate_variables_dict(api_climate_data)
+            
+            # Create ClimateVariables from real data
+            return ClimateVariables(
+                ENSO_index=climate_dict["ENSO_index"],
+                seasonal_typhoon_frequency=climate_dict["seasonal_typhoon_frequency"],
+                sea_surface_temperature_anomaly=climate_dict["sea_surface_temperature_anomaly"],
+                port_climate_stress_score=climate_dict["port_climate_stress_score"],
+                long_term_climate_volatility_index=climate_dict["long_term_climate_volatility_index"],
+                climate_tail_event_probability=climate_dict["climate_tail_event_probability"],
+                ESG_score=climate_dict["ESG_score"],
+                climate_resilience_score=climate_dict["climate_resilience_score"],
+                green_packaging_score=climate_dict["green_packaging_score"],
+            )
+        else:
+            # Fallback to synthetic/user-provided data
+            logger.debug("Using synthetic climate data (real-time data unavailable)")
+            return ClimateVariables(
+                ENSO_index=shipment_data.get('ENSO_index', 0.0),
+                seasonal_typhoon_frequency=shipment_data.get('typhoon_frequency', 0.5),
+                sea_surface_temperature_anomaly=shipment_data.get('sst_anomaly', 0.0),
+                port_climate_stress_score=shipment_data.get('port_climate_stress', 5.0),
+                long_term_climate_volatility_index=shipment_data.get('climate_volatility_index', 5.0),
+                climate_tail_event_probability=shipment_data.get('climate_tail_event_probability', 0.05),
+                ESG_score=shipment_data.get('ESG_score', 50.0),
+                climate_resilience_score=shipment_data.get('climate_resilience', 5.0),
+                green_packaging_score=shipment_data.get('green_packaging', 5.0),
+            )
     
     def _apply_climate_to_layers(
         self,
@@ -2746,7 +2875,7 @@ class EnterpriseRiskEngine:
         # nếu Hoàng muốn chính xác hơn có thể đọc từ shipment_data.
         return 'sea'
     
-    def calculate_risk(self, shipment_data: Dict) -> RiskMetrics:
+    def calculate_risk(self, shipment_data: Dict, seed: Optional[int] = 42) -> RiskMetrics:
         """
         Main risk calculation pipeline
         
@@ -2763,12 +2892,15 @@ class EnterpriseRiskEngine:
         
         Args:
             shipment_data: Dictionary containing shipment parameters
+            seed: RNG seed for reproducible Monte Carlo (default 42)
             
         Returns:
             RiskMetrics object with comprehensive analysis
         """
         climate_vars = self._build_climate_variables(shipment_data)
         chi = climate_vars.calculate_CHI()
+        
+        rng = create_seeded_rng(seed)
         
         # 1. Build risk layers
         layers = self._build_risk_layers(shipment_data)
@@ -2794,7 +2926,7 @@ class EnterpriseRiskEngine:
             chi    # dùng CHI thực tế
         )
         risk_distribution = self.mc_engine.simulate_risk_distribution(
-            layers, weights, base_context, climate_vars=climate_vars
+            layers, weights, base_context, rng, climate_vars=climate_vars
         )
         
         # 6. Calculate risk metrics
@@ -2804,7 +2936,7 @@ class EnterpriseRiskEngine:
         )
         
         # 7. Run scenario analysis (all scenarios)
-        scenario_results = self._run_scenario_analysis(layers, weights, chi)
+        scenario_results = self._run_scenario_analysis(layers, weights, chi, rng)
         
         # 8. Calculate financial distribution
         shipment_value = shipment_data.get('shipment_value', 100000)
@@ -2821,8 +2953,9 @@ class EnterpriseRiskEngine:
         expected_loss_pct = (overall_risk / 10) ** 1.5 * 0.30
         expected_loss = shipment_value * expected_loss_pct
         
-        # 11. Generate forecast
-        forecast = self._generate_forecast(risk_distribution)
+        # 11. Generate forecast (dedicated RNG stream for reproducibility)
+        forecast_rng = create_seeded_rng(derive_seed(seed, "forecast"))
+        forecast = self._generate_forecast(risk_distribution, forecast_rng)
         
         # 12. Classify risk level
         risk_level, _, _ = self.ai_generator.classify_risk_level(overall_risk)
@@ -2950,8 +3083,36 @@ class EnterpriseRiskEngine:
         container = data.get('container_match', 8)
         port_score = data.get('port_risk', 4)
         cargo_value = data.get('cargo_value', 50000)
+        carrier_code = data.get('carrier', data.get('carrier_code', ''))
         carrier_rating = data.get('carrier_rating', 4)
         route_type = data.get('route_type', 'standard')
+        origin_port = data.get('pol', data.get('origin_port'))
+        destination_port = data.get('pod', data.get('destination_port'))
+        
+        # Try to get real-time carrier data (cached from async pre-fetch)
+        from app.core.engine.carrier_risk_adapter import get_cached_carrier_risk
+        
+        api_carrier_data = None
+        if carrier_code:
+            api_carrier_data = get_cached_carrier_risk(
+                carrier_code=carrier_code,
+                origin_port=origin_port,
+                destination_port=destination_port
+            )
+        
+        if api_carrier_data and api_carrier_data.get("from_api"):
+            # Use real-time carrier rating from API
+            carrier_rating = api_carrier_data['carrier_rating']
+            logger.debug(
+                f"Using real-time carrier data for {carrier_code} "
+                f"(quality: {api_carrier_data.get('data_quality', 'UNKNOWN')})"
+            )
+        else:
+            # Use provided rating or default
+            logger.debug(
+                f"Using provided carrier rating {carrier_rating} "
+                f"(real-time data unavailable for {carrier_code or 'unknown'})"
+            )
         
         # Calculate dynamic scores with improved formulas
         route_score = self._calculate_route_risk(distance, route_type)
@@ -3065,6 +3226,9 @@ class EnterpriseRiskEngine:
         """
         Calculate transport reliability risk
         
+        NOW USES REAL-TIME DATA from Project44 API when available.
+        Falls back to provided carrier_rating if API unavailable.
+        
         Combines mode reliability with carrier performance
         """
         mode_reliability = TransportMode[mode.upper()].value if mode.upper() in TransportMode.__members__ else 0.85
@@ -3073,6 +3237,8 @@ class EnterpriseRiskEngine:
         base_risk = (1 - mode_reliability) * 10
         
         # Carrier rating adjustment (1-5 scale, lower is riskier)
+        # If rating is from API, it's calculated from real performance metrics
+        # If rating is hardcoded/user input, it's a static value
         carrier_adjustment = (5 - carrier_rating) * 0.8
         
         final_risk = base_risk + carrier_adjustment
@@ -3124,7 +3290,8 @@ class EnterpriseRiskEngine:
     
     def _run_scenario_analysis(self, layers: Dict[str, RiskLayer], 
                                weights: np.ndarray,
-                               climate_index: float = 5.0) -> Dict:
+                               climate_index: float,
+                               rng: np.random.Generator) -> Dict:
         """
         Run all scenario simulations with full layer influence
         """
@@ -3141,7 +3308,7 @@ class EnterpriseRiskEngine:
             
             # Run Monte Carlo with scenario context
             distribution = self.mc_engine.simulate_risk_distribution(
-                adjusted_layers, weights, context
+                adjusted_layers, weights, context, rng
             )
             
             # Calculate metrics
@@ -3162,7 +3329,7 @@ class EnterpriseRiskEngine:
         return results
     
     @staticmethod
-    def _generate_forecast(distribution: np.ndarray, days: int = 30) -> Dict:
+    def _generate_forecast(distribution: np.ndarray, rng: np.random.Generator, days: int = 30) -> Dict:
         """
         Generate risk forecast over time with mean reversion
         
@@ -3190,7 +3357,7 @@ class EnterpriseRiskEngine:
             
             # Random shock with decreasing intensity
             decay = np.exp(-0.02 * day)
-            shock = np.random.normal(0, volatility * 0.3 * decay)
+            shock = rng.normal(0, volatility * 0.3 * decay)
             
             # Update
             current = current + drift + shock
@@ -3253,6 +3420,46 @@ def compute_partner_risk(buyer: Optional[Dict] = None, seller: Optional[Dict] = 
         "seller_risk": round(score(seller), 2)
     }
 
+
+def run_monte_carlo(
+    input_data: Dict,
+    iterations: int,
+    seed: int,
+    rng: Optional[np.random.Generator] = None,
+) -> MonteCarloResult:
+    """
+    Main Monte Carlo simulation entry point with seeded RNG.
+    
+    Args:
+        input_data: Must contain "layers" (Dict[str, RiskLayer]),
+            "weights" (np.ndarray), "context" (dict).
+            Optional: "climate_vars" (ClimateVariables).
+        iterations: Number of MC iterations.
+        seed: RNG seed for reproducibility (used when rng is None).
+        rng: Optional Generator; if None, create from seed via create_seeded_rng(seed).
+    
+    Returns:
+        MonteCarloResult with risk_distribution, seed, iterations, metrics.
+    """
+    if rng is None:
+        rng = create_seeded_rng(seed)
+    layers = input_data["layers"]
+    weights = input_data["weights"]
+    context = input_data["context"]
+    climate_vars = input_data.get("climate_vars")
+    engine = MonteCarloEngine(iterations=iterations)
+    risk_distribution = engine.simulate_risk_distribution(
+        layers, weights, context, rng, climate_vars=climate_vars
+    )
+    metrics = FinancialRiskCalculator.calculate_all_metrics(risk_distribution)
+    return MonteCarloResult(
+        risk_distribution=risk_distribution,
+        seed=seed,
+        iterations=iterations,
+        metrics=metrics,
+    )
+
+
 # ===============================================================
 # V16.0: MAIN ENTERPRISE RISK ENGINE (UPGRADED)
 # ===============================================================
@@ -3297,7 +3504,7 @@ class EnterpriseRiskEngineV16:
         # Store iterations for metadata
         self.iterations_used = iterations
     
-    def calculate_risk(self, shipment_data: Dict) -> Dict[str, Any]:
+    def calculate_risk(self, shipment_data: Dict, seed: Optional[int] = 42) -> Dict[str, Any]:
         """
         V16.0 MAIN RISK CALCULATION PIPELINE
         
@@ -3308,11 +3515,17 @@ class EnterpriseRiskEngineV16:
         4. Run Monte Carlo with climate integration
         5. Generate comprehensive insights
         6. Create executive briefing
+        
+        Args:
+            shipment_data: Enhanced shipment input
+            seed: RNG seed for reproducible Monte Carlo (default 42)
         """
         
         print("\n" + "="*80)
         print("🚀 RISKCAST v16.0 - ENTERPRISE RISK CALCULATION")
         print("="*80)
+        
+        rng = create_seeded_rng(seed)
         
         # === STEP 1: PARSE ENHANCED DATA ===================================
         print("\n[1/8] Parsing enhanced shipment data...")
@@ -3353,7 +3566,7 @@ class EnterpriseRiskEngineV16:
         )
         
         risk_distribution = self.mc_engine.simulate_risk_distribution(
-            layers, adjusted_weights, base_context, climate_vars=climate_vars
+            layers, adjusted_weights, base_context, rng, climate_vars=climate_vars
         )
         
         # === STEP 6: CALCULATE METRICS ====================================
@@ -3374,6 +3587,10 @@ class EnterpriseRiskEngineV16:
         delay_prob = self.delay_estimator.estimate_delay_probability(overall_risk)
         delay_days = self.delay_estimator.estimate_delay_days(overall_risk)
         delay_dist = self.delay_estimator.estimate_delay_distribution(risk_distribution)
+        
+        # Forecast (dedicated RNG stream for reproducibility)
+        forecast_rng = create_seeded_rng(derive_seed(seed, "forecast"))
+        forecast = EnterpriseRiskEngine._generate_forecast(risk_distribution, forecast_rng)
         
         # === STEP 7: GENERATE COMPONENT INSIGHTS ===========================
         print("[7/8] Generating component insights...")
@@ -3569,6 +3786,9 @@ class EnterpriseRiskEngineV16:
             'ai_summary': ai_summary,
             'operational_action_plan': action_plan,
             
+            # Forecast (deterministic, seeded via derive_seed(seed, "forecast"))
+            'forecast': forecast,
+            
             # Metadata
             'engine_version': 'v16.0',
             'calculation_timestamp': time.time(),
@@ -3654,19 +3874,53 @@ class EnterpriseRiskEngineV16:
         )
     
     def _build_climate_variables(self, data: EnhancedShipmentData) -> ClimateVariables:
-        """Build ClimateVariables from enhanced data"""
+        """
+        Build ClimateVariables from enhanced data.
         
-        return ClimateVariables(
-            ENSO_index=data.ENSO_index,
-            seasonal_typhoon_frequency=data.typhoon_frequency,
-            sea_surface_temperature_anomaly=data.sst_anomaly,
-            port_climate_stress_score=data.port_climate_stress,
-            long_term_climate_volatility_index=data.climate_volatility_index,
-            climate_tail_event_probability=data.climate_tail_event_probability,
-            ESG_score=data.ESG_score,
-            climate_resilience_score=data.climate_resilience,
-            green_packaging_score=data.green_packaging
-        )
+        NOW USES REAL-TIME DATA from NOAA API when available.
+        Falls back to enhanced data if API unavailable.
+        """
+        from app.core.engine.climate_risk_adapter import get_cached_climate_data, convert_to_climate_variables_dict
+        
+        # Try to get real-time climate data (cached from async pre-fetch)
+        api_climate_data = get_cached_climate_data()
+        
+        if api_climate_data and api_climate_data.get("from_api"):
+            # Use real-time climate data
+            logger.debug(
+                f"Using real-time climate data for v16 calculation "
+                f"(quality: {api_climate_data.get('data_quality', 'UNKNOWN')})"
+            )
+            
+            # Convert to ClimateVariables format
+            climate_dict = convert_to_climate_variables_dict(api_climate_data)
+            
+            # Create ClimateVariables from real data
+            return ClimateVariables(
+                ENSO_index=climate_dict["ENSO_index"],
+                seasonal_typhoon_frequency=climate_dict["seasonal_typhoon_frequency"],
+                sea_surface_temperature_anomaly=climate_dict["sea_surface_temperature_anomaly"],
+                port_climate_stress_score=climate_dict["port_climate_stress_score"],
+                long_term_climate_volatility_index=climate_dict["long_term_climate_volatility_index"],
+                climate_tail_event_probability=climate_dict["climate_tail_event_probability"],
+                ESG_score=data.ESG_score,  # Keep from enhanced data
+                climate_resilience_score=data.climate_resilience,  # Keep from enhanced data
+                green_packaging_score=data.green_packaging  # Keep from enhanced data
+            )
+        else:
+            # Fallback to enhanced data
+            logger.debug("Using enhanced climate data (real-time data unavailable)")
+            return ClimateVariables(
+                ENSO_index=data.ENSO_index,
+                seasonal_typhoon_frequency=data.typhoon_frequency,
+                sea_surface_temperature_anomaly=data.sst_anomaly,
+                port_climate_stress_score=data.port_climate_stress,
+                long_term_climate_volatility_index=data.climate_volatility_index,
+                climate_tail_event_probability=data.climate_tail_event_probability,
+                ESG_score=data.ESG_score,
+                climate_resilience_score=data.climate_resilience,
+                green_packaging_score=data.green_packaging
+            )
     
     def _build_risk_layers_v16(self,
                                data: EnhancedShipmentData,
@@ -4260,34 +4514,54 @@ Phân phối hiện tại so với mục tiêu:
         }
 
 
-def calculate_enterprise_risk(shipment_data: Dict, buyer: Optional[Dict] = None, seller: Optional[Dict] = None) -> Dict:
+def calculate_enterprise_risk(
+    shipment_data: Dict,
+    buyer: Optional[Dict] = None,
+    seller: Optional[Dict] = None,
+    seed: Optional[int] = 42,
+    seed_strategy: str = "explicit",
+    purpose: str = "RISK_ASSESSMENT",
+    acknowledge_low_quality: bool = False,
+) -> Dict:
     """
     V16.0: Main API endpoint (backward compatible with v14)
     
     Features:
     - Caching support (same inputs return cached results)
     - Configurable Monte Carlo iterations via environment
-    - Fast mode in development (lower iterations)
+    - Provenance fields: seed, seed_strategy, iterations, engine_version, result_hash, computed_at
+    - DATA QUALITY GATEWAY: Enforces data quality requirements before calculation
     
     Args:
         shipment_data: Enhanced shipment parameters (v16.0 compatible)
         buyer: Optional buyer information
         seller: Optional seller information
+        seed: RNG seed for reproducibility (default 42)
+        seed_strategy: "explicit" | "hash_based" | "timestamp_based"
+        purpose: Decision type - "RISK_ASSESSMENT", "INSURANCE_QUOTE", "POLICY_BINDING", "ANALYTICS"
+        acknowledge_low_quality: If True, allows proceeding with low-quality data (with warnings)
     
     Returns:
-        Comprehensive risk analysis with v16.0 enhancements
-        Includes meta.iterations_used in result
+        Comprehensive risk analysis with v16.0 enhancements and provenance
+        
+    Raises:
+        DataQualityError: If data quality is insufficient for the purpose
     """
     from app.core.utils.cache import generate_cache_key, get_cache, set_cache
     
     # Merge seller/buyer into shipment_data if provided
     if seller:
-        shipment_data['seller'] = seller
+        shipment_data = {**shipment_data, "seller": seller}
+    else:
+        shipment_data = dict(shipment_data)
     if buyer:
-        shipment_data['buyer'] = buyer
+        shipment_data["buyer"] = buyer
     
-    # Try cache first
-    cache_key = generate_cache_key(shipment_data)
+    effective_seed = 42 if seed is None else seed
+    
+    # Cache key includes provenance so same input+seed → same cache
+    key_input = {**shipment_data, "seed": effective_seed, "seed_strategy": seed_strategy}
+    cache_key = generate_cache_key(key_input)
     cached_result = get_cache(cache_key)
     if cached_result:
         import logging
@@ -4296,31 +4570,119 @@ def calculate_enterprise_risk(shipment_data: Dict, buyer: Optional[Dict] = None,
         return cached_result
     
     # Cache miss - calculate
-    # Get iterations from request or use default
-    mc_iterations = shipment_data.get('mc_iterations')
-    if mc_iterations:
+    
+    # === DATA QUALITY GATEWAY CHECK ===
+    # Collect data sources from adapters/cache
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    from app.core.data_quality.gateway import (
+        data_quality_gateway,
+        DecisionType,
+        DataQualityError
+    )
+    from app.core.data_quality.collectors import collect_all_data_sources
+    from app.core.engine.port_risk_adapter import get_cached_port_risk
+    from app.core.engine.carrier_risk_adapter import get_cached_carrier_risk
+    from app.core.engine.climate_risk_adapter import get_cached_climate_data
+    
+    # Collect data sources (weather adapter may not exist yet)
+    weather_data = None  # Will be collected if weather adapter exists
+    try:
+        from app.core.engine.weather_risk_adapter import get_cached_weather_data
+        weather_data = get_cached_weather_data(
+            shipment_data.get("pol"),
+            shipment_data.get("pod")
+        )
+    except ImportError:
+        pass  # Weather adapter not yet implemented
+    
+    port_data = get_cached_port_risk(
+        shipment_data.get("pol"),
+        "departure"
+    ) or get_cached_port_risk(
+        shipment_data.get("pod"),
+        "arrival"
+    )
+    carrier_data = get_cached_carrier_risk(
+        shipment_data.get("carrier") or shipment_data.get("carrier_code"),
+        origin_port=shipment_data.get("pol"),
+        destination_port=shipment_data.get("pod")
+    )
+    climate_data = get_cached_climate_data()
+    
+    data_sources = collect_all_data_sources(
+        weather_data=weather_data,
+        port_data=port_data,
+        carrier_data=carrier_data,
+        climate_data=climate_data
+    )
+    
+    # Determine decision type
+    decision_type_map = {
+        "RISK_ASSESSMENT": DecisionType.RISK_ASSESSMENT,
+        "INSURANCE_QUOTE": DecisionType.INSURANCE_QUOTE,
+        "POLICY_BINDING": DecisionType.POLICY_BINDING,
+        "ANALYTICS": DecisionType.ANALYTICS,
+    }
+    decision_type = decision_type_map.get(purpose, DecisionType.RISK_ASSESSMENT)
+    
+    # Enforce data quality
+    can_proceed, error, quality_report = data_quality_gateway.enforce_quality(
+        decision_type,
+        data_sources,
+        user_acknowledged=acknowledge_low_quality
+    )
+    
+    if not can_proceed:
+        logger.error(f"Data quality gate BLOCKED: {error}")
+        raise DataQualityError(error, quality_report)
+    
+    # Log warnings if any
+    if quality_report.warnings:
+        logger.warning(f"Data quality warnings: {quality_report.warnings}")
+    
+    # === PROCEED WITH CALCULATION ===
+    mc_iterations = shipment_data.get("mc_iterations")
+    if mc_iterations is not None:
         try:
             mc_iterations = int(mc_iterations)
         except (ValueError, TypeError):
             mc_iterations = None
     
-    # Initialize v16 engine with configured iterations
     engine = EnterpriseRiskEngineV16(mc_iterations=mc_iterations)
+    result = engine.calculate_risk(shipment_data, seed=effective_seed)
     
-    # Calculate risk (returns dict directly in v16.0)
-    result = engine.calculate_risk(shipment_data)
+    # Attach data quality report to result
+    result["data_quality_report"] = {
+        "overall_quality": quality_report.overall_quality.value,
+        "overall_confidence": quality_report.overall_confidence,
+        "sources": [s.source_name for s in data_sources],
+        "missing_sources": quality_report.missing_sources,
+        "fallback_sources": quality_report.fallback_sources,
+        "warnings": quality_report.warnings,
+        "requires_acknowledgment": quality_report.requires_acknowledgment,
+    }
     
-    # Add iterations_used to result metadata
-    if 'advanced_metrics' not in result:
-        result['advanced_metrics'] = {}
-    result['advanced_metrics']['iterations_used'] = engine.iterations_used
-    # Also add to root level for easy access
-    result['iterations_used'] = engine.iterations_used
+    # Metadata
+    if "advanced_metrics" not in result:
+        result["advanced_metrics"] = {}
+    result["advanced_metrics"]["iterations_used"] = engine.iterations_used
+    result["iterations_used"] = engine.iterations_used
+    result["iterations"] = engine.iterations_used
     
-    # Store in cache
+    # Provenance (before hash: no computed_at)
+    result["seed"] = int(effective_seed)
+    result["seed_strategy"] = str(seed_strategy)
+    result["engine_version"] = result.get("engine_version", "v16.0")
+    
+    result_hash = compute_result_hash(result)
+    result["result_hash"] = result_hash
+    
+    computed_at = datetime.now(timezone.utc)
+    result["computed_at"] = computed_at.isoformat()
+    
     set_cache(cache_key, result)
-    
-    # Return v16.0 comprehensive results (backward compatible)
     return result
 
 

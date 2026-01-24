@@ -38,7 +38,7 @@ export function createMockRiskData(overrides: Partial<RiskAnalysisResult> = {}):
     },
     riskScore: {
       overallScore: 72,
-      riskLevel: 'HIGH',
+      riskLevel: 'High',
       verdict: 'High risk — review mitigation options.',
       dataConfidence: 0.68,
       confidenceLower: 0.55,
@@ -111,13 +111,13 @@ export function createMockRiskData(overrides: Partial<RiskAnalysisResult> = {}):
       {
         phase: 'Pre-carriage',
         status: 'completed',
-        riskLevel: 'LOW',
+        riskLevel: 'Low',
         events: [{ time: 'T-7d', description: 'Booking confirmed' }],
       },
       {
         phase: 'Main carriage',
         status: 'current',
-        riskLevel: 'HIGH',
+        riskLevel: 'High',
         events: [{ time: 'T+0', description: 'Departed POL' }],
       },
     ],

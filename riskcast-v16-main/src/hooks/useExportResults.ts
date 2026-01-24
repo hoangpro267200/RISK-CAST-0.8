@@ -50,9 +50,11 @@ function formatNumber(value: number | undefined | null, decimals = 2): string {
 /**
  * Format currency for export
  */
-function formatCurrency(value: number | undefined | null): string {
-  if (value === undefined || value === null || isNaN(value)) return 'N/A';
-  return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+function formatCurrency(value: number | { amount: number; currency: string } | undefined | null): string {
+  if (value === undefined || value === null) return 'N/A';
+  const numValue = typeof value === 'object' ? value.amount : value;
+  if (isNaN(numValue)) return 'N/A';
+  return `$${numValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 /**

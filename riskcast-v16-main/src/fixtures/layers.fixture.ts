@@ -3,14 +3,14 @@ import type { LayerData, LayerStatus, RiskLevel } from '../types';
 let layerSeq = 1;
 
 function statusForRiskLevel(level: RiskLevel): LayerStatus {
-  if (level === 'HIGH') return 'ALERT';
-  if (level === 'MEDIUM') return 'WARNING';
+  if (level === 'High' || level === 'Critical') return 'ALERT';
+  if (level === 'Medium') return 'WARNING';
   return 'OK';
 }
 
 function scoreForRiskLevel(level: RiskLevel): number {
-  if (level === 'HIGH') return 82;
-  if (level === 'MEDIUM') return 55;
+  if (level === 'High' || level === 'Critical') return 82;
+  if (level === 'Medium') return 55;
   return 22;
 }
 
@@ -33,7 +33,7 @@ export function createMockLayers(config?: {
   layerCount?: number;
   baseNames?: string[];
 }): LayerData[] {
-  const riskLevel = config?.riskLevel ?? 'MEDIUM';
+  const riskLevel = config?.riskLevel ?? 'Medium';
   const layerCount = config?.layerCount ?? 6;
 
   const defaultNames = [

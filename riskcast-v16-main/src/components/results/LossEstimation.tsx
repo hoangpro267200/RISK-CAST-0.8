@@ -15,9 +15,18 @@ export default function LossEstimation(props: LossEstimationProps) {
     );
   }
 
-  // Check if cargo value is missing or all loss values are 0
+  // Guard against nulls in loss metrics
+  const expectedLoss = props.loss.expectedLoss ?? 0;
+  const p95 = props.loss.p95 ?? 0;
+  const p99 = props.loss.p99 ?? 0;
+  const tailContribution = props.loss.tailContribution ?? 0;
+
+  // Check if cargo value is missing or all loss values are 0/null
   const hasNoCargoValue = props.cargoValue === 0 || props.cargoValue === undefined;
-  const hasNoLossData = props.loss.expectedLoss === 0 && props.loss.p95 === 0 && props.loss.p99 === 0;
+  const hasNoLossData =
+    (props.loss.expectedLoss === null || expectedLoss === 0) &&
+    (props.loss.p95 === null || p95 === 0) &&
+    (props.loss.p99 === null || p99 === 0);
 
   if (hasNoCargoValue || hasNoLossData) {
     return (
@@ -69,7 +78,7 @@ export default function LossEstimation(props: LossEstimationProps) {
             marginBottom: '0.25em',
           }}
         >
-          ${props.loss.expectedLoss.toLocaleString()}
+          ${expectedLoss.toLocaleString()}
         </div>
         <div style={{ fontSize: '0.85em', color: '#6b7280', fontStyle: 'italic' }}>Expected Loss</div>
       </div>
@@ -86,7 +95,7 @@ export default function LossEstimation(props: LossEstimationProps) {
             Severe but plausible loss
           </div>
           <div style={{ fontSize: '1.5em', fontWeight: 'bold', color: '#f59e0b', marginBottom: '0.25em' }}>
-            ${props.loss.p95.toLocaleString()}
+            ${p95.toLocaleString()}
           </div>
           <div style={{ fontSize: '0.8em', color: '#6b7280' }}>VaR (95%)</div>
         </div>
@@ -102,14 +111,14 @@ export default function LossEstimation(props: LossEstimationProps) {
             Worst-case tail risk
           </div>
           <div style={{ fontSize: '1.5em', fontWeight: 'bold', color: '#dc2626', marginBottom: '0.25em' }}>
-            ${props.loss.p99.toLocaleString()}
+            ${p99.toLocaleString()}
           </div>
           <div style={{ fontSize: '0.8em', color: '#6b7280' }}>CVaR (99%)</div>
         </div>
       </div>
-      {props.loss.tailContribution > 0 && (
+      {tailContribution > 0 && (
         <div style={{ marginTop: '1em', fontSize: '0.9em', color: '#6b7280' }}>
-          <strong>Tail Contribution:</strong> {props.loss.tailContribution}% of total risk exposure
+          <strong>Tail Contribution:</strong> {tailContribution}% of total risk exposure
         </div>
       )}
     </div>

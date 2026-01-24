@@ -5,6 +5,7 @@ Improved error handling with standardized responses and better logging
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
 import traceback
 import logging
 import os
@@ -65,6 +66,31 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
                 request=request
             )
             
+        except RequestValidationError as pydantic_exc:
+            # FastAPI/Pydantic validation error (422)
+            # Convert Pydantic errors to our format
+            field_errors = {}
+            for error in pydantic_exc.errors():
+                field_path = ".".join(str(loc) for loc in error.get("loc", []) if loc != "body")
+                if not field_path:
+                    field_path = "root"
+                if field_path not in field_errors:
+                    field_errors[field_path] = []
+                field_errors[field_path].append(error.get("msg", "Invalid value"))
+            
+            # Extract first error message for main message
+            first_error = pydantic_exc.errors()[0] if pydantic_exc.errors() else {}
+            main_message = first_error.get("msg", "Validation error")
+            field_name = ".".join(str(loc) for loc in first_error.get("loc", []) if loc != "body")
+            if field_name:
+                main_message = f"{field_name}: {main_message}"
+            
+            return StandardResponse.validation_error(
+                message=main_message,
+                errors=field_errors,
+                request=request
+            )
+            
         except ValidationError as val_exc:
             # Custom validation error
             return StandardResponse.validation_error(
@@ -103,6 +129,12 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
             )
             
         except Exception as exc:
+            # CRITICAL: For static file requests, don't convert to JSON
+            # Let Starlette/StaticFiles handle errors naturally
+            if request.url.path.startswith(("/assets/", "/static/", "/dist/")):
+                # Re-raise to let Starlette handle it (will return proper 404 HTML)
+                raise exc
+            
             # Unexpected exceptions
             error_id = str(uuid.uuid4())[:8]
             error_traceback = traceback.format_exc()

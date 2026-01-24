@@ -6,11 +6,11 @@
 
 import React from 'react';
 import { GlassCard } from './GlassCard';
-import type { DeductibleRecommendation } from '../types/insuranceTypes';
+import type { DeductibleRecommendation as DeductibleRecommendationType } from '../types/insuranceTypes';
 import { Target, TrendingDown, Info } from 'lucide-react';
 
 interface DeductibleRecommendationProps {
-  recommendation: DeductibleRecommendation;
+  recommendation: DeductibleRecommendationType;
   cargoValue: number;
   expectedLoss: number;
 }

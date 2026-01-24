@@ -1,0 +1,4 @@
+"""
+Observability Module Exceptions
+"""
+pass

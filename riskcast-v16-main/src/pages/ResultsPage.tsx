@@ -17,6 +17,7 @@
 import { useEffect, useState, useMemo, lazy, Suspense } from 'react';
 import { adaptResultV2 } from '@/adapters/adaptResultV2';
 import type { ResultsViewModel } from '@/types/resultsViewModel';
+import type { ValidationContext } from '@/engine/analysisIntegrity';
 import type { 
   LayerData, 
   ShipmentData, 
@@ -45,6 +46,8 @@ import { ExportMenu } from '@/components/ui/ExportMenu';
 import { ChangeIndicator } from '@/components/ui/ChangeIndicator';
 import { KeyboardShortcutsHelp } from '@/components/ui/KeyboardShortcutsHelp';
 import { CaseStepper } from '@/components/ui/CaseStepper';  // PR #6: Navigation stepper
+import { UserMenu } from '@/components/UserMenu';  // Phase 4: Auth System
+import { IntegrityPanel, NoDataSection } from '@/components/IntegrityPanel';  // Phase 5: Analysis Integrity
 
 // Hooks
 import { useUrlTabState } from '@/hooks/useUrlTabState';
@@ -101,6 +104,8 @@ import {
 
 // Header Language Switcher
 import { HeaderLangSwitcher, useTranslation } from '@/components/HeaderLangSwitcher';
+import { ProtectedRoute } from '@/components/ProtectedRoute';  // Phase 4: Auth System
+import { shouldProtectRoute } from '@/config/auth';  // Phase 4: Auth System
 
 /**
  * Calculate total contribution from layers and validate data integrity
@@ -165,7 +170,7 @@ function extractKeyTakeaways(
 type ResultsTab = 'overview' | 'analytics' | 'decisions';
 const VALID_TABS = ['overview', 'analytics', 'decisions'] as const;
 
-export default function ResultsPage() {
+function ResultsPageContent() {
   const [viewModel, setViewModel] = useState<ResultsViewModel | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -219,10 +224,24 @@ export default function ResultsPage() {
     return () => window.removeEventListener('keydown', handleQuestionMark);
   }, [loading]);
 
+  const [autoRetryAttempted, setAutoRetryAttempted] = useState(false);
+
   const fetchResults = async (showLoading = true, forceRefresh = false) => {
     try {
       if (showLoading) setLoading(true);
       setError(null);
+
+      // Load expected context for integrity validation
+      let expectedContext: ValidationContext = {};
+      try {
+        const contextStr = localStorage.getItem('RISKCAST_EXPECTED_CONTEXT');
+        if (contextStr) {
+          expectedContext = JSON.parse(contextStr);
+          console.log('[ResultsPage] Loaded expected context:', expectedContext);
+        }
+      } catch (e) {
+        console.warn('[ResultsPage] Failed to load expected context:', e);
+      }
 
       // First try localStorage for RISKCAST_RESULTS_V2 (saved by Summary page)
       // Skip localStorage if forceRefresh is true (user clicked refresh button)
@@ -232,11 +251,32 @@ export default function ResultsPage() {
           try {
             const parsed = JSON.parse(savedResults);
             console.log('[ResultsPage] Loaded results from localStorage:', parsed);
-            const normalized = adaptResultV2(parsed);
+            
+            // Pass context to adapter (which will use it for integrity validation)
+            const normalized = adaptResultV2(parsed, expectedContext);
             console.log('[ResultsPage] Normalized from localStorage:', normalized);
-            setViewModel(normalized);
-            setLoading(false);
-            return;
+            
+            // Check if integrity validation failed due to stale data
+            // Only treat actual errors as blocking, not warnings
+            const blockingErrors = normalized.integrity?.issues.filter(i => 
+              i.severity === 'error' && (
+                i.code === 'INPUT_HASH_MISMATCH' || 
+                i.code === 'CARGO_VALUE_MISMATCH' ||
+                i.code === 'RUN_ID_MISMATCH'
+              )
+            ) || [];
+            
+            if (normalized.integrity?.status === 'invalid' && blockingErrors.length > 0) {
+              console.warn('[ResultsPage] Stale data detected - clearing and fetching fresh');
+              localStorage.removeItem('RISKCAST_RESULTS_V2');
+              localStorage.removeItem('RISKCAST_EXPECTED_CONTEXT');
+              // Fall through to API fetch
+            } else {
+              // Use data even if there are warnings (like CASE_ID_MISMATCH)
+              setViewModel(normalized);
+              setLoading(false);
+              return;
+            }
           } catch (parseErr) {
             console.warn('[ResultsPage] Failed to parse localStorage results:', parseErr);
           }
@@ -245,6 +285,7 @@ export default function ResultsPage() {
         // Clear localStorage when force refreshing to get fresh data from API
         console.log('[ResultsPage] Force refresh - clearing localStorage and fetching from API');
         localStorage.removeItem('RISKCAST_RESULTS_V2');
+        localStorage.removeItem('RISKCAST_EXPECTED_CONTEXT');
       }
 
       // Fallback: try API endpoint
@@ -282,14 +323,20 @@ export default function ResultsPage() {
             console.warn('[ResultsPage] API returned empty object - no data available');
             // Don't set viewModel, let it fall through to error state
           } else {
-            const normalized = adaptResultV2(_rawResult);
+            // Pass context to adapter for integrity validation
+            const normalized = adaptResultV2(_rawResult, expectedContext);
             console.log('[ResultsPage] Normalized view model:', normalized);
 
             // Check if normalized data has meaningful content
-            const hasData = normalized.overview.riskScore.score > 0 || 
-                          normalized.breakdown.layers.length > 0 ||
-                          normalized.drivers.length > 0 ||
-                          (normalized.loss && normalized.loss.expectedLoss > 0);
+            // More lenient check - accept data if we have ANY meaningful fields
+            const hasData = 
+              (normalized.overview.riskScore.score !== undefined && normalized.overview.riskScore.score !== null) ||
+              normalized.breakdown.layers.length > 0 ||
+              normalized.drivers.length > 0 ||
+              (normalized.loss && normalized.loss.expectedLoss !== null) ||
+              normalized.overview.shipment.id ||
+              normalized.overview.shipment.pol ||
+              normalized.overview.shipment.pod;
 
             if (hasData) {
               setViewModel(normalized);
@@ -297,6 +344,13 @@ export default function ResultsPage() {
               return;
             } else {
               console.warn('[ResultsPage] Normalized data is empty - no meaningful content');
+              // Don't immediately fail - try to use what we have
+              if (normalized.overview && normalized.overview.shipment) {
+                console.log('[ResultsPage] Using partial data despite warnings');
+                setViewModel(normalized);
+                setLoading(false);
+                return;
+              }
             }
           }
         } else {
@@ -323,15 +377,36 @@ export default function ResultsPage() {
     return () => clearInterval(intervalId);
   }, []);
 
+  // Auto-retry once if integrity is warning/invalid to avoid missing data
+  useEffect(() => {
+    if (!viewModel?.integrity) return;
+    if (viewModel.integrity.status === 'ok') return;
+    if (autoRetryAttempted) return;
+
+    setAutoRetryAttempted(true);
+    fetchResults(true, true);
+  }, [viewModel?.integrity, autoRetryAttempted]);
+
   // ALL HOOKS MUST BE CALLED BEFORE ANY EARLY RETURNS
   // This ensures hooks are called in the same order on every render
 
   // Prepare data for components (safe with null checks)
-  const rawRiskLevel = viewModel?.overview?.riskScore?.level?.toUpperCase();
-  const riskLevel: RiskLevel | undefined = 
-    rawRiskLevel === 'LOW' || rawRiskLevel === 'MEDIUM' || rawRiskLevel === 'HIGH'
-      ? rawRiskLevel
-      : undefined;
+  // Normalize risk level to Title Case
+  const rawRiskLevel = viewModel?.overview?.riskScore?.level;
+  const normalizeRiskLevel = (level: string | undefined): RiskLevel | undefined => {
+    if (!level) return undefined;
+    const upper = level.toUpperCase();
+    if (upper === 'LOW') return 'Low';
+    if (upper === 'MEDIUM') return 'Medium';
+    if (upper === 'HIGH') return 'High';
+    if (upper === 'CRITICAL') return 'Critical';
+    // Already Title Case
+    if (['Low', 'Medium', 'High', 'Critical', 'Unknown'].includes(level)) {
+      return level as RiskLevel;
+    }
+    return 'Unknown';
+  };
+  const riskLevel: RiskLevel | undefined = normalizeRiskLevel(rawRiskLevel);
   const confidence = viewModel ? viewModel.overview.riskScore.confidence / 100 : 0;
   const riskScore = viewModel?.overview?.riskScore?.score ?? 0;
 
@@ -354,25 +429,33 @@ export default function ResultsPage() {
     }
     
     return viewModel.breakdown.layers.map(l => {
-      const layerId = (l as any).id || l.name.toLowerCase().replace(/\s+/g, '_');
-      const fahpWeight = fahpWeightMap.get(layerId) ?? fahpWeightMap.get(l.name) ?? 
-                        ((l as any).weight ? (l as any).weight / 100 : undefined);
+      const layerAny = l as any;
+      const layerId = layerAny.id || l.name.toLowerCase().replace(/\s+/g, '_');
+      
+      // Get FAHP weight: prefer layer data > FAHP map > weight/100
+      const fahpWeight = layerAny.fahpWeight ?? 
+                        fahpWeightMap.get(layerId) ?? 
+                        fahpWeightMap.get(l.name) ?? 
+                        (layerAny.weight ? layerAny.weight / 100 : undefined);
+      
+      // Get TOPSIS score: prefer layer data > algorithm data
+      const topsisScore = layerAny.topsisScore ?? layerAny.topsis_score ?? undefined;
       
       return {
         id: layerId,
         name: l.name,
         score: l.score,
         contribution: l.contribution,
-        weight: (l as any).weight || 0,
+        weight: layerAny.weight || 0,
         category: l.category || 'UNKNOWN',
-        color: (l as any).color || '#6B7280',
+        color: layerAny.color || '#6B7280',
         enabled: l.enabled !== false,
-        status: (l as any).status || (l.score >= 70 ? 'ALERT' : l.score >= 40 ? 'WARNING' : 'OK'),
-        notes: (l as any).notes || `Contributing ${l.contribution.toFixed(1)}% to overall risk`,
+        status: layerAny.status || (l.score >= 70 ? 'ALERT' : l.score >= 40 ? 'WARNING' : 'OK'),
+        notes: layerAny.notes || `Contributing ${l.contribution.toFixed(1)}% to overall risk`,
         confidence: viewModel.overview.riskScore.confidence,
-        // Sprint 3: Add FAHP weight and TOPSIS score for enhanced tooltips and table
-        fahpWeight: fahpWeight,
-        topsisScore: undefined, // TOPSIS score would come from algorithm.topsis if available
+        // Sprint 3: FAHP weight and TOPSIS score from layer/algorithm data
+        fahpWeight,
+        topsisScore,
       } as LayerData & { fahpWeight?: number; topsisScore?: number };
     });
   }, [viewModel]);
@@ -579,9 +662,9 @@ export default function ResultsPage() {
   // Build data reliability domains - ONLY if provided by engine (currently empty, components handle it)
   const dataReliabilityDomains: DataDomain[] = [];
 
-  // Build financial metrics - ONLY use real loss data
-  const financialMetrics: FinancialMetrics = useMemo(() => {
-    if (viewModel?.loss && viewModel.loss.expectedLoss > 0) {
+  // Build financial metrics - ONLY use real loss data (null if missing)
+  const financialMetrics: FinancialMetrics | null = useMemo(() => {
+    if (viewModel?.loss && viewModel.loss.expectedLoss !== null && viewModel.loss.expectedLoss > 0) {
       const lossCurve = viewModel.loss.lossCurve || [];
       console.log('[ResultsPage] Building financialMetrics:', {
         expectedLoss: viewModel.loss.expectedLoss,
@@ -589,24 +672,25 @@ export default function ResultsPage() {
         lossCurveLength: lossCurve.length,
         lossCurveSample: lossCurve.slice(0, 3)
       });
+      // Only return FinancialMetrics if we have all required fields
+      // FinancialMetrics type requires all fields to be numbers (not null)
+      if (viewModel.loss.p95 === null || viewModel.loss.p99 === null || 
+          viewModel.loss.cvar95 === null || viewModel.loss.cvar99 === null) {
+        console.log('[ResultsPage] Missing loss metrics - returning null');
+        return null;
+      }
+      
       return {
         expectedLoss: viewModel.loss.expectedLoss,
         var95: viewModel.loss.p95,
-        cvar95: viewModel.loss.p99,
-        stdDev: (viewModel.loss.p99 - viewModel.loss.expectedLoss) / 2, // Estimate std dev from range
+        cvar95: viewModel.loss.cvar95,
+        stdDev: (viewModel.loss.p99 - viewModel.loss.expectedLoss) / 2,
         histogram: [],
         lossCurve: lossCurve, // Use lossCurve from adapter if available
       };
     }
     console.log('[ResultsPage] No loss data in viewModel');
-    return {
-      expectedLoss: 0,
-      var95: 0,
-      cvar95: 0,
-      stdDev: 0,
-      histogram: [],
-      lossCurve: [],
-    };
+    return null;
   }, [viewModel]);
 
   // Get risk color helper (moved before early returns for consistency)
@@ -696,7 +780,7 @@ export default function ResultsPage() {
           <h2 className="text-2xl font-bold text-white mb-2">No Analysis Data</h2>
           <p className="text-white/60 mb-6">Run a risk analysis from the Input page to see results.</p>
           <a
-            href="/input_v20"
+            href="/input_react"
             className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-medium transition-all shadow-lg shadow-blue-500/25"
           >
             Start Analysis
@@ -714,7 +798,7 @@ export default function ResultsPage() {
      viewModel.overview.riskScore.level === 'Unknown' &&
      viewModel.breakdown.layers.length === 0 &&
      viewModel.drivers.length === 0 &&
-     (!viewModel.loss || viewModel.loss.expectedLoss === 0));
+     (!viewModel.loss || viewModel.loss.expectedLoss === null || viewModel.loss.expectedLoss === 0));
 
   if (isEmptyData && viewModel) {
     return (
@@ -725,7 +809,7 @@ export default function ResultsPage() {
           </div>
           <h2 className="text-2xl font-bold text-white mb-2">Ready for Analysis</h2>
           <p className="text-white/60 mb-6">Submit shipment data to generate risk intelligence.</p>
-          <a href="/input_v20" className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-medium">
+          <a href="/input_react" className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-medium">
             Go to Input <ArrowRight className="w-5 h-5" />
           </a>
         </GlassCard>
@@ -821,6 +905,9 @@ export default function ResultsPage() {
                   <HeaderLangSwitcher />
                 </div>
 
+                {/* User Menu - Auth System */}
+                <UserMenu />
+
                 <button
                   onClick={() => fetchResults(true, true)}
                   disabled={loading}
@@ -858,331 +945,337 @@ export default function ResultsPage() {
           </div>
         ) : null}
 
-        {/* Shipment Header */}
+        {/* Shipment Header - Compact */}
         <ShipmentHeader data={shipmentData} />
 
+        {/* Analysis Integrity Panel - Shows validation status and issues */}
+        {viewModel?.integrity && viewModel.integrity.status !== 'ok' && (
+          <div className="mb-4">
+            <IntegrityPanel 
+              integrity={viewModel.integrity}
+              onRetry={() => fetchResults(true, true)}
+              isLoading={loading}
+            />
+          </div>
+        )}
+
+        {/* Gating: If integrity check failed, show limited UI */}
+        {viewModel?.integrity?.status === 'invalid' && !viewModel.integrity.gating.showOverview ? (
+          <GlassCard className="p-8 text-center">
+            <XCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-white mb-2">Analysis Data Invalid</h2>
+            <p className="text-white/60 mb-4">
+              The analysis results failed integrity validation and cannot be displayed.
+              Please retry the analysis or check the input data.
+            </p>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => fetchResults(true, true)}
+                className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-all"
+              >
+                Retry Analysis
+              </button>
+              <a
+                href="/input_react"
+                className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg font-medium transition-all"
+              >
+                Edit Input
+              </a>
+            </div>
+          </GlassCard>
+        ) : (
+          <>
         {/* ============================================================
-            SECTION 1: EXECUTIVE DECISION SUMMARY (TOP PRIORITY)
+            SECTION 1: OVERVIEW TAB - Executive Summary (Compact SaaS style)
             ============================================================ */}
         {activeTab === 'overview' && (
-          <div className="space-y-8">
-            {/* Executive Summary Card - Dominant Visual */}
-            <GlassCard variant="hero" className="border-2 border-blue-500/20">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
-                {/* Risk Orb - Primary Focal Point (P1 - #5 Responsive) */}
-                <div className="flex flex-col items-center justify-center">
-                  <div className={`absolute inset-0 bg-gradient-to-br ${riskColor} opacity-5 rounded-2xl`}></div>
+          <div className="space-y-4">
+            {/* Hero Section - Compact 2-column layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+              {/* Left: Risk Score Card - Compact */}
+              <GlassCard className="lg:col-span-4 p-4">
+                <div className="flex items-center gap-4">
                   <RiskOrbPremium 
                     score={Math.round(riskScore)} 
                     riskLevel={riskLevel}
-                    size="responsive"
-                    collapsible
+                    size="sm"
+                    collapsible={false}
                   />
-                  <div className="mt-6 text-center relative z-10">
-                    <div className="flex items-center justify-center gap-2 mb-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
                       {riskLevel ? (
-                        <BadgeRisk level={riskLevel} size="lg" />
+                        <BadgeRisk level={riskLevel} size="sm" />
                       ) : (
-                        <span className="text-white/60 text-sm">Risk level: Unknown</span>
+                        <span className="text-white/60 text-xs">Unknown</span>
                       )}
+                      <span className="text-xs text-white/40">Confidence: {Math.round(confidence * 100)}%</span>
                     </div>
-                    <p className="text-white/80 text-base font-medium max-w-xs mx-auto">
-                      {explanation || `Risk assessment: ${riskLevel || 'Unknown'} risk level`}
+                    <p className="text-white/70 text-xs line-clamp-2">
+                      {explanation || `${riskLevel || 'Unknown'} risk profile`}
                     </p>
                   </div>
                 </div>
+              </GlassCard>
 
-                {/* Key Takeaways - Plain Language for Decision Makers */}
-                <div className="lg:col-span-2 space-y-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Target className="w-6 h-6 text-blue-400" />
-                    <h2 className="text-2xl font-bold text-white">Executive Decision Summary</h2>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    {keyTakeaways.map((takeaway, idx) => (
-                      <div 
-                        key={idx}
-                        className="flex items-start gap-3 p-4 bg-white/5 rounded-xl border border-white/10 hover:border-white/20 transition-colors"
-                      >
-                        <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                          idx === 0 ? 'bg-red-500/20 border-2 border-red-500/40' :
-                          idx === 1 ? 'bg-amber-500/20 border-2 border-amber-500/40' :
-                          'bg-blue-500/20 border-2 border-blue-500/40'
-                        }`}>
-                          <Info className={`w-4 h-4 ${
-                            idx === 0 ? 'text-red-400' :
-                            idx === 1 ? 'text-amber-400' :
-                            'text-blue-400'
-                          }`} />
-                        </div>
-                        <p className="text-white/90 text-base leading-relaxed flex-1">{takeaway}</p>
-                      </div>
-                    ))}
-                  </div>
+              {/* Right: Key Metrics - Compact Grid */}
+              <div className="lg:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {/* Expected Loss - Gated by integrity */}
+                {viewModel.integrity?.gating.showLossMetrics && viewModel.loss && viewModel.loss.expectedLoss !== null && viewModel.loss.expectedLoss > 0 ? (
+                  <>
+                    <GlassCard className="p-3 text-center">
+                      <DollarSign className="w-4 h-4 text-emerald-400 mx-auto mb-1" />
+                      <p className="text-lg font-bold text-white">${(viewModel.loss.expectedLoss / 1000).toFixed(1)}K</p>
+                      <p className="text-[10px] text-white/50">Expected Loss</p>
+                    </GlassCard>
+                    {viewModel.loss.p95 !== null && (
+                      <GlassCard className="p-3 text-center">
+                        <AlertTriangle className="w-4 h-4 text-amber-400 mx-auto mb-1" />
+                        <p className="text-lg font-bold text-white">${(viewModel.loss.p95 / 1000).toFixed(1)}K</p>
+                        <p className="text-[10px] text-white/50">VaR 95%</p>
+                      </GlassCard>
+                    )}
+                    {viewModel.loss.p99 !== null && (
+                      <GlassCard className="p-3 text-center">
+                        <Shield className="w-4 h-4 text-red-400 mx-auto mb-1" />
+                        <p className="text-lg font-bold text-white">${(viewModel.loss.p99 / 1000).toFixed(1)}K</p>
+                        <p className="text-[10px] text-white/50">CVaR 99%</p>
+                      </GlassCard>
+                    )}
+                  </>
+                ) : (
+                  <GlassCard className="p-3 text-center col-span-3 bg-white/5 border-dashed">
+                    <DollarSign className="w-4 h-4 text-white/30 mx-auto mb-1" />
+                    <p className="text-sm text-white/40">No cargo value provided</p>
+                    <p className="text-[10px] text-white/30">Add value in input to calculate loss</p>
+                  </GlassCard>
+                )}
+                <GlassCard className="p-3 text-center">
+                  <Layers className="w-4 h-4 text-purple-400 mx-auto mb-1" />
+                  <p className="text-lg font-bold text-white">{layersData.length}</p>
+                  <p className="text-[10px] text-white/50">Risk Layers</p>
+                </GlassCard>
+              </div>
+            </div>
 
-                  {/* Confidence Indicator */}
-                  <div className="flex items-center gap-4 pt-4 border-t border-white/10">
-                    <div className="flex items-center gap-2">
-                      <Brain className="w-5 h-5 text-cyan-400" />
-                      <span className="text-sm text-white/60">Data Confidence:</span>
-                      <span className={`text-lg font-semibold ${
-                        confidence >= 0.8 ? 'text-emerald-400' :
-                        confidence >= 0.6 ? 'text-amber-400' :
-                        'text-red-400'
-                      }`}>
-                        {Math.round(confidence * 100)}%
-                      </span>
+            {/* Key Takeaways - Compact */}
+            <GlassCard className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Target className="w-4 h-4 text-blue-400" />
+                <h2 className="text-sm font-semibold text-white">Key Findings</h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                {keyTakeaways.map((takeaway, idx) => (
+                  <div 
+                    key={idx}
+                    className="flex items-start gap-2 p-2 bg-white/5 rounded-lg border border-white/10 text-xs"
+                  >
+                    <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${
+                      idx === 0 ? 'bg-red-500/20' : idx === 1 ? 'bg-amber-500/20' : 'bg-blue-500/20'
+                    }`}>
+                      <Info className={`w-3 h-3 ${
+                        idx === 0 ? 'text-red-400' : idx === 1 ? 'text-amber-400' : 'text-blue-400'
+                      }`} />
                     </div>
+                    <p className="text-white/80 leading-relaxed flex-1">{takeaway}</p>
                   </div>
-                </div>
+                ))}
               </div>
             </GlassCard>
 
-            {/* Route Details and Timeline - Positioned near Risk Score */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <GlassCard>
-                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                  <MapPin className="w-5 h-5 text-blue-400" />
-                  Route Details
+            {/* Shipment Details - Compact 2-column */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Route & Cargo */}
+              <GlassCard className="p-4">
+                <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-blue-400" />
+                  Route & Cargo
                 </h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                    <span className="text-white/60">Origin</span>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="p-2 bg-white/5 rounded">
+                    <span className="text-white/50 block">Origin</span>
                     <span className="text-white font-medium">
                       {typeof viewModel.overview.shipment.pol === 'string' 
                         ? viewModel.overview.shipment.pol 
-                        : viewModel.overview.shipment.pol?.name || viewModel.overview.shipment.pol?.code || 'N/A'}
+                        : viewModel.overview.shipment.pol?.code || 'N/A'}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                    <span className="text-white/60">Destination</span>
+                  <div className="p-2 bg-white/5 rounded">
+                    <span className="text-white/50 block">Destination</span>
                     <span className="text-white font-medium">
                       {typeof viewModel.overview.shipment.pod === 'string' 
                         ? viewModel.overview.shipment.pod 
-                        : viewModel.overview.shipment.pod?.name || viewModel.overview.shipment.pod?.code || 'N/A'}
+                        : viewModel.overview.shipment.pod?.code || 'N/A'}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                    <span className="text-white/60">Transit Time</span>
-                    <span className="text-white font-medium">{viewModel.overview.shipment.transitTime} days</span>
+                  <div className="p-2 bg-white/5 rounded">
+                    <span className="text-white/50 block">Transit</span>
+                    <span className="text-white font-medium">{viewModel.overview.shipment.transitTime || 0} days</span>
                   </div>
-                  {/* Sprint 1: Display Cargo Type */}
-                  <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                    <span className="text-white/60">Cargo Type</span>
-                    <span className="text-white font-medium">
+                  <div className="p-2 bg-white/5 rounded">
+                    <span className="text-white/50 block">Cargo</span>
+                    <span className="text-white font-medium truncate">
                       {viewModel.overview.shipment.cargoType || viewModel.overview.shipment.cargo || 'N/A'}
                     </span>
                   </div>
-                  {/* Sprint 1: Display Container Type */}
-                  <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                    <span className="text-white/60">Container Type</span>
+                  <div className="p-2 bg-white/5 rounded">
+                    <span className="text-white/50 block">Container</span>
                     <span className="text-white font-medium">
                       {viewModel.overview.shipment.containerType || viewModel.overview.shipment.container || 'N/A'}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                    <span className="text-white/60">Cargo Value</span>
+                  <div className="p-2 bg-white/5 rounded">
+                    <span className="text-white/50 block">Value</span>
                     <span className="text-white font-medium">
-                      ${((typeof viewModel.overview.shipment.cargoValue === 'number' 
-                        ? viewModel.overview.shipment.cargoValue 
-                        : viewModel.overview.shipment.cargoValue?.amount || 0) / 1000).toFixed(0)}K
+                      {(() => {
+                        const val = typeof viewModel.overview.shipment.cargoValue === 'number' 
+                          ? viewModel.overview.shipment.cargoValue 
+                          : viewModel.overview.shipment.cargoValue?.amount || 0;
+                        return val > 0 ? `$${(val / 1000).toFixed(0)}K` : 'Not set';
+                      })()}
                     </span>
                   </div>
                 </div>
               </GlassCard>
 
-              <GlassCard>
-                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-purple-400" />
+              {/* Timeline & Carrier */}
+              <GlassCard className="p-4">
+                <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-purple-400" />
                   Timeline
                 </h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                    <span className="text-white/60">ETD</span>
+                <div className="grid grid-cols-3 gap-2 text-xs">
+                  <div className="p-2 bg-white/5 rounded">
+                    <span className="text-white/50 block">ETD</span>
                     <span className="text-white font-medium">{viewModel.overview.shipment.etd || 'N/A'}</span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                    <span className="text-white/60">ETA</span>
+                  <div className="p-2 bg-white/5 rounded">
+                    <span className="text-white/50 block">ETA</span>
                     <span className="text-white font-medium">{viewModel.overview.shipment.eta || 'N/A'}</span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                    <span className="text-white/60">Carrier</span>
-                    <span className="text-white font-medium">{viewModel.overview.shipment.carrier || 'N/A'}</span>
+                  <div className="p-2 bg-white/5 rounded">
+                    <span className="text-white/50 block">Carrier</span>
+                    <span className="text-white font-medium truncate">{viewModel.overview.shipment.carrier || 'N/A'}</span>
                   </div>
                 </div>
               </GlassCard>
             </div>
 
-            {/* Quick Stats Bar - Supporting Metrics (P1 - #7 Responsive Grid) */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
-              <GlassCard 
-                variant="compact" 
-                className="text-center hover:bg-white/10 transition-colors group min-w-0"
-              >
-                <Target className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400 mx-auto mb-1.5 sm:mb-2 group-hover:scale-110 transition-transform" />
-                <p className="text-xl sm:text-2xl font-bold text-white tabular-nums">{Math.round(riskScore)}</p>
-                <p className="text-[10px] sm:text-xs text-white/50 truncate">Risk Score</p>
-                <p className="text-[10px] text-white/30 mt-0.5 sm:mt-1 hidden sm:block">0-100 scale</p>
-              </GlassCard>
-
-              {viewModel.loss && viewModel.loss.expectedLoss > 0 && (
-                <>
-                  <GlassCard 
-                    variant="compact" 
-                    className="text-center hover:bg-white/10 transition-colors group min-w-0"
-                  >
-                    <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-400 mx-auto mb-1.5 sm:mb-2 group-hover:scale-110 transition-transform" />
-                    <p className="text-xl sm:text-2xl font-bold text-white tabular-nums">
-                      ${(viewModel.loss.expectedLoss / 1000).toFixed(1)}K
-                    </p>
-                    <p className="text-[10px] sm:text-xs text-white/50 truncate">Expected Loss</p>
-                    <p className="text-[10px] text-white/30 mt-0.5 sm:mt-1 hidden sm:block">Most likely outcome</p>
-                  </GlassCard>
-
-                  <GlassCard 
-                    variant="compact" 
-                    className="text-center hover:bg-white/10 transition-colors group min-w-0"
-                  >
-                    <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 mx-auto mb-1.5 sm:mb-2 group-hover:scale-110 transition-transform" />
-                    <p className="text-xl sm:text-2xl font-bold text-white tabular-nums">
-                      ${(viewModel.loss.p95 / 1000).toFixed(1)}K
-                    </p>
-                    <p className="text-[10px] sm:text-xs text-white/50 truncate">VaR 95%</p>
-                    <p className="text-[10px] text-white/30 mt-0.5 sm:mt-1 hidden sm:block">95th percentile</p>
-                  </GlassCard>
-
-                  <GlassCard 
-                    variant="compact" 
-                    className="text-center hover:bg-white/10 transition-colors group min-w-0"
-                  >
-                    <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-red-400 mx-auto mb-1.5 sm:mb-2 group-hover:scale-110 transition-transform" />
-                    <p className="text-xl sm:text-2xl font-bold text-white tabular-nums">
-                      ${(viewModel.loss.p99 / 1000).toFixed(1)}K
-                    </p>
-                    <p className="text-[10px] sm:text-xs text-white/50 truncate">CVaR 99%</p>
-                    <p className="text-[10px] text-white/30 mt-0.5 sm:mt-1 hidden sm:block">Worst case (99%)</p>
-                  </GlassCard>
-                </>
-              )}
-
-              <GlassCard 
-                variant="compact" 
-                className="text-center hover:bg-white/10 transition-colors group min-w-0"
-              >
-                <Layers className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400 mx-auto mb-1.5 sm:mb-2 group-hover:scale-110 transition-transform" />
-                <p className="text-xl sm:text-2xl font-bold text-white tabular-nums">{layersData.length}</p>
-                <p className="text-[10px] sm:text-xs text-white/50 truncate">Risk Layers</p>
-                <p className="text-[10px] text-white/30 mt-0.5 sm:mt-1 hidden sm:block">Analyzed</p>
-              </GlassCard>
-
-              <GlassCard 
-                variant="compact" 
-                className="text-center hover:bg-white/10 transition-colors group min-w-0"
-              >
-                <Brain className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400 mx-auto mb-1.5 sm:mb-2 group-hover:scale-110 transition-transform" />
-                <p className="text-xl sm:text-2xl font-bold text-white tabular-nums">{Math.round(confidence * 100)}%</p>
-                <p className="text-[10px] sm:text-xs text-white/50 truncate">Confidence</p>
-                <p className="text-[10px] text-white/30 mt-0.5 sm:mt-1 hidden sm:block">Data quality</p>
-              </GlassCard>
-            </div>
-
-            {/* ============================================================
-                SECTION 2: ANALYTICAL BREAKDOWN
-                ============================================================ */}
-            
-            {/* Risk Visualization Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Suspense fallback={<ChartLoader />}>
-                <RiskRadar layers={layersData} />
-              </Suspense>
-              <Suspense fallback={<ChartLoader />}>
-                <RiskContributionWaterfall layers={layersData} overallScore={riskScore} />
-              </Suspense>
-            </div>
-
-            {/* Sprint 3: Factor Contribution Waterfall */}
-            <Suspense fallback={<ChartLoader />}>
-              <FactorContributionWaterfall
-                baseScore={Math.max(0, riskScore - layersData.reduce((sum, l) => sum + (l.contribution || 0), 0))}
-                layers={layersData}
-                finalScore={riskScore}
+            {/* Risk Visualization - Gated by integrity */}
+            {viewModel.integrity?.gating.showLayers && layersData.length > 0 ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <Suspense fallback={<ChartLoader />}>
+                  <RiskRadar layers={layersData} />
+                </Suspense>
+                <Suspense fallback={<ChartLoader />}>
+                  <RiskContributionWaterfall layers={layersData} overallScore={riskScore} />
+                </Suspense>
+              </div>
+            ) : viewModel.integrity?.gating.showLayers === false ? null : (
+              <NoDataSection 
+                title="No Risk Visualization Available"
+                message="Analysis did not generate layer breakdown for visualization"
+                icon={BarChart3}
               />
-            </Suspense>
+            )}
 
-            {/* Data Integrity Warning (if needed) */}
+            {/* Data Integrity Warning */}
             {!layerValidation.isValid && layerValidation.warnings.length > 0 && (
-              <GlassCard className="border-amber-500/30 bg-amber-500/5">
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <h3 className="text-sm font-semibold text-amber-400 mb-1">Data Integrity Notice</h3>
-                    <ul className="text-xs text-white/70 space-y-1">
-                      {layerValidation.warnings.map((warning, idx) => (
-                        <li key={idx}>• {warning}</li>
-                      ))}
-                    </ul>
-                  </div>
+              <GlassCard className="p-3 border-amber-500/30 bg-amber-500/5">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <p className="text-xs text-amber-300">{layerValidation.warnings[0]}</p>
                 </div>
               </GlassCard>
             )}
 
-            {/* Executive Narrative */}
-            <Suspense fallback={<ChartLoader />}>
-              <ExecutiveNarrative narrative={narrativeData} />
-            </Suspense>
-
-            {/* Risk Drivers - Only show if we have real drivers */}
-            {viewModel?.drivers && viewModel.drivers.length > 0 && (
-              <GlassCard>
-                <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-                  <Zap className="w-5 h-5 text-amber-400" />
-                  Risk Drivers Impact Analysis
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {viewModel.drivers.slice(0, 8).map((driver, idx) => (
+            {/* Risk Drivers - Gated by integrity */}
+            {viewModel.integrity?.gating.showDrivers && viewModel?.drivers && viewModel.drivers.length > 0 ? (
+              <GlassCard className="p-4">
+                <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-amber-400" />
+                  Top Risk Drivers
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {viewModel.drivers.slice(0, 4).map((driver, idx) => (
                     <div 
                       key={idx}
-                      className={`p-4 rounded-xl border transition-all hover:scale-[1.02] ${
+                      className={`p-2 rounded-lg border text-xs ${
                         driver.impact > 0 
-                          ? 'bg-red-500/5 border-red-500/20 hover:border-red-500/40' 
-                          : 'bg-emerald-500/5 border-emerald-500/20 hover:border-emerald-500/40'
+                          ? 'bg-red-500/5 border-red-500/20' 
+                          : 'bg-emerald-500/5 border-emerald-500/20'
                       }`}
                     >
-                      <div className="flex items-start justify-between mb-2">
-                        <span className="text-white font-medium text-sm">{driver.name}</span>
-                        {driver.impact > 0 ? (
-                          <AlertCircle className="w-4 h-4 text-red-400" />
-                        ) : (
-                          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                        )}
-                      </div>
-                      <div className={`text-2xl font-bold ${driver.impact > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
-                        {driver.impact > 0 ? '+' : ''}{driver.impact.toFixed(1)}%
-                      </div>
-                      <p className="text-xs text-white/50 mt-1">{driver.description || 'Impact on risk score'}</p>
+                      <span className="text-white/80 block truncate">{driver.name}</span>
+                      <span className={`text-lg font-bold ${driver.impact > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+                        {driver.impact > 0 ? '+' : ''}{driver.impact.toFixed(0)}%
+                      </span>
                     </div>
                   ))}
                 </div>
               </GlassCard>
+            ) : viewModel.integrity?.gating.showDrivers === false ? null : (
+              <NoDataSection 
+                title="No Risk Drivers Available"
+                message="Analysis did not identify specific risk drivers"
+                icon={Zap}
+              />
             )}
+
+            {/* Executive Narrative - More compact */}
+            <Suspense fallback={<ChartLoader />}>
+              <ExecutiveNarrative narrative={narrativeData} />
+            </Suspense>
           </div>
         )}
 
         {/* ============================================================
-            SECTION 3: ANALYTICS TAB (TECHNICAL DETAIL)
+            SECTION 2: ANALYTICS TAB - Technical Deep Dive
             ============================================================ */}
         {activeTab === 'analytics' && (
-          <div className="space-y-8">
-            {/* Sprint 1: Algorithm Explainability Panel (P0 Critical) */}
-            {viewModel.algorithm && (
+          <div className="space-y-4">
+            {/* Algorithm & Model Section - Gated by integrity */}
+            {viewModel.integrity?.gating.showAlgorithm && viewModel.algorithm ? (
               <Suspense fallback={<ChartLoader />}>
                 <AlgorithmExplainabilityPanel algorithmData={viewModel.algorithm} />
               </Suspense>
+            ) : viewModel.integrity?.gating.showAlgorithm === false ? null : (
+              <NoDataSection 
+                title="Algorithm Data Not Available"
+                message="Re-run analysis to generate algorithm details"
+                icon={Brain}
+              />
             )}
 
-            {/* Sprint 2: Insurance Underwriting Panel (P1 High) */}
-            {viewModel.insurance && viewModel.loss && (
+            {/* Financial Analysis Section - Gated by integrity */}
+            {viewModel.integrity?.gating.showLossCharts && financialMetrics && viewModel.loss && viewModel.loss.expectedLoss !== null && viewModel.loss.expectedLoss > 0 ? (
+              <>
+                <Suspense fallback={<ChartLoader />}>
+                  <FinancialModule financial={financialMetrics} />
+                </Suspense>
+                
+                {/* Factor Contribution */}
+                <Suspense fallback={<ChartLoader />}>
+                  <FactorContributionWaterfall
+                    baseScore={Math.max(0, riskScore - layersData.reduce((sum, l) => sum + (l.contribution || 0), 0))}
+                    layers={layersData}
+                    finalScore={riskScore}
+                  />
+                </Suspense>
+              </>
+            ) : (
+              <GlassCard className="p-4 border-dashed border-white/20">
+                <div className="flex items-center gap-3 text-white/50">
+                  <DollarSign className="w-5 h-5" />
+                  <div>
+                    <p className="text-sm font-medium">Financial Analysis Not Available</p>
+                    <p className="text-xs">Add cargo value in input to enable loss calculations</p>
+                  </div>
+                </div>
+              </GlassCard>
+            )}
+
+            {/* Insurance Panel - Only if loss data available and gated */}
+            {viewModel.integrity?.gating.showLossMetrics && viewModel.insurance && viewModel.loss && viewModel.loss.expectedLoss !== null && viewModel.loss.expectedLoss > 0 && (
               <Suspense fallback={<ChartLoader />}>
                 <InsuranceUnderwritingPanel
                   insuranceData={viewModel.insurance}
@@ -1190,13 +1283,13 @@ export default function ResultsPage() {
                     ? viewModel.overview.shipment.cargoValue
                     : viewModel.overview.shipment.cargoValue?.amount || 0}
                   expectedLoss={viewModel.loss.expectedLoss}
-                  p95={viewModel.loss.p95}
-                  p99={viewModel.loss.p99}
+                  p95={viewModel.loss.p95 ?? 0}
+                  p99={viewModel.loss.p99 ?? 0}
                 />
               </Suspense>
             )}
 
-            {/* Sprint 2: Logistics Realism Panel (P1 High) */}
+            {/* Logistics Panel */}
             {viewModel.logistics && (
               <Suspense fallback={<ChartLoader />}>
                 <LogisticsRealismPanel
@@ -1211,15 +1304,15 @@ export default function ResultsPage() {
               </Suspense>
             )}
 
-            {/* Sprint 3: Risk Disclosure Panel (P1 High) */}
+            {/* Risk Disclosure */}
             {viewModel.riskDisclosure && (
               <Suspense fallback={<ChartLoader />}>
                 <RiskDisclosurePanel riskDisclosure={viewModel.riskDisclosure} />
               </Suspense>
             )}
 
-            {/* Scenario Projections - Only show if real data exists */}
-            {scenarioData.length > 0 && (
+            {/* Scenario Projections - Gated by integrity */}
+            {viewModel.integrity?.gating.showTimeline && scenarioData.length > 0 ? (
               <Suspense fallback={<ChartLoader />}>
                 <RiskScenarioFanChart 
                   data={scenarioData}
@@ -1227,60 +1320,77 @@ export default function ResultsPage() {
                   eta={viewModel.overview.shipment.eta || 'N/A'}
                 />
               </Suspense>
+            ) : viewModel.integrity?.gating.showTimeline === false ? null : (
+              <NoDataSection 
+                title="No Timeline Projections Available"
+                message="Analysis did not generate scenario projections"
+                icon={LineChart}
+              />
             )}
 
-            {/* Sensitivity Tornado */}
-            {sensitivityDrivers.length > 0 && (
+            {/* Sensitivity Analysis - Gated by integrity */}
+            {viewModel.integrity?.gating.showDrivers && sensitivityDrivers.length > 0 ? (
               <Suspense fallback={<ChartLoader />}>
                 <RiskSensitivityTornado drivers={sensitivityDrivers} />
               </Suspense>
+            ) : viewModel.integrity?.gating.showDrivers === false ? null : (
+              <NoDataSection 
+                title="No Sensitivity Analysis Available"
+                message="Analysis did not generate sensitivity data"
+                icon={BarChart3}
+              />
             )}
 
-            {/* Cost-Efficiency Frontier - Only show if real scenarios exist */}
-            {scenariosForFrontier.length > 0 && (
-              <Suspense fallback={<ChartLoader />}>
-                <RiskCostEfficiencyFrontier 
-                  scenarios={scenariosForFrontier}
-                  baselineRisk={riskScore}
-                  highlightedScenario={null}
-                />
-              </Suspense>
-            )}
-
-            {/* Financial Module - Only show if real loss data exists */}
-            {viewModel.loss && viewModel.loss.expectedLoss > 0 && (
-              <Suspense fallback={<ChartLoader />}>
-                <FinancialModule financial={financialMetrics} />
-              </Suspense>
-            )}
-
-            {/* Layers Table */}
-            <LayersTable layers={layersData} />
-
-            {/* Data Reliability Matrix - Only show if domains provided */}
-            {dataReliabilityDomains.length > 0 && (
-              <Suspense fallback={<ChartLoader />}>
-                <DataReliabilityMatrix domains={dataReliabilityDomains} />
-              </Suspense>
+            {/* Layers Table - Gated by integrity */}
+            {viewModel.integrity?.gating.showLayers && layersData.length > 0 ? (
+              <LayersTable layers={layersData} />
+            ) : viewModel.integrity?.gating.showLayers === false ? null : (
+              <NoDataSection 
+                title="No Risk Layers Available"
+                message="Analysis did not generate layer breakdown"
+                icon={Layers}
+              />
             )}
           </div>
         )}
 
         {/* ============================================================
-            SECTION 4: DECISIONS TAB
+            SECTION 3: DECISIONS TAB - Action Recommendations
             ============================================================ */}
         {activeTab === 'decisions' && (() => {
-          // Find recommended scenario
           const recommendedScenario = displayScenarios.find(s => s.isRecommended) || (displayScenarios.length > 0 ? displayScenarios[0] : null);
-          const maxProtectionScenario = displayScenarios.length > 0 
-            ? displayScenarios[displayScenarios.length - 1] 
-            : null;
+          const maxProtectionScenario = displayScenarios.length > 0 ? displayScenarios[displayScenarios.length - 1] : null;
 
           return (
-            <div className="space-y-8">
-              {/* Primary Recommendations - Only show if scenarios exist */}
-              {displayScenarios.length > 0 && recommendedScenario && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              {/* Quick Decision Cards - Compact 3-column */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <SecondaryRecommendationCard
+                  category="Insurance"
+                  badge={{ text: viewModel.decisions.insurance.status, type: 'consider' }}
+                  metric={viewModel.decisions.insurance.recommendation}
+                  context={viewModel.decisions.insurance.rationale}
+                  confidence={confidence}
+                />
+                <SecondaryRecommendationCard
+                  category="Timing"
+                  badge={{ text: viewModel.decisions.timing.status, type: 'evaluate' }}
+                  metric={viewModel.decisions.timing.recommendation}
+                  context={viewModel.decisions.timing.rationale}
+                  confidence={confidence}
+                />
+                <SecondaryRecommendationCard
+                  category="Routing"
+                  badge={{ text: viewModel.decisions.routing.status, type: 'consider' }}
+                  metric={viewModel.decisions.routing.recommendation}
+                  context={viewModel.decisions.routing.rationale}
+                  confidence={confidence}
+                />
+              </div>
+
+              {/* Primary Scenarios - Gated by integrity */}
+              {viewModel.integrity?.gating.showScenarios && displayScenarios.length > 0 && recommendedScenario ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   <PrimaryRecommendationCard
                     title={recommendedScenario.title}
                     badge="TOP RECOMMENDATION"
@@ -1291,7 +1401,6 @@ export default function ResultsPage() {
                     currentRisk={riskScore}
                     newRisk={Math.max(0, riskScore - recommendedScenario.riskReduction)}
                   />
-
                   {maxProtectionScenario && maxProtectionScenario !== recommendedScenario && (
                     <PrimaryRecommendationCard
                       title={maxProtectionScenario.title}
@@ -1305,151 +1414,72 @@ export default function ResultsPage() {
                     />
                   )}
                 </div>
+              ) : (
+                <GlassCard className="p-4 border-dashed border-white/20">
+                  <div className="flex items-center gap-3 text-white/50">
+                    <Target className="w-5 h-5" />
+                    <div>
+                      <p className="text-sm font-medium">No Mitigation Scenarios Available</p>
+                      <p className="text-xs">Analysis did not generate specific scenarios</p>
+                    </div>
+                  </div>
+                </GlassCard>
               )}
 
-              {/* Secondary Recommendations */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <SecondaryRecommendationCard
-                  category="Insurance"
-                  badge={{ text: viewModel.decisions.insurance.status, type: 'consider' }}
-                  metric={viewModel.decisions.insurance.recommendation}
-                  context={viewModel.decisions.insurance.rationale}
-                  confidence={confidence}
-                />
-
-                <SecondaryRecommendationCard
-                  category="Timing"
-                  badge={{ text: viewModel.decisions.timing.status, type: 'evaluate' }}
-                  metric={viewModel.decisions.timing.recommendation}
-                  context={viewModel.decisions.timing.rationale}
-                  confidence={confidence}
-                />
-
-                <SecondaryRecommendationCard
-                  category="Routing"
-                  badge={{ text: viewModel.decisions.routing.status, type: 'consider' }}
-                  metric={viewModel.decisions.routing.recommendation}
-                  context={viewModel.decisions.routing.rationale}
-                  confidence={confidence}
-                />
-              </div>
-
-              {/* Decision Matrix */}
-              <GlassCard>
-                <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-blue-400" />
-                  Decision Support Matrix
-                </h2>
-                
+              {/* Decision Matrix - Compact */}
+              <GlassCard className="p-4">
+                <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4 text-blue-400" />
+                  Decision Matrix
+                </h3>
                 <div className="overflow-x-auto">
-                  <table className="w-full">
+                  <table className="w-full text-xs">
                     <thead>
                       <tr className="border-b border-white/10">
-                        <th className="text-left py-3 px-4 text-sm font-medium text-white/60">Category</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-white/60">Status</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-white/60">Action</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-white/60">Potential Impact</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-white/60">Confidence</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-white/60">Rationale</th>
+                        <th className="text-left py-2 px-2 font-medium text-white/60">Category</th>
+                        <th className="text-left py-2 px-2 font-medium text-white/60">Status</th>
+                        <th className="text-left py-2 px-2 font-medium text-white/60">Action</th>
+                        <th className="text-left py-2 px-2 font-medium text-white/60">Impact</th>
                       </tr>
                     </thead>
                     <tbody>
                       {[
-                        { 
-                          cat: 'Insurance', 
-                          icon: '🛡️',
-                          ...viewModel.decisions.insurance,
-                          impact: riskScore < 30 ? 'Minimal' : riskScore < 60 ? '-5 to -10 pts' : '-10 to -20 pts',
-                          impactColor: riskScore < 30 ? 'text-emerald-400' : 'text-amber-400',
-                        },
-                        { 
-                          cat: 'Timing', 
-                          icon: '⏱️',
-                          ...viewModel.decisions.timing,
-                          impact: riskScore < 30 ? 'Minimal' : riskScore < 60 ? '-3 to -8 pts' : '-8 to -15 pts',
-                          impactColor: riskScore < 30 ? 'text-emerald-400' : 'text-amber-400',
-                        },
-                        { 
-                          cat: 'Routing', 
-                          icon: '🗺️',
-                          ...viewModel.decisions.routing,
-                          impact: riskScore < 30 ? 'Minimal' : riskScore < 60 ? '-2 to -5 pts' : '-5 to -12 pts',
-                          impactColor: riskScore < 30 ? 'text-emerald-400' : 'text-amber-400',
-                        },
+                        { cat: 'Insurance', icon: '🛡️', ...viewModel.decisions.insurance,
+                          impact: riskScore < 30 ? 'Minimal' : riskScore < 60 ? '-5 to -10 pts' : '-10 to -20 pts' },
+                        { cat: 'Timing', icon: '⏱️', ...viewModel.decisions.timing,
+                          impact: riskScore < 30 ? 'Minimal' : riskScore < 60 ? '-3 to -8 pts' : '-8 to -15 pts' },
+                        { cat: 'Routing', icon: '🗺️', ...viewModel.decisions.routing,
+                          impact: riskScore < 30 ? 'Minimal' : riskScore < 60 ? '-2 to -5 pts' : '-5 to -12 pts' },
                       ].map((row, idx) => (
-                        <tr key={idx} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
-                          <td className="py-4 px-4">
-                            <div className="flex items-center gap-2">
-                              <span className="text-lg">{row.icon}</span>
-                              <span className="text-sm font-medium text-white">{row.cat}</span>
-                            </div>
+                        <tr key={idx} className="border-b border-white/5 hover:bg-white/5">
+                          <td className="py-2 px-2">
+                            <span className="text-white">{row.icon} {row.cat}</span>
                           </td>
-                          <td className="py-4 px-4">
-                            <span className={`text-xs px-3 py-1.5 rounded-full font-medium inline-flex items-center gap-1 ${
-                              row.status === 'RECOMMENDED' ? 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-400 border border-green-500/30' :
-                              row.status === 'NOT_NEEDED' ? 'bg-gradient-to-r from-blue-500/10 to-cyan-500/10 text-cyan-400 border border-cyan-500/20' :
-                              String(row.status).includes('EVAL') ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-400 border border-amber-500/30' :
-                              'bg-white/10 text-white/60 border border-white/10'
+                          <td className="py-2 px-2">
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full ${
+                              row.status === 'RECOMMENDED' ? 'bg-green-500/20 text-green-400' :
+                              row.status === 'NOT_NEEDED' ? 'bg-blue-500/10 text-cyan-400' :
+                              'bg-amber-500/20 text-amber-400'
                             }`}>
-                              {row.status === 'NOT_NEEDED' ? '✓ Optional' : 
-                               row.status === 'RECOMMENDED' ? '★ Recommended' :
-                               String(row.status).includes('EVAL') ? '⚡ Evaluate' : row.status}
+                              {row.status === 'NOT_NEEDED' ? 'Optional' : 
+                               row.status === 'RECOMMENDED' ? 'Recommended' : 'Evaluate'}
                             </span>
                           </td>
-                          <td className="py-4 px-4">
-                            <span className="text-sm text-white font-medium">{row.recommendation}</span>
-                          </td>
-                          <td className="py-4 px-4">
-                            <span className={`text-sm font-medium ${row.impactColor}`}>
-                              {row.impact}
-                            </span>
-                          </td>
-                          <td className="py-4 px-4">
-                            <div className="flex items-center gap-2">
-                              <div className="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
-                                <div 
-                                  className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full"
-                                  style={{ width: `${Math.round(confidence * 100)}%` }}
-                                />
-                              </div>
-                              <span className="text-xs text-white/60">{Math.round(confidence * 100)}%</span>
-                            </div>
-                          </td>
-                          <td className="py-4 px-4 text-sm text-white/60 max-w-xs">
-                            <span className="line-clamp-2 group-hover:line-clamp-none transition-all">
-                              {row.rationale}
-                            </span>
-                          </td>
+                          <td className="py-2 px-2 text-white/80">{row.recommendation}</td>
+                          <td className="py-2 px-2 text-amber-400">{row.impact}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
-                
-                {/* Summary Footer */}
-                <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
-                  <div className="flex items-center gap-4 text-xs text-white/50">
-                    <span className="flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-cyan-400"></span>
-                      Optional = Low priority
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-amber-400"></span>
-                      Evaluate = Review needed
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-green-400"></span>
-                      Recommended = Take action
-                    </span>
-                  </div>
-                  <div className="text-xs text-white/40">
-                    Overall Risk: {riskScore < 30 ? 'LOW' : riskScore < 60 ? 'MEDIUM' : 'HIGH'} ({Math.round(riskScore)}/100)
-                  </div>
+                <div className="mt-3 pt-2 border-t border-white/10 flex items-center justify-between text-[10px] text-white/40">
+                  <span>Overall Risk: {riskScore < 30 ? 'LOW' : riskScore < 60 ? 'MEDIUM' : 'HIGH'} ({Math.round(riskScore)}/100)</span>
+                  <span>Confidence: {Math.round(confidence * 100)}%</span>
                 </div>
               </GlassCard>
 
-              {/* All Scenarios - Only show if scenarios exist */}
-              {displayScenarios.length > 0 && (
+              {/* All Scenarios - Gated by integrity */}
+              {viewModel.integrity?.gating.showScenarios && displayScenarios.length > 0 ? (
                 <GlassCard>
                   <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
                     <LineChart className="w-5 h-5 text-purple-400" />
@@ -1516,10 +1546,19 @@ export default function ResultsPage() {
                     ))}
                   </div>
                 </GlassCard>
-              )}
+              ) : viewModel.integrity?.gating.showScenarios === false ? (
+                <NoDataSection 
+                  title="No Mitigation Scenarios Available"
+                  message="Analysis did not generate scenarios"
+                  icon={Target}
+                />
+              ) : null}
             </div>
           );
         })()}
+
+          </>
+        )}
 
         {/* Footer */}
         <footer className="text-center py-8 border-t border-white/10">
@@ -1540,7 +1579,7 @@ export default function ResultsPage() {
             page: 'results',
             shipmentId: viewModel?.overview?.shipment?.id,
             riskScore: viewModel?.overview?.riskScore?.score,
-            expectedLoss: viewModel?.loss?.expectedLoss
+            expectedLoss: viewModel?.loss?.expectedLoss ?? undefined
           }}
         />
       </Suspense>
@@ -1562,3 +1601,18 @@ export default function ResultsPage() {
     </div>
   );
 }
+
+export default function ResultsPage() {
+  const needsProtection = shouldProtectRoute('/results');
+  
+  if (needsProtection) {
+    return (
+      <ProtectedRoute>
+        <ResultsPageContent />
+      </ProtectedRoute>
+    );
+  }
+  
+  return <ResultsPageContent />;
+}
+

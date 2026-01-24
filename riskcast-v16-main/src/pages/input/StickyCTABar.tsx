@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import { ArrowRight, Save } from 'lucide-react';
+import { ArrowRight, Save, Loader2 } from 'lucide-react';
 import { designTokens } from '@/ui/design-tokens';
 
 interface StickyCTABarProps {
@@ -14,6 +14,7 @@ interface StickyCTABarProps {
   onSaveDraft: () => void;
   onSubmit: () => void;
   canSubmit: boolean;
+  isSubmitting?: boolean;
 }
 
 export const StickyCTABar: React.FC<StickyCTABarProps> = ({
@@ -24,6 +25,7 @@ export const StickyCTABar: React.FC<StickyCTABarProps> = ({
   onSaveDraft,
   onSubmit,
   canSubmit,
+  isSubmitting = false,
 }) => {
   return (
     <div
@@ -131,14 +133,18 @@ export const StickyCTABar: React.FC<StickyCTABarProps> = ({
             e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
           }}
         >
-          <Save size={18} />
+          {isSaving ? (
+            <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
+          ) : (
+            <Save size={18} />
+          )}
           {isSaving ? 'Saving...' : 'Save Draft'}
         </button>
         
         {/* Run Analysis Button */}
         <button
           onClick={onSubmit}
-          disabled={!canSubmit}
+          disabled={!canSubmit || isSubmitting}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -169,10 +175,25 @@ export const StickyCTABar: React.FC<StickyCTABarProps> = ({
             e.currentTarget.style.boxShadow = canSubmit ? designTokens.shadows.neon : 'none';
           }}
         >
-          Run Risk Analysis
-          <ArrowRight size={20} />
+          {isSubmitting ? (
+            <>
+              <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
+              Analyzing...
+            </>
+          ) : (
+            <>
+              Run Risk Analysis
+              <ArrowRight size={20} />
+            </>
+          )}
         </button>
       </div>
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 };

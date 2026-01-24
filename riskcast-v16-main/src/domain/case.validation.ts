@@ -84,7 +84,7 @@ export function validateDomainCase(caseData: Partial<DomainCase>): {
       } else if (etdDate < today) {
         issues.push({
           id: 'ETD_IN_PAST',
-          severity: 'critical',
+          severity: 'warning',
           message: 'Departure date is in the past',
           detail: 'ETD must be today or future date',
           affectedFields: ['etd'],

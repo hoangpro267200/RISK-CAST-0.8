@@ -6,6 +6,7 @@ import React from 'react';
 import { Package, AlertTriangle, Thermometer } from 'lucide-react';
 import { designTokens } from '@/ui/design-tokens';
 import { GlassCard } from '@/components/GlassCard';
+import { Skeleton } from '../components/Skeleton';
 
 interface CargoSummaryCardProps {
   type: string;
@@ -15,6 +16,7 @@ interface CargoSummaryCardProps {
   sensitivity: string;
   insuranceValue: number;
   incoterm?: string;
+  isLoading?: boolean;
 }
 
 export const CargoSummaryCard: React.FC<CargoSummaryCardProps> = ({
@@ -25,7 +27,23 @@ export const CargoSummaryCard: React.FC<CargoSummaryCardProps> = ({
   sensitivity,
   insuranceValue,
   incoterm,
+  isLoading = false,
 }) => {
+  if (isLoading || !type) {
+    return (
+      <GlassCard padding="lg" variant="default">
+        <Skeleton width="40%" height="20px" style={{ marginBottom: designTokens.spacing.lg }} />
+        <Skeleton width="60%" height="24px" style={{ marginBottom: designTokens.spacing.md }} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: designTokens.spacing.md, marginBottom: designTokens.spacing.lg }}>
+          <Skeleton width="100%" height="40px" />
+          <Skeleton width="100%" height="40px" />
+          <Skeleton width="100%" height="40px" />
+        </div>
+        <Skeleton width="80%" height="16px" />
+      </GlassCard>
+    );
+  }
+  
   return (
     <GlassCard padding="lg" variant="default">
       <h3

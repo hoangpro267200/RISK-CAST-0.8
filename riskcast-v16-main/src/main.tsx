@@ -3,8 +3,13 @@ import App from './App.tsx';
 import './style.css';
 import './styles/perf-a11y.css';
 import { initLongTaskObserver, initWebVitals } from './utils/monitoring';
+import { AuthProvider } from './store/authStore';
 
-createRoot(document.getElementById('root')!).render(<App />);
+createRoot(document.getElementById('root')!).render(
+  <AuthProvider>
+    <App />
+  </AuthProvider>
+);
 
 void initWebVitals({ app: 'riskcast', surface: 'root' });
 initLongTaskObserver({ app: 'riskcast', surface: 'root' });

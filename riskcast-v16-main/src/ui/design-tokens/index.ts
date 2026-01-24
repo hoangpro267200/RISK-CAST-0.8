@@ -59,6 +59,7 @@ export const colors = {
   
   // Text tiers
   textStrong: 'var(--text-strong)',          // #f7fbff
+  textDefault: 'var(--text-muted)',          // #c7d2e2 (alias for default text)
   textMuted: 'var(--text-muted)',            // #c7d2e2
   textSoft: 'var(--text-soft)',              // #9aa6bd
   textDisabled: 'var(--text-disabled)',      // #6c7691
@@ -98,6 +99,7 @@ export const shadows = {
   layered: 'var(--shadow-layered)',
   neon: 'var(--shadow-neon)',
   soft: 'var(--shadow-soft)',
+  lg: 'var(--shadow-lg, 0 10px 30px rgba(0, 0, 0, 0.3))',  // large shadow
 } as const;
 
 /**

@@ -1,6 +1,6 @@
 import React from 'react';
 
-export interface GlassCardProps {
+export interface GlassCardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   padding?: 'sm' | 'md' | 'lg' | string;
   variant?: 'default' | 'hero' | 'compact';
@@ -16,6 +16,8 @@ export const GlassCard: React.FC<GlassCardProps> = ({
   glowColor,
   interactive = false,
   className = '',
+  style,
+  ...restProps
 }) => {
   const paddingClass =
     typeof padding === 'string' && !['sm', 'md', 'lg'].includes(padding)
@@ -46,7 +48,8 @@ export const GlassCard: React.FC<GlassCardProps> = ({
   return (
     <div
       className={`${variantClass} ${interactiveClass} ${paddingClass} relative overflow-hidden ${className}`}
-      style={glowStyle}
+      style={{ ...glowStyle, ...style }}
+      {...restProps}
     >
       {glowColor && (
         <div

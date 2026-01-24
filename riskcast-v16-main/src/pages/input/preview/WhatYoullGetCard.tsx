@@ -6,6 +6,7 @@ import React from 'react';
 import { Target, Map, Lightbulb, Shield } from 'lucide-react';
 import { designTokens } from '@/ui/design-tokens';
 import { GlassCard } from '@/components/GlassCard';
+import { Skeleton } from '../components/Skeleton';
 
 const BENEFITS = [
   {
@@ -30,7 +31,28 @@ const BENEFITS = [
   },
 ];
 
-export const WhatYoullGetCard: React.FC = () => {
+interface WhatYoullGetCardProps {
+  isLoading?: boolean;
+}
+
+export const WhatYoullGetCard: React.FC<WhatYoullGetCardProps> = ({ isLoading = false }) => {
+  if (isLoading) {
+    return (
+      <GlassCard padding="lg" variant="default">
+        <Skeleton width="40%" height="20px" style={{ marginBottom: designTokens.spacing.md }} />
+        <Skeleton width="80%" height="16px" style={{ marginBottom: designTokens.spacing.lg }} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: designTokens.spacing.md }}>
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} style={{ padding: designTokens.spacing.md, backgroundColor: 'rgba(255, 255, 255, 0.03)', borderRadius: designTokens.radii.lg }}>
+              <Skeleton width="60%" height="20px" style={{ marginBottom: designTokens.spacing.xs }} />
+              <Skeleton width="100%" height="16px" />
+            </div>
+          ))}
+        </div>
+      </GlassCard>
+    );
+  }
+  
   return (
     <GlassCard padding="lg" variant="default">
       <h3

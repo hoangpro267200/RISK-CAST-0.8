@@ -105,9 +105,10 @@ export function RiskContributionWaterfall({ layers, overallScore, onBarClick }: 
   const categoryStats = React.useMemo(() => {
     const stats: Record<string, { count: number; total: number }> = {};
     waterfallData.forEach(d => {
-      if (!stats[d.category]) stats[d.category] = { count: 0, total: 0 };
-      stats[d.category].count++;
-      stats[d.category].total += d.contribution;
+      const bucket = stats[d.category] ?? { count: 0, total: 0 };
+      bucket.count++;
+      bucket.total += d.contribution;
+      stats[d.category] = bucket;
     });
     return stats;
   }, [waterfallData]);

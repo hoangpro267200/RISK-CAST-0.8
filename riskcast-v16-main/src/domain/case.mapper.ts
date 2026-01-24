@@ -22,6 +22,8 @@ import { normalizeTransportMode, normalizePriority } from './case.schema';
  * - cargo_value OR insuranceValue OR shipment_value → cargoValue
  * - transport_mode → transportMode (with enum conversion)
  * - transit_time → transitTimeDays
+ * 
+ * IMPORTANT: Handles both flat structure (React) and nested structure (input_v20 HTML)
  */
 export function mapInputFormToDomainCase(formData: Record<string, unknown>): DomainCase {
   const now = new Date().toISOString();
@@ -29,7 +31,7 @@ export function mapInputFormToDomainCase(formData: Record<string, unknown>): Dom
   
   // CRITICAL: Handle nested structure from Input page (transport.pol, cargo.value, etc.)
   const transport = (formData.transport || {}) as Record<string, unknown>;
-  const cargo = (formData.cargo || {}) as Record<string, unknown>;
+  const cargo = (formData.cargo || formData.cargoDetails || {}) as Record<string, unknown>;
   
   // Normalize transport mode (check both flat and nested)
   const transportMode = normalizeTransportMode(
@@ -37,18 +39,39 @@ export function mapInputFormToDomainCase(formData: Record<string, unknown>): Dom
   );
   
   // Normalize priority
-  const priority = normalizePriority(String(formData.priority || 'normal'));
+  const priority = normalizePriority(String(formData.priority || transport.priority || 'normal'));
+  
+  // Handle nested cargo structures from input_v20
+  const cargoWeights = (cargo.weights || {}) as Record<string, unknown>;
+  const cargoInsurance = (cargo.insurance || {}) as Record<string, unknown>;
   
   // Get cargo value from multiple possible sources (flat and nested)
-  const cargoValue = Number(formData.cargo_value) ||
-                     Number(cargo.value) ||
-                     Number(cargo.cargoValue) ||
-                     Number(cargo.insuranceValue) ||
-                     Number(formData.insuranceValue) ||
-                     Number(formData.shipment_value) ||
-                     Number(formData.value) ||
+  // CRITICAL: input_v20 stores value in cargo.insurance.valueUsd internally,
+  // but when synced to RISKCAST_STATE it's FLATTENED to cargo.insuranceValue, cargo.value, cargo.cargo_value
+  // So we must check BOTH nested and flattened structures
+  const cargoValue = Number(formData.cargo_value) ||           // Top-level (from migrateToDomainCase flattening)
+                     Number(formData.cargoValue) ||            // Top-level camelCase
+                     Number(cargoInsurance.valueUsd) ||        // Nested: cargo.insurance.valueUsd
+                     Number(cargo.insuranceValue) ||           // Flattened: cargo.insuranceValue
+                     Number(cargo.value) ||                    // Flattened: cargo.value
+                     Number(cargo.cargo_value) ||              // Flattened: cargo.cargo_value
+                     Number(cargo.cargoValue) ||               // cargo.cargoValue
+                     Number(formData.insuranceValue) ||        // Top-level
+                     Number(formData.shipment_value) ||        // Legacy
+                     Number(formData.value) ||                 // Legacy
                      Number((formData.shipment as Record<string, unknown>)?.valueUSD) ||
                      0;
+  
+  // Debug log to trace cargo value extraction
+  console.log('[mapInputFormToDomainCase] Cargo value extraction:', {
+    'formData.cargo_value': formData.cargo_value,
+    'formData.cargoValue': formData.cargoValue,
+    'cargoInsurance.valueUsd': cargoInsurance.valueUsd,
+    'cargo.insuranceValue': cargo.insuranceValue,
+    'cargo.value': cargo.value,
+    'cargo.cargo_value': cargo.cargo_value,
+    'extractedCargoValue': cargoValue,
+  });
   
   // Get POL/POD codes (check both flat and nested)
   const pol = String(
@@ -68,22 +91,26 @@ export function mapInputFormToDomainCase(formData: Record<string, unknown>): Dom
   
   // Get ETD/ETA (support both ISO strings and YYYY-MM-DD, check nested structure)
   // CRITICAL: Handle empty strings - if empty string is provided, preserve it as undefined (optional field)
-  const etdValue = formData.etd || transport.etd;
+  const etdValue = formData.etd || transport.etd || formData.departureDate || transport.departureDate;
   const etd = etdValue && String(etdValue).trim() !== '' 
     ? String(etdValue) 
     : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]!;
   
-  const etaValue = formData.eta || transport.eta;
-  const eta = etaValue && String(etaValue).trim() !== '' ? String(etaValue) : undefined;
-  
-  // Calculate transit time if not provided (check nested structure)
-  // CRITICAL: Check for null/undefined explicitly, not just falsy (0 is valid)
+  // Calculate transit time first (needed for ETA calculation if missing)
+  // Check multiple field name variations
   const transitTimeValue = formData.transit_time || 
                            formData.transit_time_days || 
+                           formData.transitDays ||
+                           formData.transitTimeDays ||
                            transport.transitTimeDays || 
                            transport.transit_time_days ||
-                           transport.transitTime;
-  let transitTimeDays = transitTimeValue != null ? Number(transitTimeValue) : 0;
+                           transport.transitTime ||
+                           transport.transit_time;
+  let transitTimeDays = transitTimeValue != null && transitTimeValue !== '' ? Number(transitTimeValue) : 0;
+  
+  // Get ETA (check multiple field name variations)
+  const etaValue = formData.eta || transport.eta || formData.arrivalDate || transport.arrivalDate;
+  let eta: string | undefined = etaValue && String(etaValue).trim() !== '' ? String(etaValue) : undefined;
   
   // If transit time is 0 or missing, try to calculate from ETD/ETA
   if (transitTimeDays === 0 && eta && etd) {
@@ -96,7 +123,25 @@ export function mapInputFormToDomainCase(formData: Record<string, unknown>): Dom
       }
     } catch (e) {
       // Invalid dates, use default based on mode
-      transitTimeDays = transportMode === 'AIR' ? 3 : 7;
+      transitTimeDays = transportMode === 'AIR' ? 3 : 14;
+    }
+  }
+  
+  // If transit time is still 0, set default based on transport mode
+  if (transitTimeDays === 0) {
+    transitTimeDays = transportMode === 'AIR' ? 3 : 14;
+  }
+  
+  // If ETA is missing but we have ETD and transit time, calculate ETA
+  if (!eta && etd && transitTimeDays > 0) {
+    try {
+      const etdDate = new Date(etd);
+      if (!isNaN(etdDate.getTime())) {
+        const etaDate = new Date(etdDate.getTime() + transitTimeDays * 24 * 60 * 60 * 1000);
+        eta = etaDate.toISOString().split('T')[0];
+      }
+    } catch (e) {
+      // Ignore calculation errors
     }
   }
   
@@ -106,12 +151,18 @@ export function mapInputFormToDomainCase(formData: Record<string, unknown>): Dom
   const seller_email = formData.seller_email || formData.sellerEmail;
   const seller_phone = formData.seller_phone || formData.sellerPhone;
   const seller_name = formData.seller_name || formData.sellerName || formData.seller_contact_person;
+  // Get name: prefer contactPerson (from input_v20) over name
+  const sellerContactName = sellerData.contactPerson || sellerData.contact_person || sellerData.name || seller_name;
   const seller: Party = {
-    name: sellerData.name || sellerData.contactPerson || seller_name ? String(sellerData.name || sellerData.contactPerson || seller_name) : undefined,
+    name: sellerContactName ? String(sellerContactName) : undefined,
     company: String(sellerData.company || seller_company || sellerData.companyName || sellerData.company_name || ''),
     email: String(sellerData.email || seller_email || ''),
     phone: String(sellerData.phone || seller_phone || ''),
-    country: sellerData.country ? (typeof sellerData.country === 'string' ? sellerData.country : String((sellerData.country as Record<string, unknown>).name || '')) : '',
+    country: sellerData.country 
+      ? (typeof sellerData.country === 'string' 
+          ? sellerData.country 
+          : String((sellerData.country as Record<string, unknown>).name || '')) 
+      : '',
     city: sellerData.city ? String(sellerData.city) : undefined,
     address: sellerData.address ? String(sellerData.address) : undefined,
     tax_id: sellerData.tax_id || sellerData.taxId ? String(sellerData.tax_id || sellerData.taxId) : undefined,
@@ -123,12 +174,18 @@ export function mapInputFormToDomainCase(formData: Record<string, unknown>): Dom
   const buyer_email = formData.buyer_email || formData.buyerEmail;
   const buyer_phone = formData.buyer_phone || formData.buyerPhone;
   const buyer_name = formData.buyer_name || formData.buyerName || formData.buyer_contact_person;
+  // Get name: prefer contactPerson (from input_v20) over name
+  const buyerContactName = buyerData.contactPerson || buyerData.contact_person || buyerData.name || buyer_name;
   const buyer: Party = {
-    name: buyerData.name || buyerData.contactPerson || buyer_name ? String(buyerData.name || buyerData.contactPerson || buyer_name) : undefined,
+    name: buyerContactName ? String(buyerContactName) : undefined,
     company: String(buyerData.company || buyer_company || buyerData.companyName || buyerData.company_name || ''),
     email: String(buyerData.email || buyer_email || ''),
     phone: String(buyerData.phone || buyer_phone || ''),
-    country: buyerData.country ? (typeof buyerData.country === 'string' ? buyerData.country : String((buyerData.country as Record<string, unknown>).name || '')) : '',
+    country: buyerData.country 
+      ? (typeof buyerData.country === 'string' 
+          ? buyerData.country 
+          : String((buyerData.country as Record<string, unknown>).name || '')) 
+      : '',
     city: buyerData.city ? String(buyerData.city) : undefined,
     address: buyerData.address ? String(buyerData.address) : undefined,
     tax_id: buyerData.tax_id || buyerData.taxId ? String(buyerData.tax_id || buyerData.taxId) : undefined,
@@ -156,13 +213,14 @@ export function mapInputFormToDomainCase(formData: Record<string, unknown>): Dom
       transport.container || 
       transport.containerType ||
       formData.container_type || 
+      formData.containerType ||
       (transportMode === 'AIR' ? 'Air Cargo Unit' : '40HC')
     ),
-    serviceRoute: (formData.service_route || formData.serviceRoute || transport.serviceRoute) 
-      ? String(formData.service_route || formData.serviceRoute || transport.serviceRoute).trim() || undefined
+    serviceRoute: (formData.service_route || formData.serviceRoute || transport.serviceRoute || transport.service_route) 
+      ? String(formData.service_route || formData.serviceRoute || transport.serviceRoute || transport.service_route).trim() || undefined
       : undefined,
-    carrier: (formData.carrier || transport.carrier) 
-      ? String(formData.carrier || transport.carrier).trim() || undefined
+    carrier: (formData.carrier || transport.carrier || formData.carrierName || transport.carrierName) 
+      ? String(formData.carrier || transport.carrier || formData.carrierName || transport.carrierName).trim() || undefined
       : undefined,
     
     etd,
@@ -173,32 +231,47 @@ export function mapInputFormToDomainCase(formData: Record<string, unknown>): Dom
       cargoData.cargo_type || 
       cargoData.cargoType || 
       formData.cargo_type || 
+      formData.cargoType ||
       'Electronics'
     ),
-    cargoCategory: (cargoData.cargo_category || cargoData.cargoCategory) 
-      ? String(cargoData.cargo_category || cargoData.cargoCategory) 
+    cargoCategory: (cargoData.cargo_category || cargoData.cargoCategory || formData.cargo_category || formData.cargoCategory) 
+      ? String(cargoData.cargo_category || cargoData.cargoCategory || formData.cargo_category || formData.cargoCategory) 
       : undefined,
-    hsCode: (cargoData.hs_code || cargoData.hsCode || formData.hs_code) 
-      ? String(cargoData.hs_code || cargoData.hsCode || formData.hs_code).trim() || undefined
-      : undefined,
-    packaging: (cargoData.packaging || cargoData.packing_type || cargoData.packingType || formData.packaging) 
-      ? String(cargoData.packaging || cargoData.packing_type || cargoData.packingType || formData.packaging).trim() || undefined
-      : undefined,
+    // CRITICAL: Check flattened fields first (from migrateToDomainCase), then nested structures
+    hsCode: (() => {
+      const val = formData.hsCode || cargoData.hs_code || cargoData.hsCode || formData.hs_code;
+      return val ? String(val).trim() || undefined : undefined;
+    })(),
+    packaging: (() => {
+      const val = formData.packingType || cargoData.packaging || cargoData.packing_type || 
+                  cargoData.packingType || formData.packaging || formData.packing_type;
+      return val ? String(val).trim() || undefined : undefined;
+    })(),
     packages: Number(
       cargoData.packages || 
       cargoData.numberOfPackages || 
       cargoData.packageCount ||
-      formData.packages
+      formData.packages ||
+      formData.numberOfPackages ||
+      formData.packageCount
     ) || 1,
-    grossWeightKg: (cargoData.gross_weight_kg || cargoData.grossWeight || formData.gross_weight_kg) 
-      ? Number(cargoData.gross_weight_kg || cargoData.grossWeight || formData.gross_weight_kg) 
-      : undefined,
-    netWeightKg: (cargoData.net_weight_kg || cargoData.netWeight || formData.net_weight_kg) 
-      ? Number(cargoData.net_weight_kg || cargoData.netWeight || formData.net_weight_kg) 
-      : undefined,
-    volumeCbm: (cargoData.volume_cbm || cargoData.volume || cargoData.volumeM3 || formData.volume_cbm) 
-      ? Number(cargoData.volume_cbm || cargoData.volume || cargoData.volumeM3 || formData.volume_cbm) 
-      : undefined,
+    // CRITICAL: Check flattened fields first (from migrateToDomainCase), then nested structures
+    grossWeightKg: (() => {
+      const val = formData.grossWeight || cargoWeights.grossKg || cargoData.gross_weight_kg || 
+                  cargoData.grossWeight || cargoData.weight || formData.gross_weight_kg;
+      return val != null && val !== '' && val !== 0 ? Number(val) : undefined;
+    })(),
+    netWeightKg: (() => {
+      const val = formData.netWeight || cargoWeights.netKg || cargoData.net_weight_kg || 
+                  cargoData.netWeight || formData.net_weight_kg;
+      return val != null && val !== '' && val !== 0 ? Number(val) : undefined;
+    })(),
+    volumeCbm: (() => {
+      const val = formData.volumeCbm || cargoData.volumeCbm || cargoData.volume_cbm || 
+                  cargoData.volume || cargoData.volumeM3 || formData.volume_cbm || 
+                  formData.volume || formData.volumeM3;
+      return val != null && val !== '' && val !== 0 ? Number(val) : undefined;
+    })(),
     
     cargoValue,
     currency: (formData.currency === 'VND' ? 'VND' : 'USD') as 'USD' | 'VND',

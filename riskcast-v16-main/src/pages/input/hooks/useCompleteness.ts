@@ -45,8 +45,16 @@ export function useCompleteness(formState: InputFormState): CompletenessResult {
       // Handle nested fields (e.g., seller.company)
       if (field.includes('.')) {
         const [parent, child] = field.split('.');
+        if (!parent || !child) {
+          missing.push(label);
+          return;
+        }
         const parentData = (sectionData as Record<string, unknown>)[parent] as Record<string, unknown> | undefined;
-        const value = parentData?.[child];
+        if (!parentData) {
+          missing.push(label);
+          return;
+        }
+        const value = parentData[child];
         
         if (value && String(value).trim() !== '') {
           completed.push(label);

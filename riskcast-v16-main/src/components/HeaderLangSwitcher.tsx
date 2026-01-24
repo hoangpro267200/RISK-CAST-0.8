@@ -84,7 +84,12 @@ export function useTranslation() {
   }, []);
   
   const t = (key: string) => {
-    return TRANSLATIONS[lang]?.[key] || TRANSLATIONS['en'][key] || key;
+    const safeLang = TRANSLATIONS[lang] ? lang : 'en';
+    const trans = TRANSLATIONS[safeLang] ?? TRANSLATIONS['en'];
+    const enTrans = TRANSLATIONS['en']!;
+    const value = trans?.[key];
+    const fallback = enTrans[key];
+    return (value ?? fallback ?? key) as string;
   };
   
   return { t, lang, setLang };
@@ -133,7 +138,10 @@ export function HeaderLangSwitcher() {
     }));
   };
 
-  const currentLangData = LANGUAGES.find(l => l.code === currentLang) || LANGUAGES[0];
+  const fallbackLang: Language = LANGUAGES[0] ?? { code: 'en', name: 'English', flag: '🇺🇸', shortName: 'EN' };
+  const currentLangData = LANGUAGES.find(l => l.code === currentLang) || fallbackLang;
+  const currentFlag = currentLangData.flag ?? fallbackLang.flag;
+  const currentShort = currentLangData.shortName ?? fallbackLang.shortName;
 
   return (
     <div ref={containerRef} className="relative">
@@ -144,7 +152,7 @@ export function HeaderLangSwitcher() {
         title="Change Language"
       >
         <Globe className="w-4 h-4 text-cyan-400" />
-        <span className="text-sm font-medium text-white">{currentLangData.flag} {currentLangData.shortName}</span>
+        <span className="text-sm font-medium text-white">{currentFlag} {currentShort}</span>
         <svg className={`w-3 h-3 text-white/50 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>

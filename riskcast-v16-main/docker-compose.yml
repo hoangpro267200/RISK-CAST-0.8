@@ -1,0 +1,176 @@
+version: '3.8'
+
+services:
+  # ==========================================================================
+  # API Server
+  # ==========================================================================
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    image: riskcast-api:${VERSION:-latest}
+    container_name: riskcast-api
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-8000}:8000"
+    environment:
+      - DATABASE_URL=mysql+pymysql://${DB_USER:-riskcast}:${DB_PASSWORD}@db:3306/${DB_NAME:-riskcast_v3}?charset=utf8mb4
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - USE_REDIS=${USE_REDIS:-false}
+      - SECRET_KEY=${SECRET_KEY}
+      - APP_ENV=${APP_ENV:-production}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ALLOWED_ORIGINS=${CORS_ORIGINS:-*}
+      - ENVIRONMENT=${APP_ENV:-production}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - riskcast-network
+    volumes:
+      - ./logs:/app/logs
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ==========================================================================
+  # Background Worker (Risk Run Processing)
+  # ==========================================================================
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    image: riskcast-api:${VERSION:-latest}
+    container_name: riskcast-worker
+    restart: unless-stopped
+    command: python -m app.workers.risk_run_worker_v2
+    environment:
+      - DATABASE_URL=mysql+pymysql://${DB_USER:-riskcast}:${DB_PASSWORD}@db:3306/${DB_NAME:-riskcast_v3}?charset=utf8mb4
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - USE_REDIS=${USE_REDIS:-false}
+      - SECRET_KEY=${SECRET_KEY}
+      - APP_ENV=${APP_ENV:-production}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ENVIRONMENT=${APP_ENV:-production}
+    depends_on:
+      - api
+      - db
+      - redis
+    networks:
+      - riskcast-network
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ==========================================================================
+  # MySQL Database
+  # ==========================================================================
+  db:
+    image: mysql:8.0
+    container_name: riskcast-db
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-rootpassword}
+      - MYSQL_USER=${DB_USER:-riskcast}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME:-riskcast_v3}
+      - MYSQL_CHARACTER_SET_SERVER=utf8mb4
+      - MYSQL_COLLATION_SERVER=utf8mb4_unicode_ci
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-rootpassword}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - riskcast-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --default-authentication-plugin=mysql_native_password
+
+  # ==========================================================================
+  # Redis (Optional - for caching)
+  # ==========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: riskcast-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - riskcast-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  # ==========================================================================
+  # Database Migrations
+  # ==========================================================================
+  migrations:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    image: riskcast-api:${VERSION:-latest}
+    container_name: riskcast-migrations
+    command: alembic upgrade head
+    environment:
+      - DATABASE_URL=mysql+pymysql://${DB_USER:-riskcast}:${DB_PASSWORD}@db:3306/${DB_NAME:-riskcast_v3}?charset=utf8mb4
+      - APP_ENV=${APP_ENV:-production}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - riskcast-network
+    restart: "no"
+
+networks:
+  riskcast-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  redis_data:

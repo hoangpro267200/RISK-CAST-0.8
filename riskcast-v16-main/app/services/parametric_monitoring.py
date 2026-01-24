@@ -11,6 +11,15 @@ import logging
 
 from app.models.insurance import Policy, ParametricTrigger, TriggerEvaluation
 from app.services.parametric_engine import ParametricTriggerEvaluator
+from app.core.parametric.oracle_gateway import (
+    OracleGateway,
+    OracleQuery,
+    OracleNotConfiguredError,
+)
+from app.core.parametric.exceptions import OracleFetchError
+from app.core.parametric.providers.tomorrow_io_provider import TomorrowIOProvider
+from app.core.parametric.providers.marinetraffic_provider import MarineTrafficProvider
+# Note: TriggerEvaluation is now exported from app.models.insurance
 
 logger = logging.getLogger(__name__)
 
@@ -20,9 +29,24 @@ class ParametricMonitor:
     Monitors parametric insurance policies for trigger events.
     """
     
-    def __init__(self):
+    def __init__(self, oracle_gateway: Optional[OracleGateway] = None, audit_ledger: Optional[Any] = None):
+        """
+        Initialize monitor.
+        
+        Args:
+            oracle_gateway: OracleGateway instance (creates new if not provided)
+            audit_ledger: Optional audit ledger for data tracking
+        """
         self.active_policies: Dict[str, Policy] = {}
         self.monitoring_jobs: Dict[str, Dict[str, Any]] = {}
+        self.oracle_gateway = oracle_gateway or OracleGateway()
+        self.audit_ledger = audit_ledger
+        
+        # Register providers if configured
+        # Must be after oracle_gateway is set
+        if self.oracle_gateway:
+            self._register_weather_provider()
+            self._register_port_provider()
     
     def register_policy(self, policy: Policy) -> None:
         """
@@ -52,6 +76,38 @@ class ParametricMonitor:
         }
         
         logger.info(f"Registered policy {policy.policy_number} for parametric monitoring")
+    
+    def _register_weather_provider(self) -> None:
+        """Register Tomorrow.io weather provider if configured."""
+        try:
+            provider = TomorrowIOProvider(audit_ledger=self.audit_ledger)
+            if provider.is_configured():
+                self.oracle_gateway.register_provider(provider)
+                logger.info("Registered Tomorrow.io weather provider")
+            else:
+                logger.warning(
+                    "Tomorrow.io API key not configured. "
+                    "Weather parametric triggers will not work. "
+                    "Set TOMORROW_IO_API_KEY environment variable."
+                )
+        except Exception as e:
+            logger.error(f"Failed to register Tomorrow.io provider: {e}", exc_info=True)
+    
+    def _register_port_provider(self) -> None:
+        """Register MarineTraffic port provider if configured."""
+        try:
+            provider = MarineTrafficProvider(audit_ledger=self.audit_ledger)
+            if provider.is_configured():
+                self.oracle_gateway.register_provider(provider)
+                logger.info("Registered MarineTraffic port provider")
+            else:
+                logger.warning(
+                    "MarineTraffic API key not configured. "
+                    "Port congestion parametric triggers will not work. "
+                    "Set MARINE_TRAFFIC_API_KEY or MARINETRAFFIC_API_KEY environment variable."
+                )
+        except Exception as e:
+            logger.error(f"Failed to register MarineTraffic provider: {e}", exc_info=True)
     
     async def check_policy(self, policy_number: str) -> Optional[TriggerEvaluation]:
         """
@@ -88,7 +144,19 @@ class ParametricMonitor:
             # Fetch current data based on trigger type
             current_data = await self._fetch_trigger_data(policy.trigger)
             
-            # Evaluate trigger
+            # Add source information to data for validation
+            # The oracle gateway should set this, but we ensure it's present
+            if "data_source" not in current_data and "source" not in current_data:
+                # Try to infer from trigger type
+                trigger_type_map = {
+                    "weather": "weather",
+                    "port_congestion": "port",
+                    "natcat": "natcat"
+                }
+                inferred_source = trigger_type_map.get(policy.trigger.trigger_type, "unknown")
+                current_data["data_source"] = inferred_source
+            
+            # Evaluate trigger (includes validation for stub data)
             evaluation = self._evaluate_trigger(policy.trigger, current_data)
             
             # Update last check time
@@ -101,8 +169,16 @@ class ParametricMonitor:
                     f"Payout=${evaluation.payout_amount:,.2f}"
                 )
                 
-                # Process automatic claim
-                await self._process_automatic_claim(policy, evaluation)
+                # Check safety guards before processing claim
+                try:
+                    # Process automatic claim (includes safety guard checks)
+                    await self._process_automatic_claim(policy, evaluation)
+                except Exception as e:
+                    logger.error(
+                        f"Payout blocked for policy {policy_number}: {e}",
+                        exc_info=True
+                    )
+                    # Don't re-raise - evaluation is still valid, just payout blocked
             
             return evaluation
             
@@ -180,38 +256,123 @@ class ParametricMonitor:
             return {}
     
     async def _fetch_weather_data(self, trigger: ParametricTrigger) -> Dict[str, Any]:
-        """Fetch weather data for trigger."""
-        # Mock implementation (replace with actual API call)
-        logger.debug(f"Fetching weather data for port: {trigger.location.get('port_code')}")
+        """
+        Fetch weather data for trigger from oracle gateway.
         
-        # In production: Call Tomorrow.io API
-        return {
-            "cumulative_rainfall_mm": 120.0,  # Mock data
-            "timestamp": datetime.now().isoformat()
-        }
+        Args:
+            trigger: Parametric trigger definition
+            
+        Returns:
+            Weather data dictionary
+            
+        Raises:
+            OracleNotConfiguredError: If weather oracle is not configured
+            OracleFetchError: If fetch operation fails
+        """
+        location = trigger.location.get('port_code') or trigger.location.get('location')
+        logger.debug(f"Fetching weather data for location: {location}")
+        
+        try:
+            query = OracleQuery(
+                location=location,
+                timestamp=datetime.utcnow(),
+                parameters={
+                    "trigger_type": "weather",
+                    "metrics": ["rainfall", "temperature", "wind"]
+                }
+            )
+            
+            payload = await self.oracle_gateway.fetch("weather", query)
+            # Ensure payload includes source for validation
+            result = payload.payload.copy()
+            if "data_source" not in result:
+                result["data_source"] = payload.source
+            return result
+            
+        except OracleNotConfiguredError as e:
+            logger.error(f"Weather oracle not configured: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Error fetching weather data: {e}", exc_info=True)
+            raise OracleFetchError(f"Failed to fetch weather data: {str(e)}") from e
     
     async def _fetch_port_congestion_data(self, trigger: ParametricTrigger) -> Dict[str, Any]:
-        """Fetch port congestion data for trigger."""
-        # Mock implementation (replace with actual API call)
-        logger.debug(f"Fetching port congestion data for port: {trigger.location.get('port_code')}")
+        """
+        Fetch port congestion data for trigger from oracle gateway.
         
-        # In production: Call port authority API or MarineTraffic
-        return {
-            "dwell_days": 12.0,  # Mock data
-            "timestamp": datetime.now().isoformat()
-        }
+        Args:
+            trigger: Parametric trigger definition
+            
+        Returns:
+            Port congestion data dictionary
+            
+        Raises:
+            OracleNotConfiguredError: If port oracle is not configured
+            OracleFetchError: If fetch operation fails
+        """
+        port_code = trigger.location.get('port_code')
+        logger.debug(f"Fetching port congestion data for port: {port_code}")
+        
+        try:
+            query = OracleQuery(
+                location=port_code,
+                timestamp=datetime.utcnow(),
+                parameters={
+                    "trigger_type": "port_congestion",
+                    "metrics": ["dwell_days", "vessel_count", "wait_time"]
+                }
+            )
+            
+            payload = await self.oracle_gateway.fetch("port", query)
+            return payload.payload
+            
+        except OracleNotConfiguredError as e:
+            logger.error(f"Port oracle not configured: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Error fetching port congestion data: {e}", exc_info=True)
+            raise OracleFetchError(f"Failed to fetch port congestion data: {str(e)}") from e
     
     async def _fetch_catastrophe_data(self, trigger: ParametricTrigger) -> Dict[str, Any]:
-        """Fetch catastrophe data for trigger."""
-        # Mock implementation (replace with actual API call)
-        logger.debug(f"Fetching catastrophe data for location: {trigger.location}")
+        """
+        Fetch catastrophe data for trigger from oracle gateway.
         
-        # In production: Call NOAA/JTWC/ICEYE
-        return {
-            "storm_id": None,
-            "forecast_track": [],
-            "max_wind_kph": 0
-        }
+        Args:
+            trigger: Parametric trigger definition
+            
+        Returns:
+            Catastrophe data dictionary
+            
+        Raises:
+            OracleNotConfiguredError: If natcat oracle is not configured
+            OracleFetchError: If fetch operation fails
+        """
+        location = trigger.location.get('location') or trigger.location.get('port_code')
+        logger.debug(f"Fetching catastrophe data for location: {location}")
+        
+        try:
+            query = OracleQuery(
+                location=location,
+                timestamp=datetime.utcnow(),
+                parameters={
+                    "trigger_type": "natcat",
+                    "metrics": ["storm_id", "forecast_track", "max_wind_kph"]
+                }
+            )
+            
+            payload = await self.oracle_gateway.fetch("natcat", query)
+            # Ensure payload includes source for validation
+            result = payload.payload.copy()
+            if "data_source" not in result:
+                result["data_source"] = payload.source
+            return result
+            
+        except OracleNotConfiguredError as e:
+            logger.error(f"Natcat oracle not configured: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Error fetching catastrophe data: {e}", exc_info=True)
+            raise OracleFetchError(f"Failed to fetch catastrophe data: {str(e)}") from e
     
     def _evaluate_trigger(
         self,
@@ -280,15 +441,44 @@ class ParametricMonitor:
                 f"Error processing automatic claim for policy {policy.policy_number}: {e}",
                 exc_info=True
             )
+    
+    def is_oracle_configured(self, source: str) -> bool:
+        """
+        Check if oracle provider is configured.
+        
+        Args:
+            source: Oracle source name (e.g., "weather", "port", "natcat")
+            
+        Returns:
+            True if configured, False otherwise
+        """
+        provider = self.oracle_gateway.get_provider(source)
+        if provider is None:
+            return False
+        return provider.is_configured()
 
 
 # Global monitor instance
 _global_monitor: Optional[ParametricMonitor] = None
 
 
-def get_parametric_monitor() -> ParametricMonitor:
-    """Get global parametric monitor instance."""
+def get_parametric_monitor(
+    oracle_gateway: Optional[OracleGateway] = None,
+    audit_ledger: Optional[Any] = None
+) -> ParametricMonitor:
+    """
+    Get global parametric monitor instance.
+    
+    Args:
+        oracle_gateway: Optional OracleGateway instance
+        
+    Returns:
+        ParametricMonitor instance
+    """
     global _global_monitor
     if _global_monitor is None:
-        _global_monitor = ParametricMonitor()
+        _global_monitor = ParametricMonitor(
+            oracle_gateway=oracle_gateway,
+            audit_ledger=audit_ledger
+        )
     return _global_monitor

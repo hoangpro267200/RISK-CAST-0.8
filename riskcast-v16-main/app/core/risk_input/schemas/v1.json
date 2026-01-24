@@ -1,0 +1,29 @@
+{
+  "required": ["cargo_value"],
+  "properties": {
+    "cargo_value": {"type": "number"},
+    "shipment_value": {"type": "number"},
+    "distance": {"type": "number"},
+    "packages": {"type": "integer"},
+    "transit_time": {"type": "integer"},
+    "cargo_type": {"type": "string"},
+    "route": {"type": "string"},
+    "pol": {"type": "string"},
+    "pod": {"type": "string"},
+    "carrier_rating": {"type": "number"},
+    "carrier_ontime_percent": {"type": "number"},
+    "container_match": {"type": "number"},
+    "packaging_quality": {"type": "number"},
+    "weather_risk": {"type": "number"},
+    "port_risk": {"type": "number"},
+    "priority": {"type": "number"},
+    "priority_profile": {"type": "string"},
+    "route_type": {"type": "string"},
+    "climate_stress_index": {"type": "number"},
+    "buyer": {"type": "object"},
+    "seller": {"type": "object"},
+    "mc_iterations": {"type": "integer"},
+    "seed": {"type": "integer"},
+    "seed_strategy": {"type": "string"}
+  }
+}

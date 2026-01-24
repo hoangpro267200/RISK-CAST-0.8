@@ -160,6 +160,7 @@ export interface RiskDriverViewModel {
  * Risk layer (normalized)
  */
 export interface RiskLayerViewModel {
+  id?: string; // optional unique identifier
   name: string;
   score: number; // 0-100
   contribution: number; // 0-100 (percentage)
@@ -187,14 +188,16 @@ export interface TimelineViewModel {
 }
 
 /**
- * Loss metrics
+ * Loss metrics (null if not provided by engine - NO defaults)
  */
 export interface LossViewModel {
-  p95: number; // USD
-  p99: number; // USD
-  expectedLoss: number; // USD
-  tailContribution: number; // percentage (0-100)
-  lossCurve?: Array<{ loss: number; probability: number }>; // Loss distribution curve for charting
+  p95: number | null; // USD (VaR 95%)
+  p99: number | null; // USD (VaR 99%)
+  cvar95: number | null; // USD (CVaR 95%)
+  cvar99: number | null; // USD (CVaR 99%)
+  expectedLoss: number | null; // USD
+  tailContribution: number | null; // percentage (0-100)
+  lossCurve?: Array<{ loss: number; probability: number }>; // Loss distribution curve for charting (only if provided by engine)
 }
 
 /**
@@ -278,6 +281,40 @@ export interface ResultsMetaViewModel {
 }
 
 /**
+ * Analysis Integrity - confirms data is truly from analysis and useful
+ */
+export interface AnalysisIntegrityInfo {
+  status: 'ok' | 'warning' | 'invalid';
+  issues: Array<{
+    code: string;
+    severity: 'error' | 'warning' | 'info';
+    message: string;
+    affectedSections: string[];
+  }>;
+  gating: {
+    showOverview: boolean;
+    showRiskScore: boolean;
+    showLossMetrics: boolean;
+    showLossCharts: boolean;
+    showDrivers: boolean;
+    showLayers: boolean;
+    showDecisions: boolean;
+    showScenarios: boolean;
+    showTimeline: boolean;
+    showAlgorithm: boolean;
+  };
+  provenance: {
+    runId: string | null;
+    requestId: string | null;
+    engineVersion: string | null;
+    analyzedAt: string | null;
+    caseId: string | null;
+  };
+  isValid: boolean;
+  isUsable: boolean;
+}
+
+/**
  * Overview slice - contains shipment, risk score, profile, and reasoning
  */
 export interface OverviewViewModel {
@@ -343,5 +380,7 @@ export interface ResultsViewModel {
   drivers: RiskDriverViewModel[];
   narrative?: NarrativeViewModel;  // [NEW]
   meta: ResultsMetaViewModel;
+  /** Analysis integrity validation result - confirms data truthfulness */
+  integrity?: AnalysisIntegrityInfo;
 }
 

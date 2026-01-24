@@ -6,18 +6,36 @@ import React from 'react';
 import { CheckCircle2, XCircle } from 'lucide-react';
 import { designTokens } from '@/ui/design-tokens';
 import { GlassCard } from '@/components/GlassCard';
+import { Skeleton } from '../components/Skeleton';
 
 interface CompletenessMeterProps {
   completeness: number;
   completedFields: string[];
   missingFields: string[];
+  isLoading?: boolean;
 }
 
 export const CompletenessMeter: React.FC<CompletenessMeterProps> = ({
   completeness,
   completedFields,
   missingFields,
+  isLoading = false,
 }) => {
+  if (isLoading) {
+    return (
+      <GlassCard padding="lg" variant="default">
+        <Skeleton width="40%" height="20px" style={{ marginBottom: designTokens.spacing.lg }} />
+        <Skeleton width="100%" height="8px" style={{ marginBottom: designTokens.spacing.md }} />
+        <Skeleton width="60%" height="16px" style={{ marginBottom: designTokens.spacing.lg }} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: designTokens.spacing.sm }}>
+          {[1, 2, 3, 4].map(i => (
+            <Skeleton key={i} width="80%" height="20px" />
+          ))}
+        </div>
+      </GlassCard>
+    );
+  }
+  
   return (
     <GlassCard padding="lg" variant="default">
       <h3

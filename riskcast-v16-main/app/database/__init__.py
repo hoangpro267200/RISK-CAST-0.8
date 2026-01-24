@@ -4,7 +4,7 @@ Database configuration and connection management.
 RISKCAST v17 - Database Layer
 """
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from typing import Generator
@@ -60,17 +60,27 @@ def get_db() -> Generator[Session, None, None]:
 
 def init_db():
     """
-    Initialize database - create all tables.
+    Initialize database connection.
     
-    Call this on application startup:
-        from app.database import init_db
-        init_db()
+    Note: Tables should be created via Alembic migrations, not here.
+    Run: alembic upgrade head
+    
+    This function only verifies database connectivity.
     """
-    # Import all models so they're registered with Base
-    from app.models import api_key, audit_trail, conversation
-    
-    Base.metadata.create_all(bind=engine)
-    print("[Database] ✅ Tables created successfully")
+    try:
+        # Just verify connection - don't create tables
+        # Tables should be created via: alembic upgrade head
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        print("[Database] Connection verified")
+        print("[Database] Note: Run 'alembic upgrade head' to create/update tables")
+    except Exception as e:
+        print(f"[Database] Connection error: {e}")
+        print("[Database] Make sure database exists and migrations are run: alembic upgrade head")
+        # Don't raise in development - allow server to start
+        env = os.getenv("ENVIRONMENT", "development").lower()
+        if env == "production":
+            raise
 
 
 def drop_db():
@@ -81,3 +91,33 @@ def drop_db():
 
 # Export common items
 __all__ = ['Base', 'engine', 'SessionLocal', 'get_db', 'init_db']
+
+# Try to import V3 additions (TenantScopedSession) from parent database.py module
+# Note: This allows importing from both app.database (package) and app.database (module)
+try:
+    # Import from the parent database.py file
+    import importlib
+    import pathlib
+    
+    # Get parent directory
+    parent_dir = pathlib.Path(__file__).parent.parent
+    db_module_path = parent_dir / 'database.py'
+    
+    if db_module_path.exists():
+        # Load the module
+        loader = importlib.machinery.SourceFileLoader('app_database_v3', str(db_module_path))
+        db_v3 = loader.load_module()
+        
+        # Export TenantScopedSession and get_tenant_scoped_db if available
+        if hasattr(db_v3, 'TenantScopedSession'):
+            TenantScopedSession = db_v3.TenantScopedSession
+            __all__.append('TenantScopedSession')
+        
+        if hasattr(db_v3, 'get_tenant_scoped_db'):
+            get_tenant_scoped_db = db_v3.get_tenant_scoped_db
+            __all__.append('get_tenant_scoped_db')
+except Exception as e:
+    # If import fails, TenantScopedSession won't be available from app.database package
+    # Users can import directly: from app.database import TenantScopedSession
+    # (Python will import from app/database.py instead of app/database/__init__.py)
+    pass

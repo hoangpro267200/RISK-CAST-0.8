@@ -220,7 +220,7 @@ export const NoAnalysisState: React.FC<{ className?: string }> = ({ className })
     type="no-analysis"
     primaryAction={{
       label: 'Start Analysis',
-      href: '/input_v20'
+      href: '/input_react'
     }}
     secondaryAction={{
       label: 'View Demo',

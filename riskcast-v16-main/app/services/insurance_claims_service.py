@@ -12,6 +12,9 @@ import logging
 from app.models.insurance import (
     Claim, ClaimType, Policy, TriggerEvaluation
 )
+from app.core.parametric.exceptions import PayoutBlockedError, InvalidTriggerEvaluationError
+from app.config import settings
+from app.services.parametric_monitoring import get_parametric_monitor
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +25,76 @@ class InsuranceClaimsService:
     """
     
     @staticmethod
+    def _has_real_oracle_evidence(trigger_evidence: Optional[Dict[str, Any]]) -> bool:
+        """
+        Check if trigger evidence is from real oracle (not stub).
+        
+        Args:
+            trigger_evidence: Trigger evidence dictionary
+            
+        Returns:
+            True if evidence is from real oracle, False otherwise
+        """
+        if not trigger_evidence:
+            return False
+        
+        data_source = trigger_evidence.get("data_source", "").upper()
+        source = trigger_evidence.get("source", "").upper()
+        
+        # Check for stub/mock indicators
+        if "STUB" in data_source or "STUB" in source:
+            return False
+        
+        if "MOCK" in data_source or "MOCK" in source:
+            return False
+        
+        # If data_source is missing, assume it might be stub
+        if not data_source and not source:
+            return False
+        
+        return True
+    
+    @staticmethod
+    def _check_payout_safety_guards(
+        trigger_evaluation: TriggerEvaluation,
+        trigger_evidence: Optional[Dict[str, Any]] = None
+    ) -> None:
+        """
+        Check safety guards before allowing payout.
+        
+        Args:
+            trigger_evaluation: Trigger evaluation result
+            trigger_evidence: Trigger evidence data
+            
+        Raises:
+            PayoutBlockedError: If payout is blocked by safety guards
+        """
+        # Check if payouts are enabled
+        if not settings.PARAMETRIC_PAYOUTS_ENABLED:
+            raise PayoutBlockedError(
+                "Parametric payouts are disabled. "
+                "Set PARAMETRIC_PAYOUTS_ENABLED=true to enable payouts."
+            )
+        
+        # Check if evidence is from real oracle
+        evidence = trigger_evidence or trigger_evaluation.trigger_evidence
+        if not InsuranceClaimsService._has_real_oracle_evidence(evidence):
+            raise PayoutBlockedError(
+                "Payout requires real oracle data. "
+                "Configure oracle providers before enabling payouts. "
+                f"Evidence data_source: {evidence.get('data_source') if evidence else 'missing'}"
+            )
+        
+        # Check required oracle sources are configured
+        monitor = get_parametric_monitor()
+        for source in settings.REQUIRED_ORACLE_SOURCES:
+            if not monitor.is_oracle_configured(source):
+                raise PayoutBlockedError(
+                    f"Payout requires configured oracle: '{source}'. "
+                    f"Configure {source} oracle provider before enabling payouts."
+                )
+    
+    @staticmethod
     async def create_parametric_claim(
         policy_number: str,
         trigger_evaluation: TriggerEvaluation,
@@ -30,6 +103,8 @@ class InsuranceClaimsService:
         """
         Create automatic parametric claim.
         
+        Includes safety guards to prevent payouts without real oracle data.
+        
         Args:
             policy_number: Policy number
             trigger_evaluation: Trigger evaluation result
@@ -37,7 +112,13 @@ class InsuranceClaimsService:
             
         Returns:
             Created claim
+            
+        Raises:
+            PayoutBlockedError: If payout is blocked by safety guards
         """
+        # Check safety guards before creating claim
+        InsuranceClaimsService._check_payout_safety_guards(trigger_evaluation, trigger_evidence)
+        
         claim_number = f"CLM-{datetime.now().strftime('%Y%m%d')}-{uuid4().hex[:6].upper()}"
         
         claim = Claim(
@@ -127,17 +208,38 @@ class InsuranceClaimsService:
         """
         Process parametric claim payout.
         
+        Includes safety guards to prevent payouts without real oracle data.
+        
         Args:
             claim: Parametric claim
             
         Returns:
             Payout processing result
+            
+        Raises:
+            PayoutBlockedError: If payout is blocked by safety guards
         """
         if claim.claim_type != ClaimType.PARAMETRIC_AUTOMATIC:
             raise ValueError("This method only processes parametric claims")
         
         if not claim.payout_amount:
             raise ValueError("Claim does not have payout amount")
+        
+        # Check safety guards before processing payout
+        trigger_evidence = claim.trigger_event if hasattr(claim, 'trigger_event') else claim.evidence.get("trigger_data") if claim.evidence else None
+        
+        # Re-check evidence is real (defense in depth)
+        if not InsuranceClaimsService._has_real_oracle_evidence(trigger_evidence):
+            raise PayoutBlockedError(
+                "Payout blocked: Claim evidence is not from real oracle. "
+                "Cannot process payout with stub/mock data."
+            )
+        
+        # Re-check payouts are enabled (defense in depth)
+        if not settings.PARAMETRIC_PAYOUTS_ENABLED:
+            raise PayoutBlockedError(
+                "Payout blocked: Parametric payouts are disabled in settings."
+            )
         
         try:
             # Update claim status

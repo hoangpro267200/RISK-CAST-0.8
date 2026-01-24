@@ -20,7 +20,7 @@ export function reportWebVitals(metric: {
   entries: PerformanceEntry[];
 }) {
   // In production, send to analytics service
-  if (process.env.NODE_ENV === 'production') {
+  if (import.meta.env.MODE === 'production') {
     // Example: send to analytics
     // analytics.track('web_vital', {
     //   name: metric.name,
@@ -68,7 +68,7 @@ export function measureRenderTime(componentName: string): () => void {
     }
     
     // Report to analytics if needed
-    if (process.env.NODE_ENV === 'production' && duration > 200) {
+    if (import.meta.env.MODE === 'production' && duration > 200) {
       // Report slow renders
     }
   };

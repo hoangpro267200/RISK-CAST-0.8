@@ -29,13 +29,13 @@ describe('Sprint 1: Narrative Personalization', () => {
       },
       riskScore: {
         score: 65,
-        level: 'HIGH',
+        level: 'High',
         confidence: 85,
         confidenceSource: 'Based on 12 data points',
       },
       profile: {
         score: 65,
-        level: 'HIGH',
+        level: 'High',
         confidence: 85,
         explanation: [],
         factors: {},
@@ -110,6 +110,8 @@ describe('Sprint 1: Narrative Personalization', () => {
     loss: {
       p95: 45000,
       p99: 78000,
+      cvar95: 52000,
+      cvar99: 90000,
       expectedLoss: 12000,
       tailContribution: 15,
     },
@@ -155,51 +157,51 @@ describe('Sprint 1: Narrative Personalization', () => {
   };
 
   test('NP-1: Narrative contains cargo type', () => {
-    const narrative = generateNarrativeViewModel(mockViewModel);
+    const narrative = generateNarrativeViewModel(mockViewModel)!;
     expect(narrative.personalizedSummary).toContain('ELECTRONICS');
     expect(narrative.personalizedSummary).toContain('Electronics');
   });
 
   test('NP-2: Narrative contains route', () => {
-    const narrative = generateNarrativeViewModel(mockViewModel);
+    const narrative = generateNarrativeViewModel(mockViewModel)!;
     expect(narrative.personalizedSummary).toContain('Ho Chi Minh');
     expect(narrative.personalizedSummary).toContain('Los Angeles');
   });
 
   test('NP-3: Narrative contains top 3 drivers', () => {
-    const narrative = generateNarrativeViewModel(mockViewModel);
-    expect(narrative.topRiskFactors.length).toBeGreaterThanOrEqual(3);
-    expect(narrative.topRiskFactors[0].factor).toBe('Climate Risk');
-    expect(narrative.topRiskFactors[1].factor).toBe('Port Congestion');
+    const narrative = generateNarrativeViewModel(mockViewModel)!;
+    expect(narrative.topRiskFactors?.length ?? 0).toBeGreaterThanOrEqual(3);
+    expect(narrative.topRiskFactors?.[0]?.factor).toBe('Climate Risk');
+    expect(narrative.topRiskFactors?.[1]?.factor).toBe('Port Congestion');
   });
 
   test('NP-4: Actions have cost/benefit', () => {
-    const narrative = generateNarrativeViewModel(mockViewModel);
+    const narrative = generateNarrativeViewModel(mockViewModel)!;
     // Check that action items exist
     expect(narrative.actionItems.length).toBeGreaterThan(0);
   });
 
   test('NP-5: Loss expectations included', () => {
-    const narrative = generateNarrativeViewModel(mockViewModel);
+    const narrative = generateNarrativeViewModel(mockViewModel)!;
     expect(narrative.personalizedSummary).toContain('$12K'); // expectedLoss
     expect(narrative.personalizedSummary).toContain('$45K'); // p95
     expect(narrative.personalizedSummary).toContain('$78K'); // p99
   });
 
   test('NP-6: No generic phrases', () => {
-    const narrative = generateNarrativeViewModel(mockViewModel);
+    const narrative = generateNarrativeViewModel(mockViewModel)!;
     expect(narrative.personalizedSummary).not.toContain('moderate risk');
     expect(narrative.personalizedSummary).not.toContain('consider insurance');
     expect(narrative.personalizedSummary).not.toContain('your shipment has');
   });
 
   test('Narrative includes carrier name', () => {
-    const narrative = generateNarrativeViewModel(mockViewModel);
+    const narrative = generateNarrativeViewModel(mockViewModel)!;
     expect(narrative.personalizedSummary).toContain('Ocean Carrier');
   });
 
   test('Narrative includes transit time', () => {
-    const narrative = generateNarrativeViewModel(mockViewModel);
+    const narrative = generateNarrativeViewModel(mockViewModel)!;
     expect(narrative.personalizedSummary).toContain('34');
     expect(narrative.personalizedSummary).toContain('day');
   });

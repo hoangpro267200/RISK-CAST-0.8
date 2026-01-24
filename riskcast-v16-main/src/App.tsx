@@ -1,6 +1,7 @@
-import { useEffect, useState, lazy, Suspense } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { initWebVitals } from './utils/webVitals';
+import { lazyWithRetry } from './utils/lazyWithRetry';
 
 // Initialize Web Vitals monitoring (Phase 5 - Performance)
 if (typeof window !== 'undefined') {
@@ -8,9 +9,14 @@ if (typeof window !== 'undefined') {
 }
 
 // Lazy load pages for code splitting (Phase 5 - Performance)
-const ResultsPage = lazy(() => import('./pages/ResultsPage'));
-const SummaryPage = lazy(() => import('./pages/SummaryPage'));
-const InputPage = lazy(() => import('./pages/InputPage'));
+// Use lazyWithRetry to handle network errors gracefully
+const ResultsPage = lazyWithRetry(() => import('./pages/ResultsPage'));
+const SummaryPage = lazyWithRetry(() => import('./pages/SummaryPage'));
+const InputPage = lazyWithRetry(() => import('./pages/InputPage'));
+const LoginPage = lazyWithRetry(() => import('./pages/LoginPage'));
+const SignupPage = lazyWithRetry(() => import('./pages/SignupPage'));
+const HomePage = lazyWithRetry(() => import('./pages/HomePage'));
+const OverviewPage = lazyWithRetry(() => import('./pages/Overview'));
 
 // Loading component for lazy-loaded pages
 const PageLoader = () => (
@@ -22,13 +28,23 @@ const PageLoader = () => (
   </div>
 );
 
+type PageType = 'results' | 'summary' | 'input' | 'login' | 'signup' | 'home' | 'overview';
+
 export default function App() {
-  const [page, setPage] = useState<'results' | 'summary' | 'input'>('results');
+  const [page, setPage] = useState<PageType>('results');
 
   useEffect(() => {
     // Determine which page to render based on URL
     const path = window.location.pathname;
-    if (path.includes('/input') || path.includes('/input_react')) {
+    if (path === '/login') {
+      setPage('login');
+    } else if (path === '/signup') {
+      setPage('signup');
+    } else if (path === '/overview') {
+      setPage('overview');
+    } else if (path === '/' || path === '/home') {
+      setPage('home');
+    } else if (path === '/input' || path === '/input_react' || path.startsWith('/input_react')) {
       setPage('input');
     } else if (path.includes('/summary') || path.includes('/shipments/summary')) {
       setPage('summary');
@@ -39,7 +55,15 @@ export default function App() {
     // Listen for popstate (browser back/forward)
     const handlePopState = () => {
       const newPath = window.location.pathname;
-      if (newPath.includes('/input') || newPath.includes('/input_react')) {
+      if (newPath === '/login') {
+        setPage('login');
+      } else if (newPath === '/signup') {
+        setPage('signup');
+      } else if (newPath === '/overview') {
+        setPage('overview');
+      } else if (newPath === '/' || newPath === '/home') {
+        setPage('home');
+      } else if (newPath === '/input' || newPath === '/input_react' || newPath.startsWith('/input_react')) {
         setPage('input');
       } else if (newPath.includes('/summary') || newPath.includes('/shipments/summary')) {
         setPage('summary');
@@ -58,7 +82,21 @@ export default function App() {
       description="Ứng dụng gặp sự cố. Vui lòng tải lại trang hoặc báo cáo lỗi."
     >
       <Suspense fallback={<PageLoader />}>
-        {page === 'input' ? <InputPage /> : page === 'summary' ? <SummaryPage /> : <ResultsPage />}
+        {page === 'login' ? (
+          <LoginPage />
+        ) : page === 'signup' ? (
+          <SignupPage />
+        ) : page === 'overview' ? (
+          <OverviewPage />
+        ) : page === 'home' ? (
+          <HomePage />
+        ) : page === 'input' ? (
+          <InputPage />
+        ) : page === 'summary' ? (
+          <SummaryPage />
+        ) : (
+          <ResultsPage />
+        )}
       </Suspense>
     </ErrorBoundary>
   );

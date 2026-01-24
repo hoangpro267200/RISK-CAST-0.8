@@ -120,7 +120,7 @@ describe('Sprint 2: Adapter Data Extraction', () => {
   });
 
   test('Adapter handles missing insurance data gracefully', () => {
-    const outputWithoutInsurance = { ...mockEngineOutput };
+    const outputWithoutInsurance: any = { ...mockEngineOutput };
     delete outputWithoutInsurance.insurance;
     
     const viewModel = adaptResultV2(outputWithoutInsurance);
@@ -130,7 +130,7 @@ describe('Sprint 2: Adapter Data Extraction', () => {
   });
 
   test('Adapter handles missing logistics data gracefully', () => {
-    const outputWithoutLogistics = { ...mockEngineOutput };
+    const outputWithoutLogistics: any = { ...mockEngineOutput };
     delete outputWithoutLogistics.logistics;
     
     const viewModel = adaptResultV2(outputWithoutLogistics);
@@ -149,7 +149,7 @@ describe('Sprint 2: Adapter Data Extraction', () => {
   });
 
   test('Adapter marks synthetic loss distribution correctly', () => {
-    const outputWithSynthetic = {
+    const outputWithSynthetic: any = {
       ...mockEngineOutput,
       loss: {
         expectedLoss: 12000,
@@ -181,9 +181,9 @@ describe('Sprint 2: Adapter Data Extraction', () => {
     
     const viewModel = adaptResultV2(outputWithMismatch);
     
-    expect(viewModel.logistics?.cargoContainerValidation.isValid).toBe(false);
-    expect(viewModel.logistics?.cargoContainerValidation.warnings.length).toBeGreaterThan(0);
-    expect(viewModel.logistics?.cargoContainerValidation.warnings[0].severity).toBe('error');
+    expect(viewModel.logistics?.cargoContainerValidation?.isValid).toBe(false);
+    expect(viewModel.logistics?.cargoContainerValidation?.warnings.length).toBeGreaterThan(0);
+    expect(viewModel.logistics?.cargoContainerValidation?.warnings[0]?.severity).toBe('error');
   });
 });
 

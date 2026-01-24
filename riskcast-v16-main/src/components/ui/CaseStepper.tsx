@@ -27,7 +27,7 @@ export interface StepperStep {
 }
 
 const STEPS: StepperStep[] = [
-  { id: 'input', label: 'Input', number: 1, path: '/input_v20' },
+  { id: 'input', label: 'Input', number: 1, path: '/input_react' },
   { id: 'summary', label: 'Summary', number: 2, path: '/summary' },
   { id: 'results', label: 'Results', number: 3, path: '/results' },
 ];
@@ -133,7 +133,10 @@ export function CaseStepper({
                 className={`
                   flex-1 h-0.5 transition-colors
                   ${
-                    completedSteps.includes(STEPS[index + 1]?.id) || status === 'completed'
+                    (() => {
+                      const nextId = STEPS[index + 1]?.id;
+                      return (nextId && completedSteps.includes(nextId)) || status === 'completed';
+                    })()
                       ? 'bg-gradient-to-r from-blue-500 to-purple-500'
                       : 'bg-white/10'
                   }

@@ -13,6 +13,7 @@ interface HeaderProps {
     onRunAnalysis: () => void;
     canAnalyze: boolean;
     isAnalyzing: boolean;
+    blockReason?: string;
   };
 }
 
@@ -57,6 +58,8 @@ export function Header({ saveState, lastSaved, actions }: HeaderProps) {
 
   const config = saveStateConfig[saveState];
   const Icon = config.icon;
+  const spin = (config as any).spin ?? false;
+  const pulse = (config as any).pulse ?? false;
 
   return (
     <header className="sticky top-0 z-[100] h-[72px] bg-[#0a1628]/80 backdrop-blur-sm border-b border-white/10">
@@ -76,7 +79,7 @@ export function Header({ saveState, lastSaved, actions }: HeaderProps) {
           {/* Save State Indicator */}
           {config.show && (
             <div className={`flex items-center gap-2 text-sm ${config.color}`}>
-              <Icon className={`w-4 h-4 ${config.spin ? 'animate-spin' : ''} ${config.pulse ? 'animate-pulse' : ''}`} />
+              <Icon className={`w-4 h-4 ${spin ? 'animate-spin' : ''} ${pulse ? 'animate-pulse' : ''}`} />
               <span>{config.text}</span>
             </div>
           )}
@@ -92,6 +95,7 @@ export function Header({ saveState, lastSaved, actions }: HeaderProps) {
               onRunAnalysis={actions.onRunAnalysis}
               canAnalyze={actions.canAnalyze}
               isAnalyzing={actions.isAnalyzing}
+              blockReason={actions.blockReason}
             />
           )}
           

@@ -14,4 +14,6 @@ export * from './ExportMenu';
 export * from './ChangeIndicator';
 export * from './KeyboardShortcutsHelp';
 export * from './CaseStepper';
-export * from './SharedStates';
+// Export only non-conflicting items from SharedStates
+export { LoadingState, ErrorState } from './SharedStates';
+export type { LoadingStateProps, ErrorStateProps } from './SharedStates';

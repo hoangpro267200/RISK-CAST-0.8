@@ -33,7 +33,7 @@ export function createMockScenarios(count = 2): Scenario[] {
 }
 
 export function createMockDecisionSignal(riskLevel: RiskLevel): DecisionSignal {
-  const recommendation = riskLevel === 'HIGH' ? 'BUY' : riskLevel === 'MEDIUM' ? 'OPTIONAL' : 'SKIP';
+  const recommendation = riskLevel === 'High' ? 'BUY' : riskLevel === 'Medium' ? 'OPTIONAL' : 'SKIP';
   return {
     recommendation,
     rationale:
@@ -55,11 +55,11 @@ export function createMockRiskAnalysis(config?: {
   includeTraces?: boolean;
   includeDrivers?: boolean;
 }): RiskAnalysisResult {
-  const riskLevel = config?.riskLevel ?? 'MEDIUM';
+  const riskLevel = config?.riskLevel ?? 'Medium';
   const layerCount = config?.layerCount ?? 6;
   const layers = createMockLayers({ riskLevel, layerCount });
   const layerNames = layers.map((l) => l.name);
-  const score = riskLevel === 'HIGH' ? 78 : riskLevel === 'MEDIUM' ? 55 : 22;
+  const score = riskLevel === 'High' ? 78 : riskLevel === 'Medium' ? 55 : 22;
 
   return {
     shipment: createMockShipment({ dataConfidence: 0.65 }),
@@ -67,13 +67,13 @@ export function createMockRiskAnalysis(config?: {
       overallScore: score,
       riskLevel,
       verdict:
-        riskLevel === 'HIGH' ? 'High risk — review mitigations.' : riskLevel === 'MEDIUM' ? 'Moderate risk.' : 'Low risk.',
+        riskLevel === 'High' ? 'High risk — review mitigations.' : riskLevel === 'Medium' ? 'Moderate risk.' : 'Low risk.',
       dataConfidence: 0.68,
       engineVersion: 'engine-1.0.0',
     },
     layers,
     decisionSignal: createMockDecisionSignal(riskLevel),
-    timing: { optimalWindow: '2025-01-03 → 2025-01-06', riskReduction: riskLevel === 'HIGH' ? 6 : 2 },
+    timing: { optimalWindow: '2025-01-03 → 2025-01-06', riskReduction: riskLevel === 'High' ? 6 : 2 },
     scenarios: createMockScenarios(2),
     financial: null,
     aiNarrative: {
@@ -104,23 +104,23 @@ export function createMockRiskAnalysis(config?: {
 }
 
 export const mockRiskData_HighRisk: RiskAnalysisResult = createMockRiskAnalysis({
-  riskLevel: 'HIGH',
+  riskLevel: 'High',
   includeTraces: true,
 });
 export const mockRiskData_LowRisk: RiskAnalysisResult = createMockRiskAnalysis({
-  riskLevel: 'LOW',
+  riskLevel: 'Low',
   includeTraces: true,
 });
 export const mockRiskData_PartialData: RiskAnalysisResult = createMockRiskAnalysis({
-  riskLevel: 'HIGH',
+  riskLevel: 'High',
   includeTraces: false,
 });
 export const mockRiskData_EmptyLayers: RiskAnalysisResult = {
-  ...createMockRiskAnalysis({ riskLevel: 'MEDIUM', includeTraces: false }),
+  ...createMockRiskAnalysis({ riskLevel: 'Medium', includeTraces: false }),
   layers: [],
 };
 export const mockRiskData_LargeDataset: RiskAnalysisResult = createMockRiskAnalysis({
-  riskLevel: 'MEDIUM',
+  riskLevel: 'Medium',
   layerCount: 120,
   includeTraces: false,
 });

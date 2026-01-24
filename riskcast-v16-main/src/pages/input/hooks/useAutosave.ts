@@ -8,7 +8,7 @@ import type { InputFormState } from './useFormState';
 export function useAutosave(formState: InputFormState) {
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   const saveDraft = useCallback(async () => {
     setIsSaving(true);

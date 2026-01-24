@@ -1,0 +1,59 @@
+version: '3.8'
+
+# Development overrides
+# Copy this file to docker-compose.override.yml for local development
+services:
+  api:
+    build:
+      target: production
+    volumes:
+      - ./app:/app/app:ro
+      - ./migrations:/app/migrations:ro
+    environment:
+      - APP_ENV=development
+      - ENVIRONMENT=development
+      - LOG_LEVEL=DEBUG
+      - DEBUG=true
+    command: >
+      uvicorn app.main:app
+      --host 0.0.0.0
+      --port 8000
+      --reload
+      --reload-dir /app/app
+
+  worker:
+    environment:
+      - APP_ENV=development
+      - ENVIRONMENT=development
+      - LOG_LEVEL=DEBUG
+      - DEBUG=true
+
+  # PgAdmin for development (MySQL compatible)
+  # Note: For MySQL, consider using phpMyAdmin or MySQL Workbench instead
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: riskcast-phpmyadmin
+    environment:
+      - PMA_HOST=db
+      - PMA_USER=${DB_USER:-riskcast}
+      - PMA_PASSWORD=${DB_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-rootpassword}
+    ports:
+      - "8080:80"
+    networks:
+      - riskcast-network
+    depends_on:
+      - db
+
+  # Redis Commander for development
+  redis-commander:
+    image: rediscommander/redis-commander
+    container_name: riskcast-redis-commander
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
+    networks:
+      - riskcast-network
+    depends_on:
+      - redis

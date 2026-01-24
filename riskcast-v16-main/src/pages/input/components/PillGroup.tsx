@@ -2,7 +2,7 @@
  * Pill Group Component - Radio button group with pill styling
  */
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { designTokens } from '@/ui/design-tokens';
 import type { LucideIcon } from 'lucide-react';
 
@@ -31,6 +31,58 @@ export const PillGroup: React.FC<PillGroupProps> = ({
   helperText,
   onChange,
 }) => {
+  const [focusedIndex, setFocusedIndex] = React.useState(-1);
+  const groupRef = useRef<HTMLDivElement>(null);
+  const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!groupRef.current?.contains(document.activeElement)) return;
+      
+      switch (e.key) {
+        case 'ArrowRight':
+        case 'ArrowDown':
+          e.preventDefault();
+          setFocusedIndex(prev => {
+            const next = prev < options.length - 1 ? prev + 1 : 0;
+            buttonRefs.current[next]?.focus();
+            return next;
+          });
+          break;
+        case 'ArrowLeft':
+        case 'ArrowUp':
+          e.preventDefault();
+          setFocusedIndex(prev => {
+            const next = prev > 0 ? prev - 1 : options.length - 1;
+            buttonRefs.current[next]?.focus();
+            return next;
+          });
+          break;
+        case 'Home':
+          e.preventDefault();
+          setFocusedIndex(0);
+          buttonRefs.current[0]?.focus();
+          break;
+        case 'End':
+          e.preventDefault();
+          setFocusedIndex(options.length - 1);
+          buttonRefs.current[options.length - 1]?.focus();
+          break;
+        case ' ':
+        case 'Enter':
+          e.preventDefault();
+          if (focusedIndex >= 0 && options[focusedIndex]) {
+            onChange?.(options[focusedIndex].value);
+          }
+          break;
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [options, focusedIndex, onChange]);
+  
   return (
     <div
       style={{
@@ -56,21 +108,32 @@ export const PillGroup: React.FC<PillGroupProps> = ({
       )}
       
       <div
+        ref={groupRef}
+        role="radiogroup"
+        aria-label={label}
         style={{
           display: 'flex',
           flexWrap: 'wrap',
           gap: designTokens.spacing.sm,
         }}
       >
-        {options.map((option) => {
+        {options.map((option, index) => {
           const Icon = option.icon;
           const isSelected = value === option.value;
           
           return (
             <button
               key={option.value}
+              ref={(el) => { buttonRefs.current[index] = el; }}
               type="button"
-              onClick={() => onChange?.(option.value)}
+              role="radio"
+              aria-checked={isSelected}
+              tabIndex={index === 0 || isSelected ? 0 : -1}
+              onClick={() => {
+                onChange?.(option.value);
+                setFocusedIndex(index);
+              }}
+              onFocus={() => setFocusedIndex(index)}
               style={{
                 display: 'flex',
                 alignItems: 'center',

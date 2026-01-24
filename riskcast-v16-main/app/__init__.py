@@ -1,9 +1,6 @@
 """
-RISKCAST Enterprise AI
-Enterprise Risk Analytics Engine with AI Adviser
+RISKCAST V3 - Modular Monolith FastAPI Application
+Enterprise Insurance-Grade Risk Intelligence Platform
 """
 
-__version__ = "19.0.0"
-__author__ = "RISKCAST Team"
-
-
+__version__ = "3.0.0"

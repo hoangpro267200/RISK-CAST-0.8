@@ -6,11 +6,11 @@
 
 import React from 'react';
 import { GlassCard } from './GlassCard';
-import type { CargoContainerValidation } from '../types/logisticsTypes';
+import type { CargoContainerValidation as CargoContainerValidationType } from '../types/logisticsTypes';
 import { Package, CheckCircle2, AlertTriangle, XCircle, Info } from 'lucide-react';
 
 interface CargoContainerValidationProps {
-  validation: CargoContainerValidation;
+  validation: CargoContainerValidationType;
   cargoType: string;
   containerType: string;
 }

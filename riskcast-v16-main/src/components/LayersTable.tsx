@@ -10,9 +10,9 @@ interface LayersTableProps {
 }
 
 function getRiskLevel(score: number): RiskLevel {
-  if (score < 40) return 'LOW';
-  if (score < 70) return 'MEDIUM';
-  return 'HIGH';
+  if (score < 40) return 'Low';
+  if (score < 70) return 'Medium';
+  return 'High';
 }
 
 export function LayersTable({ layers, onSelectLayer }: LayersTableProps) {
