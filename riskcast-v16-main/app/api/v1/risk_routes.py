@@ -314,6 +314,51 @@ def normalize_frontend_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
     # ============================================================
     # STEP 1: Flatten nested structure from Summary page
     # ============================================================
+    
+    # Handle nested 'shipment' section (from mapDomainCaseToAnalyzeRequest)
+    shipment_data = payload.get('shipment', {}) if isinstance(payload.get('shipment'), dict) else {}
+    if shipment_data:
+        # Extract shipment fields
+        if shipment_data.get('pol_code') and shipment_data.get('pod_code'):
+            normalized['route'] = f"{shipment_data['pol_code']}_{shipment_data['pod_code']}"
+        elif shipment_data.get('route'):
+            normalized['route'] = shipment_data['route']
+        
+        # Map transport_mode from shipment (check payload.transport_mode first)
+        if not normalized.get('transport_mode'):
+            if payload.get('transport_mode'):
+                normalized['transport_mode'] = payload['transport_mode']
+        
+        # Core shipment fields
+        if shipment_data.get('cargo_type'):
+            normalized['cargo_type'] = shipment_data['cargo_type']
+        elif shipment_data.get('cargo'):
+            normalized['cargo_type'] = shipment_data['cargo']
+        
+        if shipment_data.get('container_type'):
+            normalized['container'] = shipment_data['container_type']
+        elif shipment_data.get('container'):
+            normalized['container'] = shipment_data['container']
+        
+        if shipment_data.get('incoterm'):
+            normalized['incoterm'] = shipment_data['incoterm']
+        if shipment_data.get('etd'):
+            normalized['etd'] = shipment_data['etd']
+        if shipment_data.get('eta'):
+            normalized['eta'] = shipment_data['eta']
+        if shipment_data.get('transit_time'):
+            normalized['transit_time'] = float(shipment_data['transit_time'])
+        if shipment_data.get('cargo_value'):
+            normalized['cargo_value'] = float(shipment_data['cargo_value'])
+        elif shipment_data.get('value'):
+            normalized['cargo_value'] = float(shipment_data['value'])
+        if shipment_data.get('packaging'):
+            normalized['packaging'] = shipment_data['packaging']
+        if shipment_data.get('packages'):
+            normalized['packages'] = int(shipment_data['packages'])
+        if shipment_data.get('carrier'):
+            normalized['carrier_rating'] = 7.0  # Default good rating if carrier specified
+    
     # Handle nested 'trade' section
     trade = payload.get('trade', {}) if isinstance(payload.get('trade'), dict) else {}
     if trade:
@@ -613,7 +658,9 @@ async def analyze_risk_v2(request: Request):
                     "eta": shipment_dict.get("eta", ""),
                     "transit_time": shipment_dict.get("transit_time", 0),
                     "container": shipment_dict.get("container", ""),
+                    "container_type": shipment_dict.get("container", ""),  # Explicit container_type for frontend
                     "cargo": shipment_dict.get("cargo_type", ""),
+                    "cargo_type": shipment_dict.get("cargo_type", ""),  # Explicit cargo_type for frontend
                     "incoterm": shipment_dict.get("incoterm", ""),
                     # Ensure cargo_value has a minimum for financial calculations (default $50,000)
                     "value": max(float(shipment_dict.get("cargo_value", 0) or 0), float(shipment_dict.get("shipment_value", 0) or 0), 50000.0),
@@ -1215,12 +1262,26 @@ def _build_layers_from_components(components: Dict[str, Any], details: Dict[str,
         weighted_score = score * weight
         contribution = (weighted_score / total_weighted * 100) if total_weighted > 0 else (weight * 100)
         
+        # Calculate TOPSIS score for this layer
+        # TOPSIS closeness coefficient: how close to ideal solution
+        # Formula: negativeIdealDistance / (positiveIdealDistance + negativeIdealDistance)
+        # For risk: lower score = better (closer to ideal), so invert
+        normalized_score = min(score, 100) / 100  # 0-1
+        positive_ideal_distance = normalized_score  # Distance from best (0)
+        negative_ideal_distance = 1.0 - normalized_score  # Distance from worst (1)
+        
+        # Prevent division by zero
+        total_distance = positive_ideal_distance + negative_ideal_distance
+        topsis_score = (negative_ideal_distance / total_distance) if total_distance > 0 else 0.5
+        
         layers.append({
             "id": layer_key,
             "name": config["name"],
             "score": round(min(score, 100), 1),
             "contribution": round(contribution, 1),
             "weight": round(weight * 100, 1),
+            "fahp_weight": round(weight * 100, 1),  # Alias for FAHP weight
+            "topsis_score": round(topsis_score, 3),  # TOPSIS closeness coefficient
             "category": config["category"],
             "color": config["color"],
             "description": config["description"],

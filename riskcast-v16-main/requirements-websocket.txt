@@ -1,0 +1,13 @@
+# Real-Time WebSocket Dependencies
+
+# WebSocket support
+websockets==12.0
+python-socketio==5.10.0
+
+# Already in main requirements.txt but needed for WebSocket:
+# fastapi[all]>=0.104.0
+# uvicorn[standard]>=0.24.0
+# starlette>=0.27.0
+
+# Note: These are included in FastAPI's WebSocket support
+# No additional dependencies required beyond FastAPI

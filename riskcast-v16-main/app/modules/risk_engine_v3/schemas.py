@@ -133,8 +133,8 @@ class RiskEngineResultV3(BaseModel):
                     "cvar_99": 0.99
                 },
                 "explainability_graph": {
-                    "nodes": [...],
-                    "edges": [...]
+                    "nodes": [],
+                    "edges": []
                 },
                 "provenance": {
                     "engine_version": "v3.0.0+abc123",

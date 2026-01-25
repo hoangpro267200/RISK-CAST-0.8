@@ -64,9 +64,17 @@ class StandardResponse:
         request_id = StandardResponse._get_request_id(request)
         meta_obj = StandardResponse._build_meta(request_id, meta)
         
+        # Convert Pydantic models to dict for JSON serialization
+        serialized_data = data
+        if data is not None:
+            if hasattr(data, 'model_dump'):  # Pydantic V2
+                serialized_data = data.model_dump()
+            elif hasattr(data, 'dict'):  # Pydantic V1
+                serialized_data = data.dict()
+        
         response_data = {
             "success": True,
-            "data": data,
+            "data": serialized_data,
             "error": None,
             "meta": meta_obj
         }

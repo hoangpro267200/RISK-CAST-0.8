@@ -1,0 +1,60 @@
+# =============================================================================
+# Staging Overlay
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: riskcast-staging
+
+resources:
+  - ../../base
+
+namePrefix: staging-
+
+commonLabels:
+  environment: staging
+  tier: staging
+
+# Staging-specific patches
+patches:
+  # Moderate replicas for staging
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2
+    target:
+      kind: Deployment
+      name: riskcast-api
+  
+  # Moderate resources for staging
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/cpu
+        value: "200m"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/memory
+        value: "512Mi"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/cpu
+        value: "1000m"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: "2Gi"
+    target:
+      kind: Deployment
+      name: riskcast-api
+
+# Staging ConfigMap
+configMapGenerator:
+  - name: riskcast-config
+    behavior: merge
+    literals:
+      - ENVIRONMENT=staging
+      - LOG_LEVEL=DEBUG
+      - ENABLE_SWAGGER=true
+
+# Use staging image tag
+images:
+  - name: riskcast-api
+    newName: ghcr.io/riskcast/api
+    newTag: staging-latest

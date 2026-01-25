@@ -1,144 +1,148 @@
-# GitHub Actions Workflows
+# GitHub Actions CI/CD Configuration
 
-This directory contains CI/CD workflows for RISKCAST V3.
+This directory contains the CI/CD workflows for RiskCast.
 
 ## Workflows
 
-### `ci.yml` - Continuous Integration
-
-Runs on every push and pull request to `main` and `develop` branches.
+### test.yml
+Main test and quality gates workflow that runs on push and pull requests.
 
 **Jobs:**
-1. **Lint & Type Check**: Runs Ruff linter and optional mypy type checking
-2. **Unit Tests**: Runs unit tests with coverage reporting
-3. **Integration Tests**: Runs integration tests against MySQL and Redis services
-4. **Security Scan**: Runs Bandit and Safety security scans
-5. **Build Docker Image**: Builds and pushes Docker image to GitHub Container Registry
+1. **lint** - Code style and linting (Ruff, Black, isort, MyPy)
+2. **unit-tests** - Unit tests with coverage reporting
+3. **integration-tests** - Integration tests with PostgreSQL and Redis
+4. **security-tests** - Security scans (Bandit, Safety) and security tests
+5. **e2e-tests** - End-to-end tests
+6. **performance-tests** - Performance benchmarks (main branch only)
+7. **quality-gate** - Aggregated quality gate validation
 
-**Features:**
-- Caching for faster builds
-- Code coverage reporting to Codecov
-- Test result artifacts
-- Security scan reports
+## Quality Thresholds
 
-### `deploy.yml` - Continuous Deployment
+| Check | Threshold |
+|-------|-----------|
+| Unit Test Pass Rate | 100% |
+| Integration Test Pass Rate | 100% |
+| Security Test Pass Rate | 100% |
+| E2E Test Pass Rate | 100% |
+| Code Coverage | ≥80% |
+| Critical Security Issues | 0 |
+| High Security Issues | ≤5 |
 
-Runs on pushes to `main` and manual workflow dispatch.
+## Performance SLAs
 
-**Environments:**
-1. **Staging**: Auto-deploys on push to `main`
-2. **Production**: Manual deployment with approval
+| Endpoint | P50 | P95 | P99 | Error Rate |
+|----------|-----|-----|-----|------------|
+| Quote Request | 200ms | 500ms | 1000ms | <1% |
+| Risk Assessment | 300ms | 800ms | 1500ms | <1% |
+| Quote List | 100ms | 300ms | 600ms | <0.5% |
+| Dashboard | 150ms | 400ms | 800ms | <0.5% |
+| Health Check | 50ms | 100ms | 200ms | <0.1% |
 
-**Steps:**
-- Updates Kubernetes deployments
-- Runs database migrations (production only)
-- Performs smoke tests
-- Sends Slack notifications
+## Artifacts
 
-### `dependabot.yml` - Dependabot Auto-merge
+Each job uploads relevant artifacts:
 
-Automatically merges Dependabot PRs for patch and minor version updates.
+- **unit-test-results**: JUnit XML + HTML coverage report
+- **integration-test-results**: JUnit XML
+- **security-reports**: Bandit JSON, Safety JSON, JUnit XML
+- **e2e-test-results**: JUnit XML
+- **performance-report**: CSV stats + HTML report
 
-## Required Secrets
+## PR Comments
 
-### CI Secrets
+The quality gate job automatically comments on pull requests with:
+- Overall pass/fail status
+- Individual check results
+- Detailed messages for failures
+- Quality threshold reference
 
-- `CODECOV_TOKEN`: Codecov token for coverage reporting (optional)
+## Running Locally
 
-### Deployment Secrets
+### Run all checks:
+```bash
+# Linting
+ruff check .
+black --check .
+isort --check-only .
+mypy app/
 
-- `AWS_ACCESS_KEY_ID`: AWS access key for EKS access
-- `AWS_SECRET_ACCESS_KEY`: AWS secret key
-- `AWS_REGION`: AWS region (default: us-east-1)
-- `EKS_CLUSTER_NAME_STAGING`: EKS cluster name for staging
-- `EKS_CLUSTER_NAME_PRODUCTION`: EKS cluster name for production
-- `STAGING_API_URL`: Staging API URL for smoke tests
-- `PRODUCTION_API_URL`: Production API URL for verification
-- `SLACK_BOT_TOKEN`: Slack bot token for notifications (optional)
-- `SLACK_CHANNEL_ID`: Slack channel ID for notifications (optional)
+# Tests
+pytest tests/unit/ -v --cov=app --cov-report=html
+pytest tests/integration/ -v
+pytest tests/security/ -v
+pytest tests/e2e/ -v -m e2e
 
-## Environment Setup
+# Quality gates
+python tests/quality_gates.py \
+    --unit-results junit-unit.xml \
+    --integration-results junit-integration.xml \
+    --coverage-report htmlcov/
+```
 
-### GitHub Environments
+### Run performance tests:
+```bash
+# Start server
+uvicorn app.main:app --host 0.0.0.0 --port 8000
 
-Create environments in GitHub repository settings:
+# Run Locust
+locust -f tests/load/locustfile.py MixedWorkloadUser \
+    --host http://localhost:8000 \
+    --users 20 \
+    --spawn-rate 5 \
+    --run-time 2m \
+    --headless \
+    --csv performance
 
-1. **staging**
-   - No protection rules (auto-deploy)
-   - URL: https://staging-api.riskcast.com
-
-2. **production**
-   - Required reviewers: Add team members
-   - Deployment branches: Only `main`
-   - URL: https://api.riskcast.com
-
-## Usage
-
-### Manual Deployment
-
-1. Go to Actions tab
-2. Select "Deploy" workflow
-3. Click "Run workflow"
-4. Select environment (staging/production)
-5. Click "Run workflow"
-
-### Viewing Results
-
-- **CI Results**: Actions tab → CI workflow
-- **Coverage**: Codecov dashboard (if configured)
-- **Security Reports**: Download artifacts from CI workflow
-- **Deployment Status**: Environments tab in repository settings
+# Validate
+python tests/load/validate_performance.py
+```
 
 ## Troubleshooting
 
-### Build Failures
+### Coverage not meeting threshold
+- Check `htmlcov/index.html` for uncovered lines
+- Add tests for missing coverage
 
-- Check logs in Actions tab
-- Verify secrets are configured
-- Check Docker image build logs
+### Security issues found
+- Review `bandit-report.json` for details
+- Fix or add `# nosec` comments with justification
 
-### Deployment Failures
+### Performance SLA violations
+- Check `performance-report.html` for detailed metrics
+- Optimize slow endpoints
+- Consider caching strategies
 
-- Verify AWS credentials
-- Check EKS cluster access
-- Verify namespace exists in cluster
-- Check kubectl commands in logs
-
-### Test Failures
-
-- Check test logs in Actions artifacts
-- Verify MySQL/Redis services are running
-- Check database connection strings
+### Test failures
+- Check JUnit XML files for failure details
+- Review test logs in GitHub Actions
 
 ## Customization
 
-### Adding New Jobs
+To adjust quality thresholds, edit `tests/quality_gates.py`:
 
-Add new jobs to `ci.yml`:
-
-```yaml
-new-job:
-  name: New Job
-  runs-on: ubuntu-latest
-  steps:
-    - uses: actions/checkout@v4
-    # ... your steps
+```python
+THRESHOLDS = {
+    "unit_test_pass_rate": 1.0,        # 100%
+    "code_coverage": 0.80,              # 80%
+    "critical_security_issues": 0,      # 0
+    "high_security_issues": 5,          # Max 5
+}
 ```
 
-### Changing Test Commands
+To adjust performance SLAs, edit `tests/load/performance_requirements.py`:
 
-Modify test commands in `test-unit` and `test-integration` jobs.
+```python
+PERFORMANCE_REQUIREMENTS = {
+    "quote_request": {"p50": 200, "p95": 500, "p99": 1000, "error_rate": 0.01},
+    # ...
+}
+```
 
-### Adding Environments
+## Status Badges
 
-Add new environments to `deploy.yml`:
+Add to README.md:
 
-```yaml
-deploy-new-env:
-  name: Deploy to New Environment
-  runs-on: ubuntu-latest
-  environment:
-    name: new-env
-  steps:
-    # ... deployment steps
+```markdown
+![Tests](https://github.com/your-org/riskcast/actions/workflows/test.yml/badge.svg)
+[![codecov](https://codecov.io/gh/your-org/riskcast/branch/main/graph/badge.svg)](https://codecov.io/gh/your-org/riskcast)
 ```

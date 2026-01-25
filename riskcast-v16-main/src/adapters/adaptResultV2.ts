@@ -2,6 +2,7 @@
  * Risk Engine v2 Result Adapter
  * 
  * Converts raw engine output (complete_result) to normalized ResultsViewModel.
+ * Updated: 2026-01-25 - Added TOPSIS score pass-through for algorithm explainability
  * 
  * ARCHITECTURE: ENGINE-FIRST
  * - Frontend MUST NEVER read raw engine fields directly
@@ -71,12 +72,14 @@ export function adaptResultV2(raw: unknown, context: ValidationContext = {}): Re
       
       // CRITICAL: Only reject on actual critical errors, not warnings or info
       // Warnings (like CASE_ID_MISMATCH, MISSING_RUN_ID) should not block data display
+      // NOTE: CARGO_VALUE_MISMATCH is NOT critical - engine value is authoritative
+      // The UI's expected value may differ due to user edits, defaults, or rounding
       const criticalErrors = integrityResult.issues.filter(i => 
         i.severity === 'error' && (
           i.code === 'MOCK_DATA_DETECTED' ||
           i.code === 'INPUT_HASH_MISMATCH' ||
-          i.code === 'CARGO_VALUE_MISMATCH' ||
           i.code === 'RUN_ID_MISMATCH'
+          // CARGO_VALUE_MISMATCH removed - engine is authoritative source of truth
         )
       );
       
@@ -509,6 +512,11 @@ export function adaptResultV2(raw: unknown, context: ValidationContext = {}): Re
     const description = toString(layer?.description, '');
     const notes = description || `${category} risk factor`;
     
+    // Extract FAHP weight and TOPSIS score from layer data
+    const weight = round(toNumber(layer?.weight, 0), 1);
+    const fahpWeight = layer?.fahp_weight ?? layer?.fahpWeight ?? weight;
+    const topsisScore = layer?.topsis_score ?? layer?.topsisScore ?? undefined;
+    
     return {
       id: toString(layer?.id, slugify(toString(layer?.name, 'unknown'))),
       name: toString(layer?.name, 'Unknown Layer'),
@@ -516,10 +524,13 @@ export function adaptResultV2(raw: unknown, context: ValidationContext = {}): Re
       contribution: round(toPercent(layer?.contribution), 0),
       category,
       enabled: layer?.enabled !== false, // Default to true if not specified
-      weight: round(toNumber(layer?.weight, 0), 1),
+      weight,
       color: toString(layer?.color, '#6B7280'),
       status,
       notes,
+      // Sprint 3: Include FAHP weight and TOPSIS score for algorithm explainability
+      fahpWeight: typeof fahpWeight === 'number' ? round(fahpWeight, 1) : undefined,
+      topsisScore: typeof topsisScore === 'number' ? round(topsisScore, 3) : undefined,
     };
   });
 
@@ -1487,6 +1498,9 @@ function createDefaultViewModel(warnings: string[]): ResultsViewModel {
         transitTime: 0,
         container: '',
         cargo: '',
+        cargoType: '',
+        containerType: '',
+        packaging: null,
         incoterm: '',
         cargoValue: 0,
       },

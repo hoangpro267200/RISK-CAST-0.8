@@ -1,0 +1,11 @@
+# =============================================================================
+# RISKCAST Namespace
+# =============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: riskcast
+  labels:
+    app.kubernetes.io/name: riskcast
+    app.kubernetes.io/part-of: riskcast-platform
+    environment: production

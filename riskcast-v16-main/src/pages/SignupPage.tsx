@@ -5,7 +5,7 @@
  * User registration page with email, password, and name.
  */
 
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { useAuth } from '../store/authStore';
 import * as authApi from '../api/auth';
 
@@ -18,6 +18,14 @@ export default function SignupPage() {
   const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [authConfig, setAuthConfig] = useState<authApi.AuthConfig | null>(null);
+
+  // Fetch auth config to know which auth methods are available
+  useEffect(() => {
+    authApi.getAuthConfig()
+      .then(setAuthConfig)
+      .catch(err => console.warn('Failed to fetch auth config:', err));
+  }, []);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -169,14 +177,17 @@ export default function SignupPage() {
               {isLoading ? 'Creating account...' : 'Sign Up'}
             </button>
 
-            <button
-              type="button"
-              onClick={handleGoogle}
-              disabled={isLoading || isGoogleLoading}
-              className="w-full py-3 bg-white/90 hover:bg-white text-slate-900 font-medium rounded-lg transition flex items-center justify-center gap-2 border border-slate-200"
-            >
-              {isGoogleLoading ? 'Redirecting…' : 'Continue with Google'}
-            </button>
+            {/* Only show Google button if Google OAuth is configured */}
+            {authConfig?.google_enabled && (
+              <button
+                type="button"
+                onClick={handleGoogle}
+                disabled={isLoading || isGoogleLoading}
+                className="w-full py-3 bg-white/90 hover:bg-white text-slate-900 font-medium rounded-lg transition flex items-center justify-center gap-2 border border-slate-200"
+              >
+                {isGoogleLoading ? 'Redirecting…' : 'Continue with Google'}
+              </button>
+            )}
           </form>
 
           {/* Login link */}

@@ -18,6 +18,13 @@ from app.services.network_benchmarking_service import NetworkBenchmarkingService
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
+# Include competitive analytics router
+try:
+    from app.api.v3.analytics.competitive import router as competitive_router
+    router.include_router(competitive_router)
+except ImportError:
+    pass
+
 
 def get_loss_analytics_service(
     db: Session = Depends(get_db),

@@ -1,0 +1,13 @@
+# Test Data Factories Requirements
+
+# Core factory library
+factory-boy>=3.3.0
+
+# Faker for realistic data generation
+Faker>=20.0.0
+
+# SQLAlchemy for database models
+SQLAlchemy>=2.0.0
+
+# For decimal precision
+# (included in Python standard library)

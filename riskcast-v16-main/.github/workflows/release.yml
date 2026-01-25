@@ -1,0 +1,167 @@
+# =============================================================================
+# Release Automation
+# =============================================================================
+
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1.2.3)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  packages: write
+  pull-requests: read
+
+jobs:
+  # ===========================================================================
+  # Create Release
+  # ===========================================================================
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Get version
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "version_number=${VERSION#v}" >> $GITHUB_OUTPUT
+      
+      - name: Generate changelog
+        id: changelog
+        uses: mikepenz/release-changelog-builder-action@v4
+        with:
+          configuration: ".github/changelog-config.json"
+          failOnError: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Create changelog file
+        run: |
+          cat <<EOF > RELEASE_NOTES.md
+          # Release ${{ steps.version.outputs.version }}
+          
+          ## What's Changed
+          
+          ${{ steps.changelog.outputs.changelog }}
+          
+          ## Docker Image
+          
+          \`\`\`bash
+          docker pull ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
+          \`\`\`
+          
+          ## Deployment
+          
+          ### Staging
+          \`\`\`bash
+          kubectl set image deployment/riskcast-api \\
+            riskcast-api=ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }} \\
+            -n riskcast-staging
+          \`\`\`
+          
+          ### Production
+          \`\`\`bash
+          kubectl set image deployment/riskcast-api \\
+            riskcast-api=ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }} \\
+            -n riskcast-prod
+          \`\`\`
+          
+          ## Migration Notes
+          
+          Run database migrations before deploying:
+          \`\`\`bash
+          python scripts/db/migrate.py
+          \`\`\`
+          
+          ---
+          
+          **Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ steps.version.outputs.version }}...HEAD
+          EOF
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: Release ${{ steps.version.outputs.version }}
+          body_path: RELEASE_NOTES.md
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.version, '-rc') || contains(steps.version.outputs.version, '-beta') || contains(steps.version.outputs.version, '-alpha') }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Update latest tag
+        if: "!contains(steps.version.outputs.version, '-rc') && !contains(steps.version.outputs.version, '-beta') && !contains(steps.version.outputs.version, '-alpha')"
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -f latest
+          git push -f origin latest
+      
+      - name: Notify Slack
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: |
+            New release published: ${{ steps.version.outputs.version }}
+            View: https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.version }}
+          fields: repo,message,commit,author
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # ===========================================================================
+  # Build Release Assets
+  # ===========================================================================
+  build-assets:
+    name: Build Release Assets
+    runs-on: ubuntu-latest
+    needs: release
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      
+      - name: Create distribution packages
+        run: |
+          pip install build
+          python -m build
+      
+      - name: Create deployment bundle
+        run: |
+          tar -czf deployment-bundle.tar.gz \
+            k8s/ \
+            scripts/ \
+            alembic/ \
+            requirements.txt \
+            README.md
+      
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: |
+            dist/*
+            deployment-bundle.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

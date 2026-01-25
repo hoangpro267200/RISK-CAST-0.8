@@ -1,0 +1,186 @@
+# =============================================================================
+# Grafana Dashboard ConfigMap
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  riskcast-overview.json: |
+    {
+      "dashboard": {
+        "title": "RISKCAST Overview",
+        "uid": "riskcast-overview",
+        "tags": ["riskcast", "overview"],
+        "timezone": "browser",
+        "refresh": "30s",
+        "time": {
+          "from": "now-1h",
+          "to": "now"
+        },
+        "panels": [
+          {
+            "title": "Request Rate",
+            "type": "stat",
+            "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+            "targets": [
+              {
+                "expr": "sum(rate(riskcast_http_requests_total[5m]))",
+                "legendFormat": "req/s"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "reqps"
+              }
+            }
+          },
+          {
+            "title": "Error Rate",
+            "type": "stat",
+            "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0},
+            "targets": [
+              {
+                "expr": "sum(rate(riskcast_http_requests_total{status_code=~\"5..\"}[5m])) / sum(rate(riskcast_http_requests_total[5m])) * 100",
+                "legendFormat": "%"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "percent",
+                "thresholds": {
+                  "steps": [
+                    {"value": 0, "color": "green"},
+                    {"value": 1, "color": "yellow"},
+                    {"value": 5, "color": "red"}
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "title": "P95 Latency",
+            "type": "stat",
+            "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0},
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(riskcast_http_request_duration_seconds_bucket[5m])) by (le))",
+                "legendFormat": "seconds"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "s",
+                "thresholds": {
+                  "steps": [
+                    {"value": 0, "color": "green"},
+                    {"value": 1, "color": "yellow"},
+                    {"value": 2, "color": "red"}
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "title": "Active Policies",
+            "type": "stat",
+            "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0},
+            "targets": [
+              {
+                "expr": "sum(riskcast_active_policies_total)",
+                "legendFormat": "policies"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short"
+              }
+            }
+          },
+          {
+            "title": "Request Rate by Endpoint",
+            "type": "timeseries",
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+            "targets": [
+              {
+                "expr": "sum(rate(riskcast_http_requests_total[5m])) by (endpoint)",
+                "legendFormat": "{{endpoint}}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "reqps"
+              }
+            }
+          },
+          {
+            "title": "Latency Distribution",
+            "type": "heatmap",
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+            "targets": [
+              {
+                "expr": "sum(increase(riskcast_http_request_duration_seconds_bucket[5m])) by (le)",
+                "legendFormat": "{{le}}"
+              }
+            ]
+          },
+          {
+            "title": "Risk Assessments by Grade",
+            "type": "timeseries",
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+            "targets": [
+              {
+                "expr": "sum(rate(riskcast_risk_assessments_total[5m])) by (risk_grade)",
+                "legendFormat": "Grade {{risk_grade}}"
+              }
+            ]
+          },
+          {
+            "title": "Quote Conversion Funnel",
+            "type": "timeseries",
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+            "targets": [
+              {
+                "expr": "sum(rate(riskcast_quotes_total[1h])) by (status)",
+                "legendFormat": "{{status}}"
+              }
+            ]
+          },
+          {
+            "title": "External Service Latency",
+            "type": "timeseries",
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(riskcast_external_request_duration_seconds_bucket[5m])) by (le, service))",
+                "legendFormat": "{{service}}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "s"
+              }
+            }
+          },
+          {
+            "title": "Database Query Performance",
+            "type": "timeseries",
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20},
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(riskcast_db_query_duration_seconds_bucket[5m])) by (le, operation))",
+                "legendFormat": "{{operation}}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "s"
+              }
+            }
+          }
+        ]
+      }
+    }

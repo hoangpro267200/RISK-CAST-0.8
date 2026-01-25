@@ -1,0 +1,35 @@
+# =============================================================================
+# RISKCAST Pod Disruption Budgets
+# =============================================================================
+# Ensures high availability during voluntary disruptions (node drains, upgrades)
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: riskcast-api-pdb
+  namespace: riskcast
+  labels:
+    app.kubernetes.io/name: riskcast-api
+    app.kubernetes.io/component: pdb
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: riskcast-api
+      app.kubernetes.io/component: api
+  unhealthyPodEvictionPolicy: IfHealthyBudget
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: riskcast-worker-pdb
+  namespace: riskcast
+  labels:
+    app.kubernetes.io/name: riskcast-worker
+    app.kubernetes.io/component: pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: riskcast-worker
+      app.kubernetes.io/component: worker
+  unhealthyPodEvictionPolicy: IfHealthyBudget

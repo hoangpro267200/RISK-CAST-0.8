@@ -1,0 +1,46 @@
+# Machine Learning Dependencies for RiskCast
+
+# Core ML libraries
+numpy>=1.24.0
+pandas>=2.0.0
+scikit-learn>=1.3.0
+
+# Gradient Boosting (recommended for predictive models)
+xgboost>=2.0.0
+# Alternative: lightgbm>=4.0.0
+
+# Deep Learning (optional, for Autoencoder in fraud detection)
+tensorflow>=2.15.0
+# Alternative: tensorflow-cpu>=2.15.0 (for CPU-only deployment)
+
+# NLP Dependencies
+spacy>=3.7.0
+# Download model: python -m spacy download en_core_web_sm
+
+# Transformers (for sentiment analysis and advanced NLP)
+transformers>=4.36.0
+torch>=2.1.0
+# Alternative: tensorflow for transformers backend
+
+# Model persistence
+joblib>=1.3.0
+
+# Time series (optional, for advanced market predictions)
+# statsmodels>=0.14.0
+# pmdarima>=2.0.0
+
+# Already in main requirements but needed for ML:
+# fastapi>=0.104.0
+# pydantic>=2.0.0
+
+# Installation Notes:
+# 1. XGBoost is recommended for best performance
+# 2. TensorFlow is optional (only for fraud detection autoencoder)
+# 3. If XGBoost not available, falls back to scikit-learn GradientBoosting
+# 4. spaCy requires downloading language model: python -m spacy download en_core_web_sm
+# 5. For CPU-only: use tensorflow-cpu and torch with CPU index
+# 6. For GPU: install CUDA-enabled versions of torch and tensorflow
+
+# Minimal Installation (no GPU, no deep learning):
+# pip install numpy pandas scikit-learn xgboost spacy transformers joblib
+# python -m spacy download en_core_web_sm

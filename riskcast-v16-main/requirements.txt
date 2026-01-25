@@ -36,6 +36,9 @@ scipy>=1.10.0
 httpx>=0.25.0
 requests>=2.31.0
 
+# GraphQL
+strawberry-graphql[fastapi]>=0.200.0
+
 # Task Scheduling
 apscheduler>=3.10.0
 

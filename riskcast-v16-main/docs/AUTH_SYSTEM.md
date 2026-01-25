@@ -1,465 +1,558 @@
-# RISKCAST Auth System Documentation
+# RISKCAST Authentication & Authorization System
 
-**Version**: 1.0  
-**Date**: 2025-01-27  
-**Status**: Production Ready ✅
+## Overview
 
----
+RISKCAST implements a production-grade authentication system designed for enterprise security requirements. The system uses **session-based authentication** with secure cookies as the primary mechanism, with support for **API key authentication** for service-to-service communication.
 
-## 📋 Overview
+### Architecture Decision: Session-Based vs JWT
 
-Complete authentication system for RISKCAST with user management, session handling, and account security features.
+We chose **session-based authentication** over JWT for several reasons:
 
----
+1. **Revocability**: Sessions can be instantly revoked (logout, security incident)
+2. **Security**: Tokens aren't exposed to JavaScript (HttpOnly cookies)
+3. **Simplicity**: No token refresh complexity on the client
+4. **Control**: Server maintains full control over session lifecycle
 
-## 🏗️ Architecture
+For mobile apps or external API clients, **API keys** provide stateless authentication.
 
-### Authentication Method: **Cookie-Based Sessions**
-
-**Decision**: HttpOnly Cookie Sessions (not JWT in localStorage)
-
-**Why**:
-- ✅ **Security**: HttpOnly cookies prevent XSS attacks
-- ✅ **CSRF Protection**: SameSite=Lax cookies + future CSRF tokens
-- ✅ **Session Management**: Easy server-side revocation
-- ✅ **SaaS Best Practice**: Industry standard for web apps
-- ✅ **Existing Infrastructure**: Starlette SessionMiddleware already configured
-
-### Flow Diagram
+## Trust Boundaries
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    AUTHENTICATION FLOW                        │
+│                         CLIENT                               │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
+│  │   Browser   │  │  Mobile App │  │  Service    │         │
+│  │  (Session)  │  │  (API Key)  │  │  (API Key)  │         │
+│  └─────────────┘  └─────────────┘  └─────────────┘         │
 └─────────────────────────────────────────────────────────────┘
-
-1. SIGNUP
-   User → POST /api/auth/signup → Create User → Set Session Cookie → Redirect
-
-2. LOGIN
-   User → POST /api/auth/login → Verify Credentials → Create Session → Set Cookie → Redirect
-
-3. PROTECTED ROUTE ACCESS
-   User → GET /results → Check Session Cookie → Valid? → Allow Access
-                                              → Invalid? → Redirect to /?next=/results
-
-4. LOGOUT
-   User → POST /api/auth/logout → Revoke Session → Clear Cookie → Redirect to /
-
-5. PASSWORD RESET
-   User → POST /api/auth/forgot-password → Generate Token → Email (dev: console)
-   User → GET /reset-password?token=xxx → Verify Token → Show Form
-   User → POST /api/auth/reset-password → Update Password → Invalidate Token
+                           │
+                    HTTPS + Cookies
+                    or API Key Header
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      API GATEWAY                             │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │                  Rate Limiting                       │   │
+│  │                  CORS Validation                     │   │
+│  │                  CSRF Protection                     │   │
+│  └─────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    AUTH MIDDLEWARE                           │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
+│  │  Session    │  │  API Key    │  │  Permission │         │
+│  │  Validation │  │  Validation │  │  Check      │         │
+│  └─────────────┘  └─────────────┘  └─────────────┘         │
+└─────────────────────────────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    APPLICATION                               │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │              Protected Resources                     │   │
+│  │              Business Logic                          │   │
+│  │              Data Access                             │   │
+│  └─────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
 ```
 
----
+## Authentication Flows
 
-## 🔌 API Endpoints
+### 1. User Registration (Signup)
 
-### Authentication Endpoints
-
-| Method | Path | Auth Required | Description |
-|--------|------|---------------|-------------|
-| POST | `/api/auth/signup` | No | Register new user |
-| POST | `/api/auth/login` | No | Authenticate user |
-| POST | `/api/auth/logout` | No | Log out current user |
-| GET | `/api/auth/me` | Yes | Get current user profile |
-| PATCH | `/api/auth/me` | Yes | Update user profile (name) |
-| POST | `/api/auth/change-password` | Yes | Change password |
-| POST | `/api/auth/forgot-password` | No | Request password reset token |
-| POST | `/api/auth/reset-password` | No | Reset password with token |
-| POST | `/api/auth/logout-all` | Yes | Revoke all user sessions |
-| GET | `/api/auth/sessions` | Yes | List active sessions |
-| DELETE | `/api/auth/sessions/{id}` | Yes | Revoke specific session |
-
-### Request/Response Examples
-
-#### Signup
-```bash
-POST /api/auth/signup
-Content-Type: application/json
-
-{
-  "email": "user@example.com",
-  "password": "SecurePass123!@#",
-  "name": "John Doe"
-}
-
-Response: 201 Created
-{
-  "id": 1,
-  "email": "user@example.com",
-  "name": "John Doe",
-  "is_active": true,
-  "email_verified": false,
-  "created_at": "2025-01-27T10:00:00Z"
-}
-# Sets session_token cookie
+```
+Client                    Server                    Database
+  │                         │                          │
+  │  POST /api/auth/signup  │                          │
+  │  {email, password, name}│                          │
+  │─────────────────────────>                          │
+  │                         │                          │
+  │                         │  Validate password       │
+  │                         │  strength                │
+  │                         │                          │
+  │                         │  Check email unique      │
+  │                         │─────────────────────────>│
+  │                         │<─────────────────────────│
+  │                         │                          │
+  │                         │  Hash password (Argon2id)│
+  │                         │                          │
+  │                         │  Create user             │
+  │                         │─────────────────────────>│
+  │                         │                          │
+  │                         │  Create session          │
+  │                         │─────────────────────────>│
+  │                         │                          │
+  │                         │  Generate verification   │
+  │                         │  token (if EMAIL_ENABLED)│
+  │                         │                          │
+  │  Set-Cookie: session    │                          │
+  │  Set-Cookie: csrf_token │                          │
+  │  {user data}            │                          │
+  │<─────────────────────────                          │
 ```
 
-#### Login
-```bash
-POST /api/auth/login
-Content-Type: application/json
+### 2. User Login
 
-{
-  "email": "user@example.com",
-  "password": "SecurePass123!@#"
-}
-
-Response: 200 OK
-{
-  "id": 1,
-  "email": "user@example.com",
-  "name": "John Doe",
-  "is_active": true,
-  "email_verified": false,
-  "created_at": "2025-01-27T10:00:00Z"
-}
-# Sets session_token cookie
+```
+Client                    Server                    Database
+  │                         │                          │
+  │  POST /api/auth/login   │                          │
+  │  {email, password}      │                          │
+  │─────────────────────────>                          │
+  │                         │                          │
+  │                         │  Check rate limit        │
+  │                         │  (IP + email)            │
+  │                         │                          │
+  │                         │  Find user by email      │
+  │                         │─────────────────────────>│
+  │                         │<─────────────────────────│
+  │                         │                          │
+  │                         │  Verify password         │
+  │                         │  (constant time)         │
+  │                         │                          │
+  │                         │  Check account status    │
+  │                         │  (active, not locked)    │
+  │                         │                          │
+  │                         │  Create session          │
+  │                         │─────────────────────────>│
+  │                         │                          │
+  │                         │  Update last_login       │
+  │                         │─────────────────────────>│
+  │                         │                          │
+  │  Set-Cookie: session    │                          │
+  │  Set-Cookie: csrf_token │                          │
+  │  {user data}            │                          │
+  │<─────────────────────────                          │
 ```
 
-#### Get Current User
-```bash
-GET /api/auth/me
-Cookie: session_token=xxx
+### 3. Session Validation (Every Request)
 
-Response: 200 OK
-{
-  "id": 1,
-  "email": "user@example.com",
-  "name": "John Doe",
-  "is_active": true,
-  "email_verified": false,
-  "created_at": "2025-01-27T10:00:00Z"
-}
+```
+Client                    Server                    Database
+  │                         │                          │
+  │  GET /api/protected     │                          │
+  │  Cookie: session_token  │                          │
+  │  Cookie: csrf_token     │                          │
+  │  X-CSRF-Token: <token>  │                          │
+  │─────────────────────────>                          │
+  │                         │                          │
+  │                         │  Extract session cookie  │
+  │                         │                          │
+  │                         │  Hash token, lookup      │
+  │                         │─────────────────────────>│
+  │                         │<─────────────────────────│
+  │                         │                          │
+  │                         │  Check session valid     │
+  │                         │  - Not revoked           │
+  │                         │  - Not expired (idle)    │
+  │                         │  - Not expired (absolute)│
+  │                         │                          │
+  │                         │  Verify CSRF token       │
+  │                         │  (for state-changing ops)│
+  │                         │                          │
+  │                         │  Load user               │
+  │                         │─────────────────────────>│
+  │                         │<─────────────────────────│
+  │                         │                          │
+  │                         │  Check user active       │
+  │                         │                          │
+  │                         │  Refresh idle timeout    │
+  │                         │  (throttled, every 5 min)│
+  │                         │                          │
+  │  {response data}        │                          │
+  │<─────────────────────────                          │
 ```
 
----
+### 4. Session Refresh (Token Rotation)
 
-## 🔐 Security Features
-
-### Password Security
-- **Hashing**: Argon2id (preferred) or bcrypt (fallback)
-- **Validation**: Minimum 8 characters, requires uppercase, lowercase, number, special character
-- **Storage**: Only hashed passwords stored (never plain text)
-
-### Session Security
-- **Token Generation**: `secrets.token_urlsafe(32)` (43 chars)
-- **Storage**: SHA-256 hash in database, plain token in HttpOnly cookie
-- **Expiration**: Configurable (default: 7 days)
-- **Revocation**: Server-side session revocation supported
-
-### Cookie Security
-```python
-response.set_cookie(
-    key="session_token",
-    value=token,
-    httponly=True,      # Prevent XSS
-    secure=True,        # HTTPS only (prod)
-    samesite="lax",     # CSRF protection
-    max_age=604800,     # 7 days
-    path="/"
-)
 ```
+Client                    Server                    Database
+  │                         │                          │
+  │  POST /api/auth/refresh │                          │
+  │  Cookie: session_token  │                          │
+  │  X-CSRF-Token: <token>  │                          │
+  │─────────────────────────>                          │
+  │                         │                          │
+  │                         │  Validate current session│
+  │                         │─────────────────────────>│
+  │                         │<─────────────────────────│
+  │                         │                          │
+  │                         │  Revoke old session      │
+  │                         │  (reason: "rotated")     │
+  │                         │─────────────────────────>│
+  │                         │                          │
+  │                         │  Create new session      │
+  │                         │  (link to old via        │
+  │                         │   rotated_from_id)       │
+  │                         │─────────────────────────>│
+  │                         │                          │
+  │  Set-Cookie: session    │                          │
+  │  Set-Cookie: csrf_token │                          │
+  │  {user data}            │                          │
+  │<─────────────────────────                          │
+```
+
+### 5. Password Reset Flow
+
+```
+Client                    Server                    Database           Email
+  │                         │                          │                │
+  │  POST /forgot-password  │                          │                │
+  │  {email}                │                          │                │
+  │─────────────────────────>                          │                │
+  │                         │                          │                │
+  │                         │  Find user (don't reveal │                │
+  │                         │  if exists)              │                │
+  │                         │─────────────────────────>│                │
+  │                         │<─────────────────────────│                │
+  │                         │                          │                │
+  │                         │  Create reset token      │                │
+  │                         │  (1 hour expiry)         │                │
+  │                         │─────────────────────────>│                │
+  │                         │                          │                │
+  │                         │  Send email              │                │
+  │                         │─────────────────────────────────────────>│
+  │                         │                          │                │
+  │  "If email exists..."   │                          │                │
+  │<─────────────────────────                          │                │
+  │                         │                          │                │
+  │  Click link in email    │                          │                │
+  │                         │                          │                │
+  │  POST /reset-password   │                          │                │
+  │  {token, new_password}  │                          │                │
+  │─────────────────────────>                          │                │
+  │                         │                          │                │
+  │                         │  Validate token          │                │
+  │                         │─────────────────────────>│                │
+  │                         │<─────────────────────────│                │
+  │                         │                          │                │
+  │                         │  Hash new password       │                │
+  │                         │                          │                │
+  │                         │  Update password         │                │
+  │                         │  Mark token used         │                │
+  │                         │─────────────────────────>│                │
+  │                         │                          │                │
+  │  "Password reset"       │                          │                │
+  │<─────────────────────────                          │                │
+```
+
+## Token Lifecycle
+
+### Session Tokens
+
+| Property | Value | Description |
+|----------|-------|-------------|
+| Format | `secrets.token_urlsafe(32)` | 256 bits of entropy |
+| Storage | SHA-256 hash in DB | Never store plaintext |
+| Delivery | HttpOnly cookie | XSS protection |
+| Idle Timeout | 48 hours (configurable) | Sliding window |
+| Absolute Timeout | 30 days (configurable) | Maximum lifetime |
+| Rotation | On refresh | Detect token reuse |
+
+### Password Reset Tokens
+
+| Property | Value | Description |
+|----------|-------|-------------|
+| Format | `secrets.token_urlsafe(32)` | 256 bits of entropy |
+| Storage | SHA-256 hash in DB | Never store plaintext |
+| Delivery | Email link | User verification |
+| Expiry | 1 hour | Short-lived for security |
+| Usage | Single-use | Marked used after reset |
+
+### API Keys
+
+| Property | Value | Description |
+|----------|-------|-------------|
+| Format | `rk_live_<random>` | Prefixed for identification |
+| Storage | SHA-256 hash in DB | Only prefix visible |
+| Delivery | Header (Authorization/X-API-Key) | Secure transmission |
+| Expiry | Configurable | Optional expiration |
+| Revocation | Immediate | Can be revoked anytime |
+| Scopes | read/write/admin/webhook/service | Permission levels |
+
+## Security Features
+
+### Password Hashing
+
+- **Algorithm**: Argon2id (memory-hard, GPU-resistant)
+- **Fallback**: bcrypt (if Argon2 unavailable)
+- **Parameters**:
+  - Time cost: 2 iterations
+  - Memory cost: 64 MB
+  - Parallelism: 4 threads
+  - Hash length: 32 bytes
+  - Salt length: 16 bytes
+
+### Password Policy
+
+- Minimum 8 characters
+- At least one uppercase letter
+- At least one lowercase letter
+- At least one number
+- At least one special character
 
 ### Rate Limiting
-- Uses existing `RateLimiterMiddleware`
-- Login/Signup: 5 attempts per 15 minutes per IP
-- Password Reset: 3 requests per hour per email
 
-### Error Messages
-- **Generic Errors**: "Invalid email or password" (prevents email enumeration)
-- **Rate Limit**: "Too many attempts. Please try again later."
-- **Validation**: Specific field errors
+| Endpoint | Limit | Window | Lockout |
+|----------|-------|--------|---------|
+| Login | 5 attempts | 15 min | 15 min |
+| Password Reset | 3 requests | 60 min | 60 min |
+| Signup | 5 attempts | 60 min | 60 min |
+| API (Free) | 30 req/min | 1 min | N/A |
+| API (Pro) | 500 req/min | 1 min | N/A |
 
----
+### CSRF Protection
 
-## 📁 File Structure
+- Double-submit cookie pattern
+- CSRF token bound to session
+- Origin/Referer validation
+- Required for all state-changing operations
 
-### Backend Files
-```
-app/
-├── models/
-│   └── auth.py                    # User, Session, PasswordResetToken models
-├── routers/
-│   └── auth.py                    # Auth API endpoints
-├── config/
-│   └── auth.py                    # Auth configuration
-├── dependencies/
-│   └── auth.py                    # get_current_user, require_auth
-└── utils/
-    └── password.py                # Password hashing utilities
-```
+## Frontend Integration
 
-### Frontend Files
-```
-src/
-├── api/
-│   └── auth.ts                    # Auth API client
-├── store/
-│   └── authStore.tsx              # Auth state management (React Context)
-├── components/
-│   ├── ProtectedRoute.tsx         # Route protection component
-│   └── UserMenu.tsx               # User menu dropdown
-├── pages/
-│   ├── LoginPage.tsx              # Login form
-│   ├── SignupPage.tsx             # Signup form
-│   ├── HomePage.tsx               # Home (login/welcome)
-│   └── Overview.tsx               # Account management
-└── config/
-    └── auth.ts                    # Frontend auth config
-```
-
----
-
-## ⚙️ Configuration
-
-### Environment Variables
-
-```env
-# Master switch
-AUTH_ENABLED=false                 # Set to true to enable auth
-
-# Session configuration
-SESSION_SECRET=your-secret-32-chars # REQUIRED if AUTH_ENABLED=true
-SESSION_EXPIRE_HOURS=168            # 7 days default
-COOKIE_SECURE=false                 # true in production (requires HTTPS)
-COOKIE_SAMESITE=lax                 # lax, strict, none
-
-# Route protection (granular control)
-PROTECT_INPUT=false                 # Protect /input_react
-PROTECT_RESULTS=false               # Protect /results
-
-# Email (optional)
-EMAIL_ENABLED=false
-SMTP_HOST=smtp.sendgrid.net
-SMTP_PORT=587
-SMTP_USER=apikey
-SMTP_PASS=your-api-key
-EMAIL_FROM=noreply@riskcast.com
-```
-
-### Feature Flags
-
-The auth system is **opt-in** by default:
-- `AUTH_ENABLED=false` → All routes work without auth (existing behavior)
-- `AUTH_ENABLED=true` → Auth system active, routes protected based on flags
-
----
-
-## 🚀 Getting Started
-
-### 1. Install Dependencies
-
-```bash
-# Backend
-pip install argon2-cffi email-validator
-
-# Frontend (already in package.json)
-npm install
-```
-
-### 2. Configure Environment
-
-```bash
-# Copy .env.example to .env
-cp .env.example .env
-
-# Edit .env and set:
-AUTH_ENABLED=true
-SESSION_SECRET=$(python -c "import secrets; print(secrets.token_urlsafe(32))")
-```
-
-### 3. Initialize Database
-
-```bash
-# Create auth tables
-python init_database.py
-```
-
-### 4. Start Application
-
-```bash
-# Backend
-uvicorn app.main:app --reload
-
-# Frontend (separate terminal)
-npm run dev
-```
-
-### 5. Test Auth Flow
-
-1. Visit `http://localhost:8000/`
-2. Click "Sign up" → Create account
-3. Login → Access protected routes
-4. Visit `/overview` → Manage account
-
----
-
-## 🧪 Testing
-
-### Run Backend Tests
-
-```bash
-# Set test environment
-export AUTH_ENABLED=true
-export SESSION_SECRET=test-secret-key-for-testing-only-32-chars-min
-
-# Run tests
-pytest tests/test_auth.py -v
-```
-
-### Manual Test Checklist
-
-- [ ] Sign up new account
-- [ ] Sign in with new account
-- [ ] View `/overview` page
-- [ ] Change password successfully
-- [ ] Sign out
-- [ ] Sign in with new password
-- [ ] Forgot password flow (check console for token)
-- [ ] Reset password with token
-- [ ] Protected route redirects to login with `?next=`
-- [ ] After login, redirects back to original route
-- [ ] Sign out all devices
-- [ ] Existing routes (`/results`, `/input_react`) still work with `AUTH_ENABLED=false`
-
----
-
-## 🔄 Migration Guide
-
-### Enabling Auth for Existing Deployment
-
-1. **Backup Database**: Always backup before changes
-2. **Set Environment Variables**: Add auth vars to `.env`
-3. **Run Database Migration**: `python init_database.py`
-4. **Test with Auth Disabled**: Verify `AUTH_ENABLED=false` works
-5. **Enable Auth Gradually**:
-   - Set `AUTH_ENABLED=true`
-   - Test signup/login
-   - Set `PROTECT_INPUT=true` (optional)
-   - Set `PROTECT_RESULTS=true` (optional)
-
-### Backward Compatibility
-
-- **Default**: `AUTH_ENABLED=false` → Existing behavior preserved
-- **No Breaking Changes**: All existing routes work without auth by default
-- **Gradual Rollout**: Enable protection per route as needed
-
----
-
-## 🛡️ Security Considerations
-
-### Threat Model
-
-1. **XSS Attacks**: Mitigated by HttpOnly cookies
-2. **CSRF Attacks**: Mitigated by SameSite=Lax cookies
-3. **Session Hijacking**: Mitigated by secure token generation and expiration
-4. **Brute Force**: Mitigated by rate limiting
-5. **Password Attacks**: Mitigated by Argon2id hashing
-6. **Email Enumeration**: Mitigated by generic error messages
-
-### Best Practices
-
-- ✅ Use strong `SESSION_SECRET` (32+ characters, random)
-- ✅ Set `COOKIE_SECURE=true` in production (requires HTTPS)
-- ✅ Enable rate limiting in production
-- ✅ Monitor failed login attempts
-- ✅ Rotate session secrets periodically
-- ✅ Use email verification in production (future feature)
-
----
-
-## 📝 API Reference
-
-### User Model
+### Login Flow
 
 ```typescript
-interface User {
-  id: number;
-  email: string;
-  name: string | null;
-  is_active: boolean;
-  email_verified: boolean;
-  created_at: string;
+// Login
+const response = await fetch('/api/auth/login', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  credentials: 'include', // IMPORTANT: Include cookies
+  body: JSON.stringify({ email, password }),
+});
+
+// Response sets session_token and csrf_token cookies automatically
+const user = await response.json();
+```
+
+### Making Authenticated Requests
+
+```typescript
+// Get CSRF token from cookie
+function getCsrfToken(): string {
+  const match = document.cookie.match(/csrf_token=([^;]+)/);
+  return match ? match[1] : '';
+}
+
+// Authenticated request
+const response = await fetch('/api/protected', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-CSRF-Token': getCsrfToken(), // Required for POST/PUT/DELETE
+  },
+  credentials: 'include',
+  body: JSON.stringify(data),
+});
+```
+
+### Session Refresh
+
+```typescript
+// Refresh session (recommended before critical operations)
+async function refreshSession() {
+  const response = await fetch('/api/auth/refresh', {
+    method: 'POST',
+    headers: {
+      'X-CSRF-Token': getCsrfToken(),
+    },
+    credentials: 'include',
+  });
+  
+  if (!response.ok) {
+    // Session expired, redirect to login
+    window.location.href = '/login';
+  }
 }
 ```
 
-### Session Model
+### Logout
 
 ```typescript
-interface Session {
-  id: number;
-  user_id: number;
-  expires_at: string;
-  user_agent: string | null;
-  ip_address: string | null;
-  created_at: string;
-  is_valid: boolean;
+async function logout() {
+  await fetch('/api/auth/logout', {
+    method: 'POST',
+    headers: {
+      'X-CSRF-Token': getCsrfToken(),
+    },
+    credentials: 'include',
+  });
+  
+  // Redirect to login
+  window.location.href = '/login';
 }
 ```
 
----
+## API Key Usage
 
-## 🐛 Troubleshooting
+### Creating an API Key
 
-### Issue: "Authentication is not enabled"
-
-**Solution**: Set `AUTH_ENABLED=true` in `.env`
-
-### Issue: "SESSION_SECRET must be set"
-
-**Solution**: Generate and set `SESSION_SECRET` in `.env`:
 ```bash
-python -c "import secrets; print(secrets.token_urlsafe(32))"
+curl -X POST https://api.riskcast.com/api/auth/keys \
+  -H "Cookie: session_token=<your_session>" \
+  -H "X-CSRF-Token: <csrf_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Production API Key", "scope": "read"}'
 ```
 
-### Issue: Cookies not working
+Response:
+```json
+{
+  "data": {
+    "id": 1,
+    "name": "Production API Key",
+    "key": "rk_live_abc123...",  // Only shown ONCE!
+    "key_prefix": "rk_live_",
+    "scope": "read",
+    "created_at": "2024-01-15T10:30:00Z"
+  }
+}
+```
 
-**Solution**: 
-- Check `COOKIE_SECURE` setting (should be `false` in dev, `true` in prod)
-- Verify CORS settings allow credentials
-- Check browser console for cookie errors
+### Using an API Key
 
-### Issue: Password reset token not received
+```bash
+# Via Authorization header
+curl https://api.riskcast.com/api/v3/risk/assess \
+  -H "Authorization: Bearer rk_live_abc123..."
 
-**Solution**: 
-- Check console output (dev mode prints tokens)
-- Verify `EMAIL_ENABLED` and SMTP settings if using email
-- Check spam folder
+# Via X-API-Key header
+curl https://api.riskcast.com/api/v3/risk/assess \
+  -H "X-API-Key: rk_live_abc123..."
+```
 
----
+## Role-Based Access Control
 
-## 🔮 Future Enhancements
+### Built-in Roles
 
-- [ ] Email verification flow
-- [ ] Two-factor authentication (2FA)
-- [ ] OAuth integration (Google, GitHub)
-- [ ] Account roles and permissions
-- [ ] API key management UI
-- [ ] Session activity monitoring
-- [ ] Password history (prevent reuse)
-- [ ] Account lockout after failed attempts
+| Role | Level | Description |
+|------|-------|-------------|
+| `user` | 0 | Standard user |
+| `operator` | 1 | Can perform operations |
+| `analyst` | 2 | Can view and analyze data |
+| `underwriter` | 3 | Can make underwriting decisions |
+| `admin` | 4 | Tenant administrator |
+| `super_admin` | 5 | Platform administrator |
 
----
+### Permission Checking
 
-## 📚 Related Documentation
+```python
+from app.dependencies.auth import require_role, require_permission, UserRole
 
-- [Auth Implementation Plan](./AUTH_IMPLEMENTATION_PLAN.md)
-- [Environment Setup](./AUTH_ENV_SETUP.md)
-- [API Documentation](../app/routers/auth.py)
+# Require specific role
+@router.get("/admin")
+async def admin_only(user = Depends(require_role(UserRole.ADMIN))):
+    ...
 
----
+# Require specific permission
+@router.get("/risk")
+async def risk_read(ctx = Depends(require_permission("risk:read"))):
+    ...
+```
 
-## ✅ Phase Completion Status
+## Environment Variables
 
-- ✅ **Phase 1**: Backend Auth Core
-- ✅ **Phase 2**: Frontend Auth Integration
-- ✅ **Phase 3**: Overview Page
-- ✅ **Phase 4**: Wiring & Configuration
-- ⏭️ **Phase 5**: Verification & Documentation
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `AUTH_ENABLED` | No | `false` (dev), `true` (prod) | Enable authentication |
+| `SESSION_SECRET` | **Yes (prod)** | Generated (dev) | Session signing key |
+| `SESSION_EXPIRE_HOURS` | No | 48 | Idle timeout |
+| `SESSION_ABSOLUTE_HOURS` | No | 720 | Absolute timeout |
+| `COOKIE_SECURE` | No | `true` (prod) | HTTPS-only cookies |
+| `COOKIE_SAMESITE` | No | `strict` (prod) | SameSite policy |
+| `REDIS_URL` | No | - | Redis for rate limiting |
+| `EMAIL_ENABLED` | No | `false` | Enable email sending |
+| `SMTP_HOST` | If email | - | SMTP server |
 
----
+## Database Schema
 
-**Last Updated**: 2025-01-27  
-**Maintainer**: RISKCAST Development Team
+### auth_users
+
+```sql
+CREATE TABLE auth_users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    uuid VARCHAR(36) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    name VARCHAR(255),
+    status VARCHAR(20) DEFAULT 'active',
+    role VARCHAR(20) DEFAULT 'user',
+    is_active BOOLEAN DEFAULT TRUE,
+    email_verified BOOLEAN DEFAULT FALSE,
+    last_login_at DATETIME,
+    last_login_ip VARCHAR(45),
+    failed_login_count INTEGER DEFAULT 0,
+    locked_until DATETIME,
+    tenant_id VARCHAR(36),
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    deleted_at DATETIME
+);
+
+CREATE INDEX idx_auth_user_email ON auth_users(email);
+CREATE INDEX idx_auth_user_status ON auth_users(status, role);
+```
+
+### auth_sessions
+
+```sql
+CREATE TABLE auth_sessions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    token_hash VARCHAR(64) UNIQUE NOT NULL,
+    user_id INTEGER NOT NULL REFERENCES auth_users(id),
+    expires_at DATETIME NOT NULL,
+    absolute_expires_at DATETIME,
+    revoked_at DATETIME,
+    revoke_reason VARCHAR(128),
+    csrf_token_hash VARCHAR(64),
+    last_seen_at DATETIME,
+    user_agent VARCHAR(500),
+    ip_address VARCHAR(45),
+    created_at DATETIME NOT NULL
+);
+
+CREATE INDEX idx_session_token ON auth_sessions(token_hash);
+CREATE INDEX idx_session_user ON auth_sessions(user_id, expires_at);
+```
+
+## Security Checklist
+
+- [ ] `SESSION_SECRET` is set and ≥32 characters
+- [ ] `AUTH_ENABLED=true` in production
+- [ ] `COOKIE_SECURE=true` in production
+- [ ] `COOKIE_SAMESITE=strict` in production
+- [ ] HTTPS enforced for all traffic
+- [ ] Rate limiting configured (Redis recommended)
+- [ ] Audit logging enabled
+- [ ] Password policy enforced
+- [ ] Session rotation on privilege change
+- [ ] All tokens stored as hashes
+- [ ] CSRF protection on all forms
+- [ ] Error messages don't leak information
+
+## Troubleshooting
+
+### Common Issues
+
+1. **"Not authenticated" error**
+   - Check session cookie is being sent (`credentials: 'include'`)
+   - Verify session hasn't expired
+   - Check `AUTH_ENABLED` is true
+
+2. **"CSRF_INVALID" error**
+   - Include `X-CSRF-Token` header
+   - Token must match `csrf_token` cookie
+   - Check SameSite cookie policy
+
+3. **Session lost on refresh**
+   - Ensure cookies are set with correct domain
+   - Check `COOKIE_SECURE` matches protocol (HTTPS)
+
+4. **Rate limit exceeded**
+   - Wait for lockout period
+   - Check Redis connection for distributed limiting

@@ -1,0 +1,71 @@
+# =============================================================================
+# Development Overlay
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: riskcast-dev
+
+resources:
+  - ../../base
+
+namePrefix: dev-
+
+commonLabels:
+  environment: development
+  tier: development
+
+# Development-specific patches
+patches:
+  # Minimal replicas for development
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+    target:
+      kind: Deployment
+      name: riskcast-api
+  
+  # Minimal resources for development
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/cpu
+        value: "100m"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/memory
+        value: "256Mi"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/cpu
+        value: "500m"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: "1Gi"
+    target:
+      kind: Deployment
+      name: riskcast-api
+  
+  # Disable HPA for development
+  - patch: |-
+      apiVersion: autoscaling/v2
+      kind: HorizontalPodAutoscaler
+      metadata:
+        name: riskcast-api-hpa
+      $patch: delete
+    target:
+      kind: HorizontalPodAutoscaler
+      name: riskcast-api-hpa
+
+# Development ConfigMap
+configMapGenerator:
+  - name: riskcast-config
+    behavior: merge
+    literals:
+      - ENVIRONMENT=development
+      - LOG_LEVEL=DEBUG
+      - ENABLE_SWAGGER=true
+
+# Use development image tag
+images:
+  - name: riskcast-api
+    newName: ghcr.io/riskcast/api
+    newTag: dev-latest

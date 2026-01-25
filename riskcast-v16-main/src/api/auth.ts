@@ -430,3 +430,22 @@ export async function googleCallback(code: string, state: string): Promise<User>
 export async function googleDisconnect(): Promise<void> {
   await apiRequest('/google/disconnect', { method: 'POST' });
 }
+
+/**
+ * Auth Configuration Status
+ */
+export interface AuthConfig {
+  auth_enabled: boolean;
+  email_password_enabled: boolean;
+  google_enabled: boolean;
+  email_verification_required: boolean;
+}
+
+/**
+ * Get authentication configuration status.
+ * Returns which auth methods are available (useful for showing/hiding buttons).
+ */
+export async function getAuthConfig(): Promise<AuthConfig> {
+  const result = await apiRequest<AuthConfig>('/config');
+  return result;
+}

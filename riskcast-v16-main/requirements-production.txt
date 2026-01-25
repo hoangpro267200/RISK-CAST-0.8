@@ -1,0 +1,14 @@
+# Production Validation Dependencies
+
+# HTTP client for API checks
+httpx==0.26.0
+
+# Database client
+asyncpg==0.29.0
+
+# Redis client
+redis==5.0.1
+
+# AWS SDK for backup checks
+boto3==1.34.18
+botocore==1.34.18

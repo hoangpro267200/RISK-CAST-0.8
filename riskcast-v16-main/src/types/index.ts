@@ -75,6 +75,9 @@ export interface LayerData {
   dataSource?: string;
   lastUpdated?: string;
   trace?: TraceMeta;
+  // Sprint 3: Algorithm explainability fields
+  fahpWeight?: number; // FAHP weight (0-100 or 0-1 depending on source)
+  topsisScore?: number; // TOPSIS closeness coefficient (0-1)
 }
 
 export interface DecisionSignal {

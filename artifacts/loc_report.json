@@ -1,0 +1,526 @@
+{
+  "summary": {
+    "total_code_lines": 471585,
+    "total_comment_lines": 99918,
+    "total_blank_lines": 112921,
+    "total_lines": 684424,
+    "total_files": 2793
+  },
+  "by_language": [
+    {
+      "language": "JavaScript",
+      "code_lines": 146205,
+      "comment_lines": 42428,
+      "blank_lines": 33164,
+      "files_count": 625,
+      "total_lines": 221797
+    },
+    {
+      "language": "Python",
+      "code_lines": 114017,
+      "comment_lines": 48173,
+      "blank_lines": 35086,
+      "files_count": 914,
+      "total_lines": 197276
+    },
+    {
+      "language": "docs",
+      "code_lines": 77255,
+      "comment_lines": 0,
+      "blank_lines": 23497,
+      "files_count": 344,
+      "total_lines": 100752
+    },
+    {
+      "language": "CSS",
+      "code_lines": 62987,
+      "comment_lines": 2401,
+      "blank_lines": 10495,
+      "files_count": 268,
+      "total_lines": 75883
+    },
+    {
+      "language": "TSX",
+      "code_lines": 29018,
+      "comment_lines": 1943,
+      "blank_lines": 2806,
+      "files_count": 168,
+      "total_lines": 33767
+    },
+    {
+      "language": "HTML",
+      "code_lines": 17220,
+      "comment_lines": 1106,
+      "blank_lines": 3537,
+      "files_count": 109,
+      "total_lines": 21863
+    },
+    {
+      "language": "TypeScript",
+      "code_lines": 10839,
+      "comment_lines": 2064,
+      "blank_lines": 1684,
+      "files_count": 95,
+      "total_lines": 14587
+    },
+    {
+      "language": "migrations",
+      "code_lines": 4106,
+      "comment_lines": 1323,
+      "blank_lines": 1014,
+      "files_count": 49,
+      "total_lines": 6443
+    },
+    {
+      "language": "Vue:script",
+      "code_lines": 3228,
+      "comment_lines": 87,
+      "blank_lines": 739,
+      "files_count": 83,
+      "total_lines": 4054
+    },
+    {
+      "language": "Vue:template",
+      "code_lines": 2830,
+      "comment_lines": 223,
+      "blank_lines": 385,
+      "files_count": 83,
+      "total_lines": 3438
+    },
+    {
+      "language": "YAML",
+      "code_lines": 2812,
+      "comment_lines": 108,
+      "blank_lines": 262,
+      "files_count": 21,
+      "total_lines": 3182
+    },
+    {
+      "language": "Vue:style",
+      "code_lines": 1056,
+      "comment_lines": 0,
+      "blank_lines": 230,
+      "files_count": 32,
+      "total_lines": 1286
+    },
+    {
+      "language": "Dockerfile",
+      "code_lines": 10,
+      "comment_lines": 52,
+      "blank_lines": 17,
+      "files_count": 1,
+      "total_lines": 79
+    },
+    {
+      "language": "SQL",
+      "code_lines": 2,
+      "comment_lines": 10,
+      "blank_lines": 5,
+      "files_count": 1,
+      "total_lines": 17
+    }
+  ],
+  "top_50_files": [
+    {
+      "path": "riskcast-v16-main\\app\\static\\cesium\\Cesium.js",
+      "language": "JavaScript",
+      "code_lines": 9802,
+      "comment_lines": 2982,
+      "blank_lines": 1709,
+      "total_lines": 14493
+    },
+    {
+      "path": "riskcast-v16-main\\app\\static\\cesium\\index.cjs",
+      "language": "JavaScript",
+      "code_lines": 9802,
+      "comment_lines": 2982,
+      "blank_lines": 1709,
+      "total_lines": 14493
+    },
+    {
+      "path": "riskcast-v16-main\\app\\static\\cesium\\index.js",
+      "language": "JavaScript",
+      "code_lines": 9802,
+      "comment_lines": 2982,
+      "blank_lines": 1709,
+      "total_lines": 14493
+    },
+    {
+      "path": "riskcast-v16-main\\riskcast-v16-main\\app\\static\\cesium\\Cesium.js",
+      "language": "JavaScript",
+      "code_lines": 9802,
+      "comment_lines": 2982,
+      "blank_lines": 1709,
+      "total_lines": 14493
+    },
+    {
+      "path": "riskcast-v16-main\\riskcast-v16-main\\app\\static\\cesium\\index.cjs",
+      "language": "JavaScript",
+      "code_lines": 9802,
+      "comment_lines": 2982,
+      "blank_lines": 1709,
+      "total_lines": 14493
+    },
+    {
+      "path": "riskcast-v16-main\\riskcast-v16-main\\app\\static\\cesium\\index.js",
+      "language": "JavaScript",
+      "code_lines": 9802,
+      "comment_lines": 2982,
+      "blank_lines": 1709,
+      "total_lines": 14493
+    },
+    {
+      "path": "riskcast-v16-main\\app\\static\\js\\modules\\smart_input.js",
+      "language": "JavaScript",
+      "code_lines": 2755,
+      "comment_lines": 439,
+      "blank_lines": 512,
+      "total_lines": 3706
+    },
+    {
+      "path": "riskcast-v16-main\\riskcast-v16-main\\app\\static\\js\\modules\\smart_input.js",
+      "language": "JavaScript",
+      "code_lines": 2755,
+      "comment_lines": 439,
+      "blank_lines": 512,
+      "total_lines": 3706
+    },
+    {
+      "path": "riskcast-v16-main\\app\\static\\js\\data\\logistics_data.js",
+      "language": "JavaScript",
+      "code_lines": 2464,
+      "comment_lines": 276,
+      "blank_lines": 138,
+      "total_lines": 2878
+    },
+    {
+      "path": "riskcast-v16-main\\riskcast-v16-main\\app\\static\\js\\data\\logistics_data.js",
+      "language": "JavaScript",
+      "code_lines": 2464,
+      "comment_lines": 276,
+      "blank_lines": 138,
+      "total_lines": 2878
+    },
+    {
+      "path": "riskcast-v16-main\\app\\static\\css\\smart_input_styles.css",
+      "language": "CSS",
+      "code_lines": 2406,
+      "comment_lines": 85,
+      "blank_lines": 382,
+      "total_lines": 2873
+    },
+    {
+      "path": "riskcast-v16-main\\riskcast-v16-main\\app\\static\\css\\smart_input_styles.css",
+      "language": "CSS",
+      "code_lines": 2406,
+      "comment_lines": 85,
+      "blank_lines": 382,
+      "total_lines": 2873
+    },
+    {
+      "path": "riskcast-v16-main\\app\\static\\css\\home_css.css",
+      "language": "CSS",
+      "code_lines": 1873,
+      "comment_lines": 61,
+      "blank_lines": 285,
+      "total_lines": 2219
+    },
+    {
+      "path": "riskcast-v16-main\\riskcast-v16-main\\app\\static\\css\\home_css.css",
+      "language": "CSS",
+      "code_lines": 1873,
+      "comment_lines": 61,
+      "blank_lines": 285,
+      "total_lines": 2219
+    },
+    {
+      "path": "riskcast-v16-main\\app\\static\\css\\ai_chat.css",
+      "language": "CSS",
+      "code_lines": 1524,
+      "comment_lines": 36,
+      "blank_lines": 226,
+      "total_lines": 1786
+    },
+    {
+      "path": "riskcast-v16-main\\riskcast-v16-main\\app\\static\\css\\ai_chat.css",
+      "language": "CSS",
+      "code_lines": 1524,
+      "comment_lines": 36,
+      "blank_lines": 226,
+      "total_lines": 1786
+    },
+    {
+      "path": "riskcast-v16-main\\app\\api\\v1\\risk_routes.py",
+      "language": "Python",
+      "code_lines": 1506,
+      "comment_lines": 381,
+      "blank_lines": 245,
+      "total_lines": 2132
+    },
+    {
+      "path": "riskcast-v16-main\\docs\\openapi\\openapi.yaml",
+      "language": "YAML",
+      "code_lines": 1499,
+      "comment_lines": 45,
+      "blank_lines": 120,
+      "total_lines": 1664
+    },
+    {
+      "path": "riskcast-v16-main\\app\\static\\css\\home_v2000.css",
+      "language": "CSS",
+      "code_lines": 1458,
+      "comment_lines": 33,
+      "blank_lines": 227,
+      "total_lines": 1718
+    },
+    {
+      "path": "riskcast-v16-main\\riskcast-v16-main\\app\\static\\css\\home_v2000.css",
+      "language": "CSS",
+      "code_lines": 1458,
+      "comment_lines": 33,
+      "blank_lines": 227,
+      "total_lines": 1718
+    },
+    {
+      "path": "riskcast-v16-main\\app\\static\\css\\pages\\input\\input_v20.css",
+      "language": "CSS",
+      "code_lines": 1419,
+      "comment_lines": 45,
+      "blank_lines": 212,
+      "total_lines": 1676
+    },
+    {
+      "path": "riskcast-v16-main\\riskcast-v16-main\\app\\static\\css\\pages\\input\\input_v20.css",
+      "language": "CSS",
+      "code_lines": 1419,
+      "comment_lines": 45,
+      "blank_lines": 212,
+      "total_lines": 1676
+    },
+    {
+      "path": "riskcast-v16-main\\app\\static\\css\\pages\\input\\input_v19.css",
+      "language": "CSS",
+      "code_lines": 1396,
+      "comment_lines": 66,
+      "blank_lines": 227,
+      "total_lines": 1689
+    },
+    {
+      "path": "riskcast-v16-main\\riskcast-v16-main\\app\\static\\css\\pages\\input\\input_v19.css",
+      "language": "CSS",
+      "code_lines": 1396,
+      "comment_lines": 66,
+      "blank_lines": 227,
+      "total_lines": 1689
+    },
+    {
+      "path": "riskcast-v16-main\\docs\\input-page-design-spec-v1.md",
+      "language": "docs",
+      "code_lines": 1336,
+      "comment_lines": 0,
+      "blank_lines": 283,
+      "total_lines": 1619
+    },
+    {
+      "path": "riskcast-v16-main\\src\\pages\\ResultsPage.tsx",
+      "language": "TSX",
+      "code_lines": 1321,
+      "comment_lines": 163,
+      "blank_lines": 135,
+      "total_lines": 1619
+    },
+    {
+      "path": "riskcast-v16-main\\app\\core\\engine\\riskcast_engine_v21.py",
+      "language": "Python",
+      "code_lines": 1280,
+      "comment_lines": 78,
+      "blank_lines": 268,
+      "total_lines": 1626
+    },
+    {
+      "path": "riskcast-v16-main\\riskcast-v16-main\\app\\core\\engine\\riskcast_engine_v21.py",
+      "language": "Python",
+      "code_lines": 1280,
+      "comment_lines": 78,
+      "blank_lines": 268,
+      "total_lines": 1626
+    },
+    {
+      "path": "riskcast-v16-main\\app\\static\\cesium\\Widgets\\widgets.css",
+      "language": "CSS",
+      "code_lines": 1274,
+      "comment_lines": 19,
+      "blank_lines": 19,
+      "total_lines": 1312
+    },
+    {
+      "path": "riskcast-v16-main\\riskcast-v16-main\\app\\static\\cesium\\Widgets\\widgets.css",
+      "language": "CSS",
+      "code_lines": 1274,
+      "comment_lines": 19,
+      "blank_lines": 19,
+      "total_lines": 1312
+    },
+    {
+      "path": "riskcast-v16-main\\app\\static\\css\\enterprise_input_layout.css",
+      "language": "CSS",
+      "code_lines": 1191,
+      "comment_lines": 76,
+      "blank_lines": 161,
+      "total_lines": 1428
+    },
+    {
+      "path": "riskcast-v16-main\\riskcast-v16-main\\app\\static\\css\\enterprise_input_layout.css",
+      "language": "CSS",
+      "code_lines": 1191,
+      "comment_lines": 76,
+      "blank_lines": 161,
+      "total_lines": 1428
+    },
+    {
+      "path": "riskcast-v16-main\\src\\adapters\\adaptResultV2.ts",
+      "language": "TypeScript",
+      "code_lines": 1174,
+      "comment_lines": 236,
+      "blank_lines": 154,
+      "total_lines": 1564
+    },
+    {
+      "path": "riskcast-v16-main\\app\\core\\engine\\risk_engine_v16.py",
+      "language": "Python",
+      "code_lines": 1153,
+      "comment_lines": 2913,
+      "blank_lines": 814,
+      "total_lines": 4880
+    },
+    {
+      "path": "riskcast-v16-main\\riskcast-v16-main\\static\\js\\pages\\input\\input_controller_v19.js",
+      "language": "JavaScript",
+      "code_lines": 1150,
+      "comment_lines": 236,
+      "blank_lines": 1712,
+      "total_lines": 3098
+    },
+    {
+      "path": "riskcast-v16-main\\static\\js\\pages\\input\\input_controller_v19.js",
+      "language": "JavaScript",
+      "code_lines": 1150,
+      "comment_lines": 236,
+      "blank_lines": 1712,
+      "total_lines": 3098
+    },
+    {
+      "path": "riskcast-v16-main\\riskcast-v16-main\\app\\static\\css\\results.css",
+      "language": "CSS",
+      "code_lines": 1149,
+      "comment_lines": 25,
+      "blank_lines": 195,
+      "total_lines": 1369
+    },
+    {
+      "path": "riskcast-v16-main\\docs\\input-page-ui-audit.md",
+      "language": "docs",
+      "code_lines": 1113,
+      "comment_lines": 0,
+      "blank_lines": 232,
+      "total_lines": 1345
+    },
+    {
+      "path": "riskcast-v16-main\\app\\routers\\auth.py",
+      "language": "Python",
+      "code_lines": 1105,
+      "comment_lines": 122,
+      "blank_lines": 218,
+      "total_lines": 1445
+    },
+    {
+      "path": "riskcast-v16-main\\app\\core\\engine\\risk_engine_base.py",
+      "language": "Python",
+      "code_lines": 1060,
+      "comment_lines": 2648,
+      "blank_lines": 750,
+      "total_lines": 4458
+    },
+    {
+      "path": "riskcast-v16-main\\app\\core\\risk_engine_v16.py",
+      "language": "Python",
+      "code_lines": 1060,
+      "comment_lines": 2648,
+      "blank_lines": 750,
+      "total_lines": 4458
+    },
+    {
+      "path": "riskcast-v16-main\\riskcast-v16-main\\app\\core\\engine\\risk_engine_base.py",
+      "language": "Python",
+      "code_lines": 1060,
+      "comment_lines": 2648,
+      "blank_lines": 750,
+      "total_lines": 4458
+    },
+    {
+      "path": "riskcast-v16-main\\riskcast-v16-main\\app\\core\\engine\\risk_engine_v16.py",
+      "language": "Python",
+      "code_lines": 1060,
+      "comment_lines": 2648,
+      "blank_lines": 750,
+      "total_lines": 4458
+    },
+    {
+      "path": "riskcast-v16-main\\riskcast-v16-main\\app\\core\\risk_engine_v16.py",
+      "language": "Python",
+      "code_lines": 1060,
+      "comment_lines": 2648,
+      "blank_lines": 750,
+      "total_lines": 4458
+    },
+    {
+      "path": "riskcast-v16-main\\app\\templates\\home.html",
+      "language": "HTML",
+      "code_lines": 999,
+      "comment_lines": 62,
+      "blank_lines": 68,
+      "total_lines": 1129
+    },
+    {
+      "path": "riskcast-v16-main\\riskcast-v16-main\\app\\templates\\home.html",
+      "language": "HTML",
+      "code_lines": 975,
+      "comment_lines": 57,
+      "blank_lines": 66,
+      "total_lines": 1098
+    },
+    {
+      "path": "riskcast-v16-main\\AI_SYSTEM_ADVISOR_REFACTORING_PLAN.md",
+      "language": "docs",
+      "code_lines": 939,
+      "comment_lines": 0,
+      "blank_lines": 216,
+      "total_lines": 1155
+    },
+    {
+      "path": "riskcast-v16-main\\ENTERPRISE_AUDIT_REPORT.md",
+      "language": "docs",
+      "code_lines": 894,
+      "comment_lines": 0,
+      "blank_lines": 222,
+      "total_lines": 1116
+    },
+    {
+      "path": "riskcast-v16-main\\INSURANCE_GRADE_AUDIT_REPORT.md",
+      "language": "docs",
+      "code_lines": 894,
+      "comment_lines": 0,
+      "blank_lines": 321,
+      "total_lines": 1215
+    },
+    {
+      "path": "riskcast-v16-main\\app\\static\\js\\sci_fi_risk_viz.js",
+      "language": "JavaScript",
+      "code_lines": 876,
+      "comment_lines": 149,
+      "blank_lines": 130,
+      "total_lines": 1155
+    }
+  ],
+  "cross_check": null
+}

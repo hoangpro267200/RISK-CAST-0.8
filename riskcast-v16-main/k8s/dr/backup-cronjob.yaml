@@ -1,0 +1,117 @@
+# =============================================================================
+# Automated Backup CronJob
+# =============================================================================
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: database-backup
+  namespace: riskcast-prod
+spec:
+  # Run daily at 3 AM UTC (full on Monday, incremental other days)
+  schedule: "0 3 * * *"
+  
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 3600  # 1 hour timeout
+      
+      template:
+        spec:
+          serviceAccountName: backup-sa
+          restartPolicy: OnFailure
+          
+          containers:
+            - name: backup
+              image: riskcast/backup-tools:latest
+              imagePullPolicy: Always
+              
+              command:
+                - python
+                - /app/scripts/dr/backup.py
+                - --type
+                - auto
+              
+              env:
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: riskcast-database-credentials
+                      key: DATABASE_URL
+                
+                - name: BACKUP_S3_BUCKET
+                  value: riskcast-backups
+                
+                - name: AWS_REGION
+                  value: us-east-1
+                
+                - name: BACKUP_RETENTION_DAYS
+                  value: "30"
+                
+                - name: BACKUP_KMS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: backup-kms-key
+                      key: key_id
+                      optional: true
+                
+                - name: SLACK_WEBHOOK_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: riskcast-monitoring-credentials
+                      key: SLACK_WEBHOOK_URL
+                      optional: true
+              
+              resources:
+                limits:
+                  memory: 1Gi
+                  cpu: 1000m
+                requests:
+                  memory: 512Mi
+                  cpu: 500m
+              
+              volumeMounts:
+                - name: backup-temp
+                  mountPath: /tmp
+          
+          volumes:
+            - name: backup-temp
+              emptyDir:
+                sizeLimit: 5Gi
+
+---
+# ServiceAccount for backup operations
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: backup-sa
+  namespace: riskcast-prod
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT_ID:role/backup-role
+
+---
+# IAM Role for backups (AWS)
+# This is created in AWS, not Kubernetes
+# 
+# Permissions needed:
+# - s3:PutObject, s3:GetObject, s3:ListBucket, s3:DeleteObject on backup bucket
+# - kms:Encrypt, kms:Decrypt, kms:GenerateDataKey on KMS key
+# - secretsmanager:GetSecretValue on database credentials
+#
+# Trust relationship:
+# {
+#   "Effect": "Allow",
+#   "Principal": {
+#     "Federated": "arn:aws:iam::ACCOUNT_ID:oidc-provider/oidc.eks.REGION.amazonaws.com/id/OIDC_ID"
+#   },
+#   "Action": "sts:AssumeRoleWithWebIdentity",
+#   "Condition": {
+#     "StringEquals": {
+#       "oidc.eks.REGION.amazonaws.com/id/OIDC_ID:sub": "system:serviceaccount:riskcast-prod:backup-sa"
+#     }
+#   }
+# }

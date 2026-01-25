@@ -418,11 +418,12 @@ export function mapDomainCaseToShipmentViewModel(domainCase: DomainCase): Shipme
     etd: normalizeDate(domainCase.etd),
     eta: normalizeDate(domainCase.eta),
     transitTime: domainCase.transitTimeDays,
-    container: domainCase.containerType === 'Air Cargo Unit' ? '' : domainCase.containerType || '',
-    // If both containerType and cargoType are the library defaults, treat as missing; otherwise preserve values.
-    cargo: (domainCase.containerType === 'Air Cargo Unit' && domainCase.cargoType === 'Electronics') ? '' : (domainCase.cargoType || ''),
-    cargoType: (domainCase.containerType === 'Air Cargo Unit' && domainCase.cargoType === 'Electronics') ? '' : (domainCase.cargoType || ''),
-    containerType: domainCase.containerType === 'Air Cargo Unit' ? '' : domainCase.containerType || '',
+    container: domainCase.containerType || '',
+    // Preserve cargo/container types - they are valid inputs from user or sensible defaults
+    // Air Cargo Unit is a valid container type for AIR transport mode
+    cargo: domainCase.cargoType || '',
+    cargoType: domainCase.cargoType || '',
+    containerType: domainCase.containerType || '',
     packaging: domainCase.packaging || null,
     incoterm: domainCase.incoterm || '',
     cargoValue: domainCase.cargoValue,

@@ -1,15 +1,38 @@
 """
 Authentication Router
 
-RISKCAST Auth System - Phase 1
-API endpoints for user authentication.
+RISKCAST Auth System - Production Grade
+API endpoints for user authentication, authorization, and account management.
+
+SECURITY ARCHITECTURE:
+- Session-based authentication with HttpOnly cookies
+- CSRF protection via double-submit cookie pattern
+- Brute-force protection with exponential backoff
+- Secure token generation and rotation
+- Comprehensive audit logging
+
+ENDPOINTS:
+- POST /api/auth/signup - Register new account
+- POST /api/auth/login - Authenticate user
+- POST /api/auth/logout - End session
+- POST /api/auth/refresh - Rotate session token
+- GET /api/auth/me - Get current user profile
+- POST /api/auth/change-password - Change password (authenticated)
+- POST /api/auth/forgot-password - Request password reset
+- POST /api/auth/reset-password - Reset password with token
+- POST /api/auth/verify-email - Verify email address
+- POST /api/auth/resend-verification - Resend verification email
+- GET /api/auth/sessions - List active sessions
+- DELETE /api/auth/sessions/{id} - Revoke specific session
+- POST /api/auth/logout-all - Revoke all sessions
+- API key management endpoints under /api/auth/keys/*
 """
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Response, Cookie
 import os
 from fastapi.security import HTTPBearer
 from sqlalchemy.orm import Session
-from pydantic import BaseModel, EmailStr, validator
-from typing import Optional, Dict, Tuple
+from pydantic import BaseModel, EmailStr, Field, validator
+from typing import Optional, Dict, Tuple, List
 from datetime import datetime, timedelta
 import logging
 import secrets
@@ -21,11 +44,28 @@ import hmac
 import hashlib
 
 from app.database import get_db
-from app.models.auth import User, Session as SessionModel, PasswordResetToken
+from app.models.auth import (
+    AuthUser as User, 
+    Session as SessionModel, 
+    PasswordResetToken,
+    EmailVerificationToken,
+    APIKey,
+    APIKeyScope,
+    AccountStatus,
+    UserRole
+)
 from app.models.account import AuditLog, UserPreference, OAuthIdentity, EventLog
 from app.utils.password import hash_password, verify_password, validate_password_strength
-from app.config.auth import AUTH_CONFIG, is_auth_enabled
-from app.dependencies.auth import get_current_user, require_auth
+from app.auth_config.auth import AUTH_CONFIG, is_auth_enabled, is_production, get_rate_limit_config
+from app.dependencies.auth import (
+    get_current_user, 
+    require_auth, 
+    require_admin,
+    require_role,
+    AuthContext,
+    get_auth_context,
+    require_auth_context
+)
 from app.utils.standard_responses import ok, fail, StandardResponse
 
 logger = logging.getLogger(__name__)
@@ -41,11 +81,13 @@ security = HTTPBearer()
 CSRF_COOKIE_NAME = "csrf_token"
 CSRF_HEADER_NAME = "X-CSRF-Token"
 
-FAILED_LOGIN_WINDOW_MINUTES = 15
-FAILED_LOGIN_MAX_ATTEMPTS = 5
-FAILED_LOGIN_LOCKOUT_MINUTES = 15
+# Get from config with fallbacks
+FAILED_LOGIN_WINDOW_MINUTES = AUTH_CONFIG.get("LOGIN_LOCKOUT_MINUTES", 15)
+FAILED_LOGIN_MAX_ATTEMPTS = AUTH_CONFIG.get("MAX_LOGIN_ATTEMPTS", 5)
+FAILED_LOGIN_LOCKOUT_MINUTES = AUTH_CONFIG.get("LOGIN_LOCKOUT_MINUTES", 15)
 
-# failed login tracker: {(email, ip): (fail_count, first_failure_ts, locked_until_ts)}
+# In-memory failed login tracker (use Redis in production for distributed systems)
+# Format: {(email, ip): (fail_count, first_failure_ts, locked_until_ts)}
 _failed_login_tracker: Dict[Tuple[str, str], Tuple[int, datetime, Optional[datetime]]] = {}
 
 
@@ -106,31 +148,38 @@ class ResetPasswordRequest(BaseModel):
 
 
 class UserResponse(BaseModel):
-    id: int
+    """User information response (public fields only)."""
+    id: str  # UUID, not internal ID
     email: str
     name: Optional[str]
+    role: Optional[str] = None
     is_active: bool
     email_verified: bool
     created_at: str
+    last_login_at: Optional[str] = None
     
     class Config:
         from_attributes = True
 
 
 class SessionResponse(BaseModel):
+    """Session information response."""
     id: int
     user_id: int
     expires_at: str
     user_agent: Optional[str]
     ip_address: Optional[str]
     created_at: str
+    last_seen_at: Optional[str] = None
     is_valid: bool
+    is_current: bool = False  # Flag to identify the current session
     
     class Config:
         from_attributes = True
 
 
 class PreferenceResponse(BaseModel):
+    """User preferences response."""
     timezone: Optional[str] = None
     currency: Optional[str] = None
     units: Optional[str] = None
@@ -140,7 +189,56 @@ class PreferenceResponse(BaseModel):
 
 
 class AccountResponse(UserResponse):
+    """Full account information with preferences."""
     preferences: PreferenceResponse
+
+
+class VerifyEmailRequest(BaseModel):
+    """Email verification request."""
+    token: str
+
+
+class ResendVerificationRequest(BaseModel):
+    """Resend verification email request."""
+    email: EmailStr
+
+
+class CreateAPIKeyRequest(BaseModel):
+    """API key creation request."""
+    name: str = Field(..., min_length=1, max_length=255)
+    description: Optional[str] = None
+    scope: str = "read"  # read, write, admin, webhook, service
+    expires_in_days: Optional[int] = Field(None, ge=1, le=365)
+    permissions: Optional[List[str]] = None
+    
+    @validator("scope")
+    def validate_scope(cls, v):
+        valid_scopes = ["read", "write", "admin", "webhook", "service"]
+        if v.lower() not in valid_scopes:
+            raise ValueError(f"Invalid scope. Must be one of: {', '.join(valid_scopes)}")
+        return v.lower()
+
+
+class APIKeyResponse(BaseModel):
+    """API key response (never includes full key after creation)."""
+    id: int
+    name: str
+    description: Optional[str]
+    key_prefix: str
+    scope: str
+    expires_at: Optional[str]
+    is_valid: bool
+    last_used_at: Optional[str]
+    use_count: int
+    created_at: str
+    
+    class Config:
+        from_attributes = True
+
+
+class APIKeyCreatedResponse(APIKeyResponse):
+    """API key creation response (includes full key ONCE)."""
+    key: str  # Only returned on creation, never again
 
 
 @router.post("/login", response_model=UserResponse)
@@ -153,35 +251,108 @@ async def login(
     """
     Authenticate user and create session.
     
-    Sets session cookie on success.
+    Security:
+    - Validates credentials with constant-time comparison
+    - Tracks failed login attempts with exponential backoff
+    - Records successful login for security auditing
+    - Sets HttpOnly session cookie and CSRF cookie
+    
+    Returns:
+        User profile on success
+        
+    Raises:
+        401: Invalid credentials
+        403: Account disabled/locked
+        429: Too many failed attempts
+        503: Auth not enabled
     """
     if not is_auth_enabled():
         return fail("AUTH_DISABLED", "Authentication is not enabled", status_code=503, request=request)
     
     client_ip = get_client_ip(request)
+    
+    # Check if IP/email combination is locked out
     ensure_not_locked(login_data.email, client_ip)
     
-    # Find user
+    # Find user by email (case-insensitive)
     user = db.query(User).filter(User.email == login_data.email.lower()).first()
     
+    # Constant-time password verification to prevent timing attacks
+    # Even if user doesn't exist, we still "verify" against a dummy hash
+    password_valid = False
+    if user:
+        password_valid = verify_password(login_data.password, user.password_hash)
+    else:
+        # Perform a dummy verification to prevent timing attacks
+        verify_password(login_data.password, "$argon2id$v=19$m=65536,t=2,p=4$dummy")
+    
     # Generic error to prevent email enumeration
-    if not user or not verify_password(login_data.password, user.password_hash):
+    if not user or not password_valid:
         register_login_failure(login_data.email, client_ip)
+        
+        # Log failed attempt (without revealing if user exists)
+        logger.warning(
+            f"Login failed: email={login_data.email[:3]}*** ip={client_ip}",
+            extra={"security_event": "login_failed", "ip": client_ip}
+        )
+        
         return fail("INVALID_CREDENTIALS", "Invalid email or password", status_code=401, request=request)
     
+    # Check account status (backward-compatible)
+    is_locked = getattr(user, 'is_locked', False) if hasattr(user, 'is_locked') else False
+    if is_locked:
+        logger.warning(
+            f"Locked account login attempt: user={user.email}",
+            extra={"security_event": "locked_account_login", "user_id": user.id}
+        )
+        return fail("ACCOUNT_LOCKED", "Account is temporarily locked. Please try again later.", status_code=403, request=request)
+    
+    # Check if account is active (works with both old and new schema)
+    is_active = user.is_active
+    if hasattr(user, 'is_active_account'):
+        is_active = user.is_active_account
+    
+    if not is_active:
+        status_msg = "Account is disabled"
+        if hasattr(user, 'status'):
+            status_msg = {
+                AccountStatus.SUSPENDED.value: "Account is suspended. Please contact support.",
+                AccountStatus.DELETED.value: "Account not found.",
+                AccountStatus.PENDING_VERIFICATION.value: "Please verify your email first.",
+            }.get(user.status, "Account is disabled")
+        
+        return fail("ACCOUNT_DISABLED", status_msg, status_code=403, request=request)
+    
+    # Clear failed login tracking on successful auth
     clear_login_failures(login_data.email, client_ip)
     
-    if not user.is_active:
-        return fail("ACCOUNT_DISABLED", "Account is disabled", status_code=403, request=request)
+    # Record successful login (if method exists in new schema)
+    if hasattr(user, 'record_login_success'):
+        user.record_login_success(client_ip)
     
+    # Create session with CSRF token
     csrf_token = generate_csrf_token()
     session, token = create_session(db, user, request, csrf_token=csrf_token)
     
+    # Set cookies
     set_session_cookie(response, token)
     set_csrf_cookie(response, csrf_token)
     
-    logger.info(f"User logged in: {user.email} (ID: {user.id})")
+    # Commit user changes (last_login, failed_count reset)
+    db.commit()
+    
+    # Security logging (safe - no sensitive data)
+    logger.info(
+        f"User logged in: {user.email}",
+        extra={
+            "security_event": "login_success",
+            "user_id": user.id,
+            "session_id": session.id,
+            "ip": client_ip
+        }
+    )
 
+    # Audit log
     record_audit(
         db=db,
         user_id=user.id,
@@ -190,14 +361,22 @@ async def login(
         metadata={"session_id": session.id},
     )
     
+    # Build response - handle both old and new schemas
+    user_id = getattr(user, 'uuid', None) or str(user.id)
+    user_role = getattr(user, 'role', 'user')
+    is_active = getattr(user, 'is_active_account', user.is_active) if hasattr(user, 'is_active_account') else user.is_active
+    last_login = getattr(user, 'last_login_at', None)
+    
     return ok(
         data=UserResponse(
-            id=user.id,
+            id=user_id,
             email=user.email,
             name=user.name,
-            is_active=user.is_active,
+            role=user_role,
+            is_active=is_active,
             email_verified=user.email_verified,
-            created_at=user.created_at.isoformat()
+            created_at=user.created_at.isoformat(),
+            last_login_at=last_login.isoformat() if last_login else None
         ),
         request=request,
     )
@@ -459,6 +638,34 @@ def fetch_google_userinfo(access_token: str) -> dict:
         return json.loads(resp.read().decode())
 
 
+def _validate_redirect_uri(uri: str) -> bool:
+    """
+    Validate redirect URI to prevent open redirect attacks.
+    Only allows localhost and 127.0.0.1 for security.
+    """
+    if not uri:
+        return False
+    
+    try:
+        parsed = urllib.parse.urlparse(uri)
+        host = parsed.hostname or ""
+        
+        # Allow localhost and 127.0.0.1 only
+        allowed_hosts = ["localhost", "127.0.0.1"]
+        if host in allowed_hosts:
+            return True
+        
+        # Also allow configured allowed origins
+        allowed_origins = AUTH_CONFIG.get("ALLOWED_ORIGINS", [])
+        for origin in allowed_origins:
+            if origin and uri.startswith(origin):
+                return True
+        
+        return False
+    except Exception:
+        return False
+
+
 def set_session_cookie(response: Response, token: str):
     """Set session cookie on response."""
     cookie_name = "session_token"
@@ -534,6 +741,27 @@ async def get_csrf_token(response: Response):
     return {"csrf_token": token}
 
 
+@router.get("/config")
+async def get_auth_config_status():
+    """
+    Get authentication configuration status.
+    
+    Returns which auth methods are available (useful for frontend to show/hide buttons).
+    """
+    google_configured = bool(
+        AUTH_CONFIG.get("GOOGLE_CLIENT_ID") and 
+        AUTH_CONFIG.get("GOOGLE_CLIENT_SECRET") and
+        AUTH_CONFIG.get("GOOGLE_REDIRECT_URI")
+    )
+    
+    return ok({
+        "auth_enabled": is_auth_enabled(),
+        "email_password_enabled": is_auth_enabled(),  # Always available when auth is enabled
+        "google_enabled": google_configured,
+        "email_verification_required": AUTH_CONFIG.get("EMAIL_ENABLED", False),
+    })
+
+
 @router.get("/google/start")
 async def google_start(request: Request, response: Response, redirect_uri_override: Optional[str] = None):
     """
@@ -547,7 +775,8 @@ async def google_start(request: Request, response: Response, redirect_uri_overri
     try:
         client_id, _, redirect_uri = _get_google_config()
     except HTTPException as e:
-        return fail("GOOGLE_OAUTH_NOT_CONFIGURED", "Google OAuth is not configured. Please set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_REDIRECT_URI in your environment.", status_code=503, request=request)
+        # Return 501 Not Implemented instead of 503 for missing config
+        return fail("GOOGLE_OAUTH_NOT_CONFIGURED", "Google OAuth is not configured. Please set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_REDIRECT_URI in your environment.", status_code=501, request=request)
     
     # Validate redirect_uri_override if provided (security: prevent open redirect)
     if redirect_uri_override:
@@ -757,18 +986,50 @@ async def signup(
             name_stripped = signup_data.name.strip()
             name_value = name_stripped if name_stripped else None
         
-        # Create user
-        user = User(
-            email=signup_data.email.lower(),
-            password_hash=hash_password(signup_data.password),
-            name=name_value,
-            is_active=True,
-            email_verified=False
-        )
+        # Create user (backward-compatible with old schema)
+        client_ip = get_client_ip(request)
+        
+        # Build user data - only include fields that exist in the database
+        user_data = {
+            "email": signup_data.email.lower(),
+            "password_hash": hash_password(signup_data.password),
+            "name": name_value,
+            "is_active": True,
+            "email_verified": False
+        }
+        
+        # Try to add new fields if they exist in the model
+        try:
+            import uuid as uuid_mod
+            if hasattr(User, 'uuid'):
+                user_data["uuid"] = str(uuid_mod.uuid4())
+            if hasattr(User, 'status'):
+                user_data["status"] = AccountStatus.ACTIVE.value
+            if hasattr(User, 'role'):
+                user_data["role"] = UserRole.USER.value
+        except Exception:
+            pass
+        
+        user = User(**user_data)
         
         db.add(user)
         db.commit()
         db.refresh(user)
+        
+        # Create email verification token if email verification is required
+        if AUTH_CONFIG.get("EMAIL_ENABLED"):
+            try:
+                verification_token_obj, verification_token = EmailVerificationToken.create_for_user(
+                    user_id=user.id,
+                    email=user.email
+                )
+                db.add(verification_token_obj)
+                db.commit()
+                
+                # Would send email here in production
+                logger.info(f"Email verification token for {user.email}: {verification_token}")
+            except Exception as e:
+                logger.warning(f"Could not create verification token: {e}")
         
         csrf_token = generate_csrf_token()
         # Create session
@@ -778,7 +1039,15 @@ async def signup(
         set_session_cookie(response, token)
         set_csrf_cookie(response, csrf_token)
         
-        logger.info(f"User signed up: {user.email} (ID: {user.id})")
+        # Security logging
+        logger.info(
+            f"User signed up: {user.email}",
+            extra={
+                "security_event": "signup_success",
+                "user_id": user.id,
+                "ip": client_ip
+            }
+        )
 
         record_audit(
             db=db,
@@ -788,14 +1057,21 @@ async def signup(
             metadata={"email": user.email},
         )
         
+        # Build response - handle both old and new schemas
+        user_id = getattr(user, 'uuid', None) or str(user.id)
+        user_role = getattr(user, 'role', 'user')
+        is_active = getattr(user, 'is_active_account', user.is_active) if hasattr(user, 'is_active_account') else user.is_active
+        
         return ok(
             data=UserResponse(
-                id=user.id,
+                id=user_id,
                 email=user.email,
                 name=user.name,
-                is_active=user.is_active,
+                role=user_role,
+                is_active=is_active,
                 email_verified=user.email_verified,
-                created_at=user.created_at.isoformat()
+                created_at=user.created_at.isoformat(),
+                last_login_at=None
             ),
             request=request,
         )
@@ -949,14 +1225,22 @@ async def get_current_user_info(
     """
     Get current authenticated user's profile.
     """
+    # Build response - handle both old and new schemas
+    user_id = getattr(current_user, 'uuid', None) or str(current_user.id)
+    user_role = getattr(current_user, 'role', 'user')
+    is_active = getattr(current_user, 'is_active_account', current_user.is_active) if hasattr(current_user, 'is_active_account') else current_user.is_active
+    last_login = getattr(current_user, 'last_login_at', None)
+    
     return ok(
         data=UserResponse(
-            id=current_user.id,
+            id=user_id,
             email=current_user.email,
             name=current_user.name,
-            is_active=current_user.is_active,
+            role=user_role,
+            is_active=is_active,
             email_verified=current_user.email_verified,
-            created_at=current_user.created_at.isoformat()
+            created_at=current_user.created_at.isoformat(),
+            last_login_at=last_login.isoformat() if last_login else None
         )
     )
 
@@ -1442,3 +1726,686 @@ async def request_data_delete(
         metadata={},
     )
     return ok({"message": "Deletion request received"}, request=request)
+
+
+# ============================
+# Email Verification Endpoints
+# ============================
+
+@router.post("/verify-email")
+async def verify_email(
+    request: Request,
+    verify_data: VerifyEmailRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Verify email address using verification token.
+    
+    Called when user clicks the verification link in their email.
+    """
+    if not is_auth_enabled():
+        return fail("AUTH_DISABLED", "Authentication is not enabled", status_code=503, request=request)
+    
+    # Find token
+    token_hash = EmailVerificationToken.hash_token(verify_data.token)
+    verification = db.query(EmailVerificationToken).filter(
+        EmailVerificationToken.token_hash == token_hash
+    ).first()
+    
+    if not verification or not verification.is_valid():
+        return fail("INVALID_TOKEN", "Invalid or expired verification token", status_code=400, request=request)
+    
+    # Get user
+    user = db.query(User).filter(User.id == verification.user_id).first()
+    if not user:
+        return fail("USER_NOT_FOUND", "User not found", status_code=404, request=request)
+    
+    # Verify email matches
+    if user.email.lower() != verification.email.lower():
+        return fail("EMAIL_MISMATCH", "Email does not match", status_code=400, request=request)
+    
+    # Mark email as verified
+    user.email_verified = True
+    if user.status == AccountStatus.PENDING_VERIFICATION.value:
+        user.status = AccountStatus.ACTIVE.value
+    verification.mark_verified()
+    
+    db.commit()
+    
+    logger.info(
+        f"Email verified: {user.email}",
+        extra={"security_event": "email_verified", "user_id": user.id}
+    )
+    
+    record_audit(
+        db=db,
+        user_id=user.id,
+        action="email_verified",
+        request=request,
+        metadata={"email": user.email},
+    )
+    
+    return ok({"message": "Email verified successfully"}, request=request)
+
+
+@router.post("/resend-verification")
+async def resend_verification(
+    request: Request,
+    resend_data: ResendVerificationRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Resend email verification token.
+    
+    Rate limited to prevent abuse. Always returns success to prevent
+    email enumeration attacks.
+    """
+    if not is_auth_enabled():
+        return fail("AUTH_DISABLED", "Authentication is not enabled", status_code=503, request=request)
+    
+    # Find user (don't reveal if exists)
+    user = db.query(User).filter(User.email == resend_data.email.lower()).first()
+    
+    if user and not user.email_verified:
+        # Invalidate existing tokens
+        db.query(EmailVerificationToken).filter(
+            EmailVerificationToken.user_id == user.id,
+            EmailVerificationToken.verified_at.is_(None)
+        ).update({"verified_at": datetime.utcnow()})
+        
+        # Create new token
+        token_obj, token = EmailVerificationToken.create_for_user(
+            user_id=user.id,
+            email=user.email
+        )
+        db.add(token_obj)
+        db.commit()
+        
+        # Send email (or log in development)
+        if AUTH_CONFIG.get("EMAIL_ENABLED"):
+            # TODO: Implement email sending
+            logger.info(f"Would send verification email to {user.email}")
+        else:
+            # Development mode - log token
+            logger.info(f"Email verification token for {user.email}: {token}")
+            try:
+                print(f"\n{'='*60}")
+                print(f"EMAIL VERIFICATION TOKEN (DEV MODE)")
+                print(f"Email: {user.email}")
+                print(f"Token: {token}")
+                print(f"URL: /verify-email?token={token}")
+                print(f"{'='*60}\n")
+            except UnicodeEncodeError:
+                pass
+        
+        record_audit(
+            db=db,
+            user_id=user.id,
+            action="verification_resent",
+            request=request,
+            metadata={},
+        )
+    
+    # Always return success to prevent enumeration
+    return ok({"message": "If the email exists and is unverified, a verification link has been sent"}, request=request)
+
+
+# ============================
+# API Key Management Endpoints
+# ============================
+
+api_key_router = APIRouter(prefix="/api/auth/keys", tags=["api-keys"])
+
+
+@api_key_router.get("", response_model=List[APIKeyResponse])
+async def list_api_keys(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_auth)
+):
+    """
+    List all API keys for the current user.
+    
+    Note: Full key values are never returned after creation.
+    """
+    keys = db.query(APIKey).filter(
+        APIKey.user_id == current_user.id,
+        APIKey.revoked_at.is_(None)
+    ).order_by(APIKey.created_at.desc()).all()
+    
+    return ok(
+        data=[
+            APIKeyResponse(
+                id=key.id,
+                name=key.name,
+                description=key.description,
+                key_prefix=key.key_prefix,
+                scope=key.scope,
+                expires_at=key.expires_at.isoformat() if key.expires_at else None,
+                is_valid=key.is_valid(),
+                last_used_at=key.last_used_at.isoformat() if key.last_used_at else None,
+                use_count=key.use_count,
+                created_at=key.created_at.isoformat()
+            )
+            for key in keys
+        ]
+    )
+
+
+@api_key_router.post("", response_model=APIKeyCreatedResponse, status_code=status.HTTP_201_CREATED)
+async def create_api_key(
+    request: Request,
+    key_data: CreateAPIKeyRequest,
+    csrf_token_cookie: Optional[str] = Cookie(None, alias=CSRF_COOKIE_NAME),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_auth)
+):
+    """
+    Create a new API key.
+    
+    IMPORTANT: The full API key is only returned ONCE during creation.
+    Store it securely - it cannot be retrieved again.
+    
+    Scopes:
+    - read: Read-only API access
+    - write: Read and write access
+    - admin: Full administrative access
+    - webhook: Webhook delivery only
+    - service: Service-to-service communication
+    """
+    verify_csrf(request, csrf_token_cookie, db)
+    
+    # Check key limit
+    max_keys = AUTH_CONFIG.get("API_KEY_MAX_PER_USER", 10)
+    existing_count = db.query(APIKey).filter(
+        APIKey.user_id == current_user.id,
+        APIKey.revoked_at.is_(None)
+    ).count()
+    
+    if existing_count >= max_keys:
+        return fail("KEY_LIMIT_REACHED", f"Maximum {max_keys} API keys allowed", status_code=400, request=request)
+    
+    # Validate scope (admin/service require elevated privileges)
+    scope = APIKeyScope(key_data.scope)
+    if scope in (APIKeyScope.ADMIN, APIKeyScope.SERVICE):
+        if not current_user.has_role(UserRole.ADMIN):
+            return fail("INSUFFICIENT_PERMISSIONS", "Admin role required for this scope", status_code=403, request=request)
+    
+    # Create API key
+    api_key, plain_key = APIKey.create_for_user(
+        user_id=current_user.id,
+        name=key_data.name,
+        scope=scope,
+        description=key_data.description,
+        expires_in_days=key_data.expires_in_days,
+        tenant_id=current_user.tenant_id,
+        permissions=key_data.permissions
+    )
+    
+    db.add(api_key)
+    db.commit()
+    db.refresh(api_key)
+    
+    logger.info(
+        f"API key created: {api_key.name} ({api_key.key_prefix}***)",
+        extra={
+            "security_event": "api_key_created",
+            "user_id": current_user.id,
+            "key_id": api_key.id,
+            "scope": api_key.scope
+        }
+    )
+    
+    record_audit(
+        db=db,
+        user_id=current_user.id,
+        action="api_key_created",
+        request=request,
+        metadata={"key_id": api_key.id, "key_name": api_key.name, "scope": api_key.scope},
+    )
+    
+    return ok(
+        data=APIKeyCreatedResponse(
+            id=api_key.id,
+            name=api_key.name,
+            description=api_key.description,
+            key_prefix=api_key.key_prefix,
+            key=plain_key,  # Only returned once!
+            scope=api_key.scope,
+            expires_at=api_key.expires_at.isoformat() if api_key.expires_at else None,
+            is_valid=True,
+            last_used_at=None,
+            use_count=0,
+            created_at=api_key.created_at.isoformat()
+        ),
+        request=request
+    )
+
+
+@api_key_router.delete("/{key_id}")
+async def revoke_api_key(
+    key_id: int,
+    request: Request,
+    csrf_token_cookie: Optional[str] = Cookie(None, alias=CSRF_COOKIE_NAME),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_auth)
+):
+    """
+    Revoke an API key.
+    
+    This immediately invalidates the key. This action cannot be undone.
+    """
+    verify_csrf(request, csrf_token_cookie, db)
+    
+    # Find key
+    api_key = db.query(APIKey).filter(
+        APIKey.id == key_id,
+        APIKey.user_id == current_user.id
+    ).first()
+    
+    if not api_key:
+        return fail("KEY_NOT_FOUND", "API key not found", status_code=404, request=request)
+    
+    if api_key.revoked_at is not None:
+        return fail("KEY_ALREADY_REVOKED", "API key already revoked", status_code=400, request=request)
+    
+    # Revoke
+    api_key.revoke("user_request")
+    db.commit()
+    
+    logger.info(
+        f"API key revoked: {api_key.name} ({api_key.key_prefix}***)",
+        extra={
+            "security_event": "api_key_revoked",
+            "user_id": current_user.id,
+            "key_id": api_key.id
+        }
+    )
+    
+    record_audit(
+        db=db,
+        user_id=current_user.id,
+        action="api_key_revoked",
+        request=request,
+        metadata={"key_id": api_key.id, "key_name": api_key.name},
+    )
+    
+    return ok({"message": "API key revoked successfully"}, request=request)
+
+
+@api_key_router.get("/{key_id}", response_model=APIKeyResponse)
+async def get_api_key(
+    key_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_auth)
+):
+    """
+    Get details of a specific API key.
+    
+    Note: The full key value is never returned.
+    """
+    api_key = db.query(APIKey).filter(
+        APIKey.id == key_id,
+        APIKey.user_id == current_user.id
+    ).first()
+    
+    if not api_key:
+        return fail("KEY_NOT_FOUND", "API key not found", status_code=404, request=None)
+    
+    return ok(
+        data=APIKeyResponse(
+            id=api_key.id,
+            name=api_key.name,
+            description=api_key.description,
+            key_prefix=api_key.key_prefix,
+            scope=api_key.scope,
+            expires_at=api_key.expires_at.isoformat() if api_key.expires_at else None,
+            is_valid=api_key.is_valid(),
+            last_used_at=api_key.last_used_at.isoformat() if api_key.last_used_at else None,
+            use_count=api_key.use_count,
+            created_at=api_key.created_at.isoformat()
+        )
+    )
+
+
+# ============================
+# Admin User Management
+# ============================
+
+admin_router = APIRouter(prefix="/api/admin", tags=["admin"])
+
+
+@admin_router.get("/users")
+async def list_users(
+    request: Request,
+    skip: int = 0,
+    limit: int = 50,
+    status_filter: Optional[str] = None,
+    role_filter: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
+):
+    """
+    List users (admin only).
+    
+    Supports filtering by status and role, with pagination.
+    """
+    query = db.query(User)
+    
+    # Apply filters
+    if status_filter:
+        query = query.filter(User.status == status_filter)
+    if role_filter:
+        query = query.filter(User.role == role_filter)
+    
+    # Get total count
+    total = query.count()
+    
+    # Apply pagination
+    users = query.order_by(User.created_at.desc()).offset(skip).limit(min(limit, 100)).all()
+    
+    return ok(
+        data={
+            "users": [user.to_dict(include_sensitive=True) for user in users],
+            "total": total,
+            "skip": skip,
+            "limit": limit
+        },
+        request=request
+    )
+
+
+@admin_router.get("/users/{user_uuid}")
+async def get_user(
+    user_uuid: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
+):
+    """
+    Get user details (admin only).
+    """
+    user = db.query(User).filter(User.uuid == user_uuid).first()
+    
+    if not user:
+        return fail("USER_NOT_FOUND", "User not found", status_code=404, request=None)
+    
+    return ok(data=user.to_dict(include_sensitive=True))
+
+
+@admin_router.patch("/users/{user_uuid}/status")
+async def update_user_status(
+    user_uuid: str,
+    request: Request,
+    new_status: str,
+    csrf_token_cookie: Optional[str] = Cookie(None, alias=CSRF_COOKIE_NAME),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
+):
+    """
+    Update user status (admin only).
+    
+    Valid statuses: active, suspended, locked, deleted
+    """
+    verify_csrf(request, csrf_token_cookie, db)
+    
+    # Validate status
+    valid_statuses = [s.value for s in AccountStatus]
+    if new_status not in valid_statuses:
+        return fail("INVALID_STATUS", f"Invalid status. Must be one of: {', '.join(valid_statuses)}", status_code=400, request=request)
+    
+    # Find user
+    user = db.query(User).filter(User.uuid == user_uuid).first()
+    if not user:
+        return fail("USER_NOT_FOUND", "User not found", status_code=404, request=request)
+    
+    # Prevent self-modification
+    if user.id == current_user.id:
+        return fail("SELF_MODIFICATION", "Cannot modify your own status", status_code=400, request=request)
+    
+    old_status = user.status
+    user.status = new_status
+    
+    # If suspending/deleting, revoke all sessions
+    if new_status in (AccountStatus.SUSPENDED.value, AccountStatus.DELETED.value, AccountStatus.LOCKED.value):
+        db.query(SessionModel).filter(
+            SessionModel.user_id == user.id,
+            SessionModel.revoked_at.is_(None)
+        ).update({"revoked_at": datetime.utcnow(), "revoke_reason": f"user_{new_status}"})
+    
+    db.commit()
+    
+    logger.info(
+        f"User status changed: {user.email} from {old_status} to {new_status}",
+        extra={
+            "security_event": "user_status_changed",
+            "target_user_id": user.id,
+            "admin_user_id": current_user.id,
+            "old_status": old_status,
+            "new_status": new_status
+        }
+    )
+    
+    record_audit(
+        db=db,
+        user_id=current_user.id,
+        action="admin_update_user_status",
+        request=request,
+        metadata={
+            "target_user_id": user.id,
+            "old_status": old_status,
+            "new_status": new_status
+        },
+    )
+    
+    return ok({"message": f"User status updated to {new_status}"}, request=request)
+
+
+@admin_router.patch("/users/{user_uuid}/role")
+async def update_user_role(
+    user_uuid: str,
+    request: Request,
+    new_role: str,
+    csrf_token_cookie: Optional[str] = Cookie(None, alias=CSRF_COOKIE_NAME),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
+):
+    """
+    Update user role (admin only).
+    
+    Valid roles: user, operator, analyst, underwriter, admin, super_admin
+    Note: Only super_admin can assign admin/super_admin roles.
+    """
+    verify_csrf(request, csrf_token_cookie, db)
+    
+    # Validate role
+    valid_roles = [r.value for r in UserRole]
+    if new_role not in valid_roles:
+        return fail("INVALID_ROLE", f"Invalid role. Must be one of: {', '.join(valid_roles)}", status_code=400, request=request)
+    
+    # Only super admin can assign admin roles
+    if new_role in (UserRole.ADMIN.value, UserRole.SUPER_ADMIN.value):
+        if not current_user.has_role(UserRole.SUPER_ADMIN):
+            return fail("INSUFFICIENT_PERMISSIONS", "Super admin required to assign admin roles", status_code=403, request=request)
+    
+    # Find user
+    user = db.query(User).filter(User.uuid == user_uuid).first()
+    if not user:
+        return fail("USER_NOT_FOUND", "User not found", status_code=404, request=request)
+    
+    # Prevent self-demotion
+    if user.id == current_user.id:
+        return fail("SELF_MODIFICATION", "Cannot modify your own role", status_code=400, request=request)
+    
+    old_role = user.role
+    user.role = new_role
+    db.commit()
+    
+    logger.info(
+        f"User role changed: {user.email} from {old_role} to {new_role}",
+        extra={
+            "security_event": "user_role_changed",
+            "target_user_id": user.id,
+            "admin_user_id": current_user.id,
+            "old_role": old_role,
+            "new_role": new_role
+        }
+    )
+    
+    record_audit(
+        db=db,
+        user_id=current_user.id,
+        action="admin_update_user_role",
+        request=request,
+        metadata={
+            "target_user_id": user.id,
+            "old_role": old_role,
+            "new_role": new_role
+        },
+    )
+    
+    return ok({"message": f"User role updated to {new_role}"}, request=request)
+
+
+@admin_router.get("/sessions")
+async def list_all_sessions(
+    request: Request,
+    skip: int = 0,
+    limit: int = 50,
+    user_uuid: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
+):
+    """
+    List all active sessions (admin only).
+    
+    Optionally filter by user UUID.
+    """
+    query = db.query(SessionModel).filter(SessionModel.revoked_at.is_(None))
+    
+    if user_uuid:
+        user = db.query(User).filter(User.uuid == user_uuid).first()
+        if user:
+            query = query.filter(SessionModel.user_id == user.id)
+    
+    total = query.count()
+    sessions = query.order_by(SessionModel.created_at.desc()).offset(skip).limit(min(limit, 100)).all()
+    
+    return ok(
+        data={
+            "sessions": [s.to_dict(include_sensitive=True) for s in sessions],
+            "total": total,
+            "skip": skip,
+            "limit": limit
+        },
+        request=request
+    )
+
+
+@admin_router.delete("/sessions/{session_id}")
+async def admin_revoke_session(
+    session_id: int,
+    request: Request,
+    csrf_token_cookie: Optional[str] = Cookie(None, alias=CSRF_COOKIE_NAME),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
+):
+    """
+    Revoke any session (admin only).
+    """
+    verify_csrf(request, csrf_token_cookie, db)
+    
+    session = db.query(SessionModel).filter(SessionModel.id == session_id).first()
+    
+    if not session:
+        return fail("SESSION_NOT_FOUND", "Session not found", status_code=404, request=request)
+    
+    if session.revoked_at is not None:
+        return fail("SESSION_ALREADY_REVOKED", "Session already revoked", status_code=400, request=request)
+    
+    session.revoke("admin")
+    db.commit()
+    
+    logger.info(
+        f"Admin revoked session: {session.id}",
+        extra={
+            "security_event": "admin_session_revoked",
+            "session_id": session.id,
+            "target_user_id": session.user_id,
+            "admin_user_id": current_user.id
+        }
+    )
+    
+    record_audit(
+        db=db,
+        user_id=current_user.id,
+        action="admin_revoke_session",
+        request=request,
+        metadata={"session_id": session.id, "target_user_id": session.user_id},
+    )
+    
+    return ok({"message": "Session revoked"}, request=request)
+
+
+@admin_router.get("/audit-log")
+async def get_audit_log(
+    request: Request,
+    skip: int = 0,
+    limit: int = 100,
+    user_uuid: Optional[str] = None,
+    action_type: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
+):
+    """
+    Query audit log (admin only).
+    
+    Supports filtering by user, action type, and date range.
+    """
+    query = db.query(AuditLog)
+    
+    # Apply filters
+    if user_uuid:
+        user = db.query(User).filter(User.uuid == user_uuid).first()
+        if user:
+            query = query.filter(AuditLog.user_id == user.id)
+    
+    if action_type:
+        query = query.filter(AuditLog.action_type == action_type)
+    
+    if start_date:
+        try:
+            start = datetime.fromisoformat(start_date)
+            query = query.filter(AuditLog.created_at >= start)
+        except ValueError:
+            pass
+    
+    if end_date:
+        try:
+            end = datetime.fromisoformat(end_date)
+            query = query.filter(AuditLog.created_at <= end)
+        except ValueError:
+            pass
+    
+    total = query.count()
+    logs = query.order_by(AuditLog.created_at.desc()).offset(skip).limit(min(limit, 500)).all()
+    
+    return ok(
+        data={
+            "logs": [
+                {
+                    "id": log.id,
+                    "user_id": log.user_id,
+                    "action_type": log.action_type,
+                    "metadata": log.metadata_json,
+                    "ip": log.ip,
+                    "created_at": log.created_at.isoformat() if log.created_at else None
+                }
+                for log in logs
+            ],
+            "total": total,
+            "skip": skip,
+            "limit": limit
+        },
+        request=request
+    )

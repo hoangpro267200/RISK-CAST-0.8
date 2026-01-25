@@ -25,9 +25,9 @@ class TenantStatus(str, enum.Enum):
     SUSPENDED = "SUSPENDED"
 
 
-class Tenant(Base):
+class LegacyTenant(Base):
     """
-    Tenant/Organization model
+    Legacy Tenant/Organization model (renamed to avoid conflict with tenancy.models.Tenant)
     
     Represents a tenant in the multi-tenant system.
     Uses UUID for primary key (as per requirements).
@@ -63,7 +63,7 @@ class Tenant(Base):
     
     # Relationships
     memberships = relationship(
-        "Membership",
+        "LegacyMembership",
         back_populates="tenant",
         cascade="all, delete-orphan"
     )
@@ -76,7 +76,7 @@ class Tenant(Base):
     )
     
     def __repr__(self) -> str:
-        return f"<Tenant(id={self.id}, name={self.name!r}, slug={self.slug!r}, status={self.status.value})>"
+        return f"<LegacyTenant(id={self.id}, name={self.name!r}, slug={self.slug!r}, status={self.status.value})>"
 
 
 class MembershipStatus(str, enum.Enum):
@@ -86,9 +86,9 @@ class MembershipStatus(str, enum.Enum):
     SUSPENDED = "SUSPENDED"
 
 
-class Membership(Base):
+class LegacyMembership(Base):
     """
-    Membership model - User-Tenant-Role association
+    Legacy Membership model - User-Tenant-Role association (renamed to avoid conflict)
     
     Links users to tenants with a role.
     Uses UUID for primary key (as per requirements).
@@ -106,8 +106,8 @@ class Membership(Base):
     
     # Foreign keys
     tenant_id = Column(
-        String(36),  # UUID (matches tenants.id)
-        ForeignKey("tenants.id", ondelete="CASCADE"),
+        String(36),  # UUID (matches legacy_tenants.id)
+        ForeignKey("legacy_tenants.id", ondelete="CASCADE"),
         nullable=False,
         index=True
     )
@@ -133,7 +133,7 @@ class Membership(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
     
     # Relationships
-    tenant = relationship("Tenant", back_populates="memberships")
+    tenant = relationship("LegacyTenant", back_populates="memberships")
     # Note: User relationship would be defined in User model
     
     __table_args__ = (
@@ -146,6 +146,13 @@ class Membership(Base):
     
     def __repr__(self) -> str:
         return (
-            f"<Membership(id={self.id}, tenant_id={self.tenant_id!r}, "
+            f"<LegacyMembership(id={self.id}, tenant_id={self.tenant_id!r}, "
             f"user_id={self.user_id!r}, role={self.role!r}, status={self.status.value})>"
         )
+
+
+# Backward compatibility aliases (not registering new SQLAlchemy mappers)
+# These aliases allow old imports to work without causing SQLAlchemy registry conflicts
+# since they point to the same class object (not a new class)
+Tenant = LegacyTenant
+Membership = LegacyMembership

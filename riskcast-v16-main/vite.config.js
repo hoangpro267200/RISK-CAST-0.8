@@ -35,6 +35,7 @@ export default defineConfig(({ mode }) => {
           target: 'http://127.0.0.1:8000',
           changeOrigin: true,
         },
+        // ONLY proxy /results/data API endpoint, NOT /results page!
         '/results/data': {
           target: 'http://127.0.0.1:8000',
           changeOrigin: true,
@@ -47,10 +48,8 @@ export default defineConfig(({ mode }) => {
             });
           },
         },
-        '/results': {
-          target: 'http://127.0.0.1:8000',
-          changeOrigin: true,
-        },
+        // DO NOT proxy /results page - it should be served by Vite/React
+        // '/results': { ... } - REMOVED to allow React SPA to handle this route
         '/assets': {
           target: 'http://127.0.0.1:8000',
           changeOrigin: true,

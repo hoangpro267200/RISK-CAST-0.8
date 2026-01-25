@@ -1,145 +1,168 @@
+# =============================================================================
+# .dockerignore
+# =============================================================================
+# Excludes files from Docker build context for faster builds and smaller images
+
+# -----------------------------------------------------------------------------
 # Git
+# -----------------------------------------------------------------------------
 .git
 .gitignore
 .gitattributes
+.github/
 
+# -----------------------------------------------------------------------------
 # Python
+# -----------------------------------------------------------------------------
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Python packaging
+.eggs/
 *.egg-info/
 *.egg
 dist/
 build/
-.eggs/
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-.mypy_cache/
-.ruff_cache/
+wheels/
 
-# Virtual Environment
-venv/
-env/
-ENV/
-env.bak/
-venv.bak/
-.venv/
-
-# IDE
+# -----------------------------------------------------------------------------
+# IDE & Editors
+# -----------------------------------------------------------------------------
 .idea/
 .vscode/
 *.swp
 *.swo
 *~
-*.code-workspace
-.cursor/
+.project
+.pydevproject
+.settings/
 
-# Environment variables
+# -----------------------------------------------------------------------------
+# Testing
+# -----------------------------------------------------------------------------
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+junit-*.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# -----------------------------------------------------------------------------
+# Documentation
+# -----------------------------------------------------------------------------
+docs/_build/
+docs/.doctrees/
+*.md
+!README.md
+
+# -----------------------------------------------------------------------------
+# Docker
+# -----------------------------------------------------------------------------
+Dockerfile*
+docker-compose*.yml
+.docker/
+.dockerignore
+
+# -----------------------------------------------------------------------------
+# CI/CD
+# -----------------------------------------------------------------------------
+.github/
+.gitlab-ci.yml
+.travis.yml
+.circleci/
+azure-pipelines.yml
+
+# -----------------------------------------------------------------------------
+# Local development
+# -----------------------------------------------------------------------------
+.local/
 .env
-.env.local
-.env.*.local
-.env_1
-.env.backup
-.env.test
-.env.production
-.env.development
-*.env
-!*.env.example
+.env.*
+!.env.example
+*.local
 
-# API Keys and Secrets
-*.key
-*.pem
-*.p12
-*.pfx
-secrets/
-credentials/
-config.local.*
-*.secret
-
+# -----------------------------------------------------------------------------
 # Logs
-*.log
+# -----------------------------------------------------------------------------
 logs/
-*.log.*
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# OS
+# -----------------------------------------------------------------------------
+# Temporary files
+# -----------------------------------------------------------------------------
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+
+# -----------------------------------------------------------------------------
+# OS files
+# -----------------------------------------------------------------------------
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# Node (if frontend is separate)
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
+# -----------------------------------------------------------------------------
+# Build artifacts
+# -----------------------------------------------------------------------------
+dist/
+build/
+target/
 
-# Frontend build artifacts (if in same repo)
-frontend/dist/
-frontend/build/
-frontend/.next/
-frontend/.vite/
+# -----------------------------------------------------------------------------
+# Test data
+# -----------------------------------------------------------------------------
+tests/
+test_*.py
+*_test.py
+test-*.xml
 
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-.hypothesis/
-
+# -----------------------------------------------------------------------------
 # Database
+# -----------------------------------------------------------------------------
 *.db
 *.sqlite
 *.sqlite3
-
-# Temporary files
-*.tmp
-*.temp
-.cache/
-tmp/
-temp/
-
-# Documentation (keep README)
-docs/
-*.md
-!README.md
-
-# Docker
-Dockerfile*
-docker-compose*
-.docker/
-.dockerignore
-
-# CI/CD
-.github/
-.gitlab-ci.yml
-Jenkinsfile
-.circleci/
-
-# Local development
-.local/
-*.local
-
-# Data files
 data/
-*.csv
-*.xlsx
-*.pdf
 
-# Archives
-*.zip
-*.tar
-*.tar.gz
-*.rar
+# -----------------------------------------------------------------------------
+# Cache
+# -----------------------------------------------------------------------------
+.cache/
+*.cache
 
-# Scripts (keep essential ones)
-scripts/
-!scripts/init-db.sql
+# -----------------------------------------------------------------------------
+# Alembic (keep structure, exclude specific files)
+# -----------------------------------------------------------------------------
+alembic/versions/*.pyc
 
-# Old/archive code
-archive/
-old/
-backup/
+# -----------------------------------------------------------------------------
+# Misc
+# -----------------------------------------------------------------------------
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+celerybeat-schedule
+celerybeat.pid

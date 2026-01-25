@@ -14,6 +14,7 @@ import os
 Base = declarative_base()
 
 # Database URL from environment
+# Use environment variable directly to avoid circular imports
 DATABASE_URL = os.getenv(
     'DATABASE_URL',
     'sqlite:///./riskcast.db'  # Default to SQLite for development
@@ -68,6 +69,30 @@ def init_db():
     This function only verifies database connectivity.
     """
     try:
+        # Update DATABASE_URL from settings if available (avoid circular import)
+        try:
+            from app.config import settings
+            global DATABASE_URL, engine, SessionLocal
+            if hasattr(settings, 'DATABASE_URL') and settings.DATABASE_URL != DATABASE_URL:
+                DATABASE_URL = settings.DATABASE_URL
+                # Recreate engine with new URL
+                if DATABASE_URL.startswith('sqlite'):
+                    engine = create_engine(
+                        DATABASE_URL,
+                        connect_args={"check_same_thread": False}
+                    )
+                else:
+                    engine = create_engine(
+                        DATABASE_URL,
+                        pool_size=5,
+                        max_overflow=10,
+                        pool_timeout=30,
+                        pool_recycle=1800
+                    )
+                SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        except (ImportError, AttributeError):
+            pass  # Use existing DATABASE_URL from env
+        
         # Just verify connection - don't create tables
         # Tables should be created via: alembic upgrade head
         with engine.connect() as conn:

@@ -91,6 +91,62 @@ try:
 except ImportError:
     regulatory_api_router = None
 
+try:
+    from app.api.v3.health import router as health_api_router
+except ImportError:
+    health_api_router = None
+
+try:
+    from app.api.v3.onboarding import router as onboarding_api_router
+except ImportError:
+    onboarding_api_router = None
+
+try:
+    from app.api.v3.quotes import router as quotes_api_router
+except ImportError:
+    quotes_api_router = None
+
+try:
+    from app.api.v3.customer_portal import router as customer_portal_router
+except ImportError:
+    customer_portal_router = None
+
+try:
+    from app.api.v3.webhooks import router as webhooks_router
+except ImportError:
+    webhooks_router = None
+
+try:
+    from app.api.v3.usage import router as usage_router
+except ImportError:
+    usage_router = None
+
+# ML/AI Feature routers
+try:
+    from app.api.v3.fraud_detection import router as fraud_detection_router
+except ImportError:
+    fraud_detection_router = None
+
+try:
+    from app.api.v3.nlp import router as nlp_router
+except ImportError:
+    nlp_router = None
+
+try:
+    from app.api.v3.predictive_analytics import router as predictive_analytics_router
+except ImportError:
+    predictive_analytics_router = None
+
+try:
+    from app.api.v3.websocket import router as websocket_router
+except ImportError:
+    websocket_router = None
+
+try:
+    from app.api.v3.evidence_bundles import router as evidence_bundles_router
+except ImportError:
+    evidence_bundles_router = None
+
 model_versions_router = None
 try:
     from app.api.v3.model_versions import router as model_versions_router
@@ -192,12 +248,33 @@ if data_quality_api_router:
     router.include_router(data_quality_api_router)
 if regulatory_api_router:
     router.include_router(regulatory_api_router)
-if model_versioning_router:
-    router.include_router(model_versioning_router)
-if evidence_api_router:
-    router.include_router(evidence_api_router)
+if health_api_router:
+    router.include_router(health_api_router)
+if onboarding_api_router:
+    router.include_router(onboarding_api_router)
+if quotes_api_router:
+    router.include_router(quotes_api_router)
+if customer_portal_router:
+    router.include_router(customer_portal_router)
+if webhooks_router:
+    router.include_router(webhooks_router)
+if usage_router:
+    router.include_router(usage_router)
+
+# Include ML/AI feature routers
+if fraud_detection_router:
+    router.include_router(fraud_detection_router)
+if nlp_router:
+    router.include_router(nlp_router)
+if predictive_analytics_router:
+    router.include_router(predictive_analytics_router)
+if websocket_router:
+    router.include_router(websocket_router)
+if evidence_bundles_router:
+    router.include_router(evidence_bundles_router)
 
 # Include other module routers (if available)
+# Note: Only include module routers that are NOT covered by v3 API routers
 if tenancy_router:
     router.include_router(tenancy_router)
 if auth_router:
@@ -208,13 +285,11 @@ if audit_router:
     router.include_router(audit_router)
 if observability_router:
     router.include_router(observability_router)
-if model_versioning_router:
-    router.include_router(model_versioning_router)
-if evidence_router:
-    router.include_router(evidence_router)
-if underwriting_router:
-    router.include_router(underwriting_router)
-if claims_router:
-    router.include_router(claims_router)
-if parametric_router:
-    router.include_router(parametric_router)
+
+# NOTE: The following module routers are excluded to avoid duplicate operation IDs
+# because they're already covered by the v3 API routers above:
+# - model_versioning_router (covered by model_versions_router)
+# - evidence_router (covered by evidence_api_router)
+# - underwriting_router (covered by underwriting_api_router)
+# - claims_router (covered by claims_api_router)
+# - parametric_router (covered by parametric_api_router)

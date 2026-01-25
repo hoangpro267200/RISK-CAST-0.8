@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Đăng ký - RISKCAST</title>
+  
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            rcBackground: "#020405",
+            rcSurface: "#0a1210",
+            rcPrimary: "#36e27b",
+            rcSecondary: "#00f0ff",
+            rcRisk: "#ff3366",
+            rcText: "#e5e5e5",
+          },
+        },
+      },
+    };
+  </script>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    .glow-border {
+      box-shadow: 0 0 20px rgba(54, 226, 123, 0.1),
+                  inset 0 0 20px rgba(54, 226, 123, 0.05);
+    }
+    .input-glow:focus {
+      box-shadow: 0 0 0 2px rgba(54, 226, 123, 0.3);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #36e27b 0%, #2bc866 100%);
+      transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px rgba(54, 226, 123, 0.4);
+    }
+    .google-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+    }
+    .google-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    .password-strength {
+      transition: all 0.3s ease;
+    }
+  </style>
+</head>
+<body class="bg-rcBackground text-rcText min-h-screen flex items-center justify-center p-4">
+  <!-- Background Effects -->
+  <div class="fixed inset-0 overflow-hidden pointer-events-none">
+    <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-cyan-500/5 rounded-full blur-3xl"></div>
+  </div>
+  
+  <div class="relative w-full max-w-md">
+    <!-- Logo -->
+    <div class="text-center mb-8">
+      <a href="/" class="inline-flex items-center gap-3 group">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="text-xs tracking-[0.2em] text-slate-400">RISKCAST</div>
+          <div class="text-sm font-semibold text-emerald-400">FutureOS</div>
+        </div>
+      </a>
+    </div>
+    
+    <!-- Signup Card -->
+    <div class="bg-rcSurface/80 backdrop-blur-xl rounded-2xl p-8 glow-border border border-slate-700/50">
+      <h1 class="text-2xl font-semibold text-center mb-2">Tạo tài khoản</h1>
+      <p class="text-slate-400 text-center text-sm mb-8">Bắt đầu với RISKCAST miễn phí</p>
+      
+      <!-- Error Message -->
+      <div id="error-message" class="hidden mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm"></div>
+      
+      <!-- Success Message -->
+      <div id="success-message" class="hidden mb-4 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-emerald-400 text-sm"></div>
+      
+      <!-- Signup Form -->
+      <form id="signup-form" class="space-y-5">
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-2">Họ và tên</label>
+          <input 
+            type="text" 
+            name="name" 
+            class="w-full px-4 py-3 bg-slate-800/50 border border-slate-700/50 rounded-xl text-white placeholder-slate-500 focus:outline-none input-glow transition"
+            placeholder="Nguyễn Văn A"
+          />
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-2">Email</label>
+          <input 
+            type="email" 
+            name="email" 
+            required
+            class="w-full px-4 py-3 bg-slate-800/50 border border-slate-700/50 rounded-xl text-white placeholder-slate-500 focus:outline-none input-glow transition"
+            placeholder="your@email.com"
+          />
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-2">Mật khẩu</label>
+          <input 
+            type="password" 
+            name="password" 
+            id="password"
+            required
+            minlength="8"
+            class="w-full px-4 py-3 bg-slate-800/50 border border-slate-700/50 rounded-xl text-white placeholder-slate-500 focus:outline-none input-glow transition"
+            placeholder="Tối thiểu 8 ký tự"
+          />
+          <!-- Password Strength Indicator -->
+          <div class="mt-2 flex gap-1">
+            <div id="strength-1" class="h-1 flex-1 rounded-full bg-slate-700"></div>
+            <div id="strength-2" class="h-1 flex-1 rounded-full bg-slate-700"></div>
+            <div id="strength-3" class="h-1 flex-1 rounded-full bg-slate-700"></div>
+            <div id="strength-4" class="h-1 flex-1 rounded-full bg-slate-700"></div>
+          </div>
+          <p id="strength-text" class="text-xs text-slate-500 mt-1"></p>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-2">Xác nhận mật khẩu</label>
+          <input 
+            type="password" 
+            name="confirmPassword" 
+            id="confirmPassword"
+            required
+            class="w-full px-4 py-3 bg-slate-800/50 border border-slate-700/50 rounded-xl text-white placeholder-slate-500 focus:outline-none input-glow transition"
+            placeholder="Nhập lại mật khẩu"
+          />
+        </div>
+        
+        <div class="flex items-start gap-2">
+          <input type="checkbox" id="terms" required class="mt-1 w-4 h-4 rounded bg-slate-800 border-slate-700 text-emerald-500 focus:ring-emerald-500/30" />
+          <label for="terms" class="text-sm text-slate-400">
+            Tôi đồng ý với <a href="/terms" class="text-emerald-400 hover:text-emerald-300">Điều khoản sử dụng</a> và <a href="/privacy" class="text-emerald-400 hover:text-emerald-300">Chính sách bảo mật</a>
+          </label>
+        </div>
+        
+        <button type="submit" class="w-full py-3 btn-primary text-white font-semibold rounded-xl">
+          Đăng ký
+        </button>
+      </form>
+      
+      <!-- Divider -->
+      <div class="relative my-6">
+        <div class="absolute inset-0 flex items-center">
+          <div class="w-full border-t border-slate-700/50"></div>
+        </div>
+        <div class="relative flex justify-center text-sm">
+          <span class="px-3 bg-rcSurface text-slate-500">hoặc</span>
+        </div>
+      </div>
+      
+      <!-- Google Signup -->
+      <button id="google-signup" class="w-full py-3 google-btn rounded-xl flex items-center justify-center gap-3 text-white font-medium">
+        <svg class="w-5 h-5" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+        </svg>
+        Đăng ký với Google
+      </button>
+      
+      <!-- Login Link -->
+      <p class="text-center mt-6 text-slate-400 text-sm">
+        Đã có tài khoản? 
+        <a href="/login" class="text-emerald-400 hover:text-emerald-300 font-medium transition">Đăng nhập</a>
+      </p>
+    </div>
+    
+    <!-- Back to Home -->
+    <p class="text-center mt-6">
+      <a href="/" class="text-slate-500 hover:text-slate-400 text-sm transition">← Quay lại trang chủ</a>
+    </p>
+  </div>
+  
+  <script>
+    // Password strength indicator
+    const passwordInput = document.getElementById('password');
+    const strengthBars = [
+      document.getElementById('strength-1'),
+      document.getElementById('strength-2'),
+      document.getElementById('strength-3'),
+      document.getElementById('strength-4')
+    ];
+    const strengthText = document.getElementById('strength-text');
+    
+    passwordInput.addEventListener('input', () => {
+      const password = passwordInput.value;
+      let strength = 0;
+      
+      if (password.length >= 8) strength++;
+      if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+      if (/\d/.test(password)) strength++;
+      if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) strength++;
+      
+      const colors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-emerald-500'];
+      const texts = ['Rất yếu', 'Yếu', 'Trung bình', 'Mạnh'];
+      
+      strengthBars.forEach((bar, i) => {
+        bar.className = 'h-1 flex-1 rounded-full transition-all ' + (i < strength ? colors[strength - 1] : 'bg-slate-700');
+      });
+      
+      strengthText.textContent = password.length > 0 ? texts[strength - 1] || 'Rất yếu' : '';
+      strengthText.className = 'text-xs mt-1 ' + (strength >= 3 ? 'text-emerald-400' : strength >= 2 ? 'text-yellow-400' : 'text-red-400');
+    });
+    
+    // Signup form handler
+    document.getElementById('signup-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const errorDiv = document.getElementById('error-message');
+      const successDiv = document.getElementById('success-message');
+      const submitBtn = form.querySelector('button[type="submit"]');
+      
+      // Get form data
+      const name = form.name.value;
+      const email = form.email.value;
+      const password = form.password.value;
+      const confirmPassword = form.confirmPassword.value;
+      
+      // Validate passwords match
+      if (password !== confirmPassword) {
+        errorDiv.textContent = 'Mật khẩu xác nhận không khớp.';
+        errorDiv.classList.remove('hidden');
+        successDiv.classList.add('hidden');
+        return;
+      }
+      
+      // Disable button
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Đang đăng ký...';
+      errorDiv.classList.add('hidden');
+      
+      try {
+        const response = await fetch('/api/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, name }),
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.status === 'ok') {
+          // Success - show message and redirect
+          successDiv.textContent = 'Đăng ký thành công! Đang chuyển hướng...';
+          successDiv.classList.remove('hidden');
+          setTimeout(() => {
+            window.location.href = '/input_v20';
+          }, 1500);
+        } else {
+          // Show error
+          errorDiv.textContent = data.message || 'Đăng ký thất bại. Vui lòng thử lại.';
+          errorDiv.classList.remove('hidden');
+        }
+      } catch (error) {
+        errorDiv.textContent = 'Lỗi kết nối. Vui lòng thử lại.';
+        errorDiv.classList.remove('hidden');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Đăng ký';
+      }
+    });
+    
+    // Google signup handler
+    document.getElementById('google-signup').addEventListener('click', async () => {
+      try {
+        const response = await fetch('/api/auth/google/start');
+        const data = await response.json();
+        
+        if (data.status === 'ok' && data.data?.redirect_url) {
+          window.location.href = data.data.redirect_url;
+        } else {
+          alert(data.message || 'Google OAuth chưa được cấu hình.');
+        }
+      } catch (error) {
+        alert('Lỗi kết nối. Vui lòng thử lại.');
+      }
+    });
+  </script>
+</body>
+</html>

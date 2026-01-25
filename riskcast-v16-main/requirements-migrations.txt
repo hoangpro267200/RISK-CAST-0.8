@@ -1,0 +1,17 @@
+# Database Migration Dependencies
+
+# Core migration tool
+alembic==1.13.1
+
+# Async database support
+asyncpg==0.29.0
+sqlalchemy[asyncio]==2.0.25
+
+# For backup/restore
+psycopg2-binary==2.9.9
+
+# For notifications
+requests==2.31.0
+
+# AWS SDK (for S3 backups)
+boto3==1.34.18

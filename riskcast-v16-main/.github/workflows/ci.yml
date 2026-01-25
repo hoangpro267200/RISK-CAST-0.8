@@ -1,8 +1,12 @@
+# =============================================================================
+# Continuous Integration Pipeline
+# =============================================================================
+
 name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, 'feature/*', 'release/*']
   pull_request:
     branches: [main, develop]
 
@@ -12,126 +16,111 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  # ==========================================================================
-  # Lint & Type Check
-  # ==========================================================================
-  lint:
-    name: Lint & Type Check
+  # ===========================================================================
+  # Code Quality
+  # ===========================================================================
+  quality:
+    name: Code Quality
     runs-on: ubuntu-latest
+    
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Cache pip
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements*.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
+          cache: 'pip'
+      
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install ruff
-          pip install -r requirements.txt
-
-      - name: Lint with Ruff
-        run: ruff check app/ || true
-
-      - name: Format check with Ruff
-        run: ruff format --check app/ || true
-
-      - name: Type check with mypy (optional)
+          pip install ruff black isort mypy
+      
+      - name: Ruff (linting)
+        run: ruff check . --output-format=github
         continue-on-error: true
-        run: |
-          pip install mypy
-          mypy app/ --ignore-missing-imports || true
+      
+      - name: Black (formatting)
+        run: black --check --diff .
+        continue-on-error: true
+      
+      - name: isort (imports)
+        run: isort --check-only --diff .
+        continue-on-error: true
+      
+      - name: MyPy (type checking)
+        run: mypy app/ --ignore-missing-imports
+        continue-on-error: true
 
-  # ==========================================================================
+  # ===========================================================================
   # Unit Tests
-  # ==========================================================================
-  test-unit:
+  # ===========================================================================
+  unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
+    
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Cache pip
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements*.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
+          cache: 'pip'
+      
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install -r requirements-dev.txt
-
-      - name: Run unit tests
+          pip install pytest pytest-cov pytest-asyncio pytest-xdist
+      
+      - name: Run tests
         run: |
-          pytest tests/unit \
+          pytest tests/unit/ \
+            -v \
             --cov=app \
             --cov-report=xml \
             --cov-report=html \
-            --junitxml=junit.xml \
-            -v \
-            -m "not integration"
-
+            --cov-fail-under=70 \
+            -n auto
+      
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
-        if: always()
         with:
-          files: ./coverage.xml
-          flags: unittests
+          files: coverage.xml
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
-
-      - name: Upload test results
+      
+      - name: Upload coverage reports
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-results-unit
+          name: coverage-reports
           path: |
-            junit.xml
-            htmlcov/
             coverage.xml
+            htmlcov/
 
-  # ==========================================================================
+  # ===========================================================================
   # Integration Tests
-  # ==========================================================================
-  test-integration:
+  # ===========================================================================
+  integration-tests:
     name: Integration Tests
     runs-on: ubuntu-latest
+    needs: [quality, unit-tests]
+    
     services:
-      mysql:
-        image: mysql:8.0
+      postgres:
+        image: postgres:15-alpine
         env:
-          MYSQL_ROOT_PASSWORD: testroot
-          MYSQL_USER: test
-          MYSQL_PASSWORD: test
-          MYSQL_DATABASE: test_riskcast
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: riskcast_test
         ports:
-          - 3306:3306
+          - 5432:5432
         options: >-
-          --health-cmd "mysqladmin ping -h localhost"
+          --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-          --character-set-server=utf8mb4
-          --collation-server=utf8mb4_unicode_ci
       
       redis:
         image: redis:7-alpine
@@ -142,101 +131,68 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
+    
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-
+          cache: 'pip'
+      
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install -r requirements-dev.txt
-
-      - name: Wait for MySQL
-        run: |
-          for i in {1..30}; do
-            mysql -h 127.0.0.1 -P 3306 -u test -ptest test_riskcast -e "SELECT 1" && break
-            sleep 2
-          done
-
+          pip install pytest pytest-asyncio httpx
+      
       - name: Run migrations
+        run: alembic upgrade head
         env:
-          DATABASE_URL: mysql+pymysql://test:test@127.0.0.1:3306/test_riskcast?charset=utf8mb4
-        run: |
-          alembic upgrade head
-
+          DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/riskcast_test
+      
       - name: Run integration tests
+        run: pytest tests/integration/ -v --tb=short
         env:
-          DATABASE_URL: mysql+pymysql://test:test@127.0.0.1:3306/test_riskcast?charset=utf8mb4
-          REDIS_URL: redis://localhost:6379/0
-          USE_REDIS: "true"
-          SECRET_KEY: test-secret-key-for-ci
-          APP_ENV: test
+          DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/riskcast_test
+          REDIS_URL: redis://localhost:6379
           ENVIRONMENT: test
-        run: |
-          pytest tests/integration \
-            --cov=app \
-            --cov-report=xml \
-            --cov-report=html \
-            --junitxml=junit-integration.xml \
-            -v \
-            -m integration
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        if: always()
-        with:
-          files: ./coverage.xml
-          flags: integrationtests
-          fail_ci_if_error: false
-          token: ${{ secrets.CODECOV_TOKEN }}
-
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: test-results-integration
-          path: |
-            junit-integration.xml
-            htmlcov/
-            coverage.xml
-
-  # ==========================================================================
+  # ===========================================================================
   # Security Scan
-  # ==========================================================================
+  # ===========================================================================
   security:
     name: Security Scan
     runs-on: ubuntu-latest
+    needs: quality
+    
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install bandit safety
-
-      - name: Run Bandit security scan
-        continue-on-error: true
+      
+      - name: Install security tools
+        run: pip install bandit safety pip-audit
+      
+      - name: Bandit (code security scan)
         run: |
           bandit -r app/ -f json -o bandit-report.json || true
-          bandit -r app/ -f txt || true
-
-      - name: Check dependencies with Safety
+          bandit -r app/ -f screen
         continue-on-error: true
+      
+      - name: Safety (dependency vulnerability scan)
         run: |
-          safety check -r requirements.txt --json > safety-report.json || true
-          safety check -r requirements.txt || true
-
+          safety check --json > safety-report.json || true
+          safety check
+        continue-on-error: true
+      
+      - name: pip-audit (dependency audit)
+        run: pip-audit -r requirements.txt --format json -o pip-audit-report.json || true
+        continue-on-error: true
+      
       - name: Upload security reports
         uses: actions/upload-artifact@v4
         if: always()
@@ -245,33 +201,37 @@ jobs:
           path: |
             bandit-report.json
             safety-report.json
+            pip-audit-report.json
 
-  # ==========================================================================
+  # ===========================================================================
   # Build Docker Image
-  # ==========================================================================
+  # ===========================================================================
   build:
     name: Build Docker Image
     runs-on: ubuntu-latest
-    needs: [lint, test-unit, test-integration]
+    needs: [unit-tests, integration-tests, security]
     permissions:
       contents: read
       packages: write
+    
     outputs:
       image_tag: ${{ steps.meta.outputs.tags }}
+      image_digest: ${{ steps.build.outputs.digest }}
+      image_version: ${{ steps.meta.outputs.version }}
     
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
+      
       - name: Log in to Container Registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
+      
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -280,22 +240,101 @@ jobs:
           tags: |
             type=ref,event=branch
             type=ref,event=pr
-            type=sha,prefix=
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
-
+            type=sha,prefix={{branch}}-,format=short
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable={{is_default_branch}}
+      
       - name: Build and push
+        id: build
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
-            BUILD_DATE=${{ github.event.head_commit.timestamp || github.event.pull_request.head.repo.updated_at }}
-            VCS_REF=${{ github.sha }}
+            VERSION=${{ github.sha }}
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+      
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+          format: spdx-json
+          output-file: sbom.spdx.json
+      
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.spdx.json
 
-      - name: Image digest
-        run: echo ${{ steps.meta.outputs.digest }}
+  # ===========================================================================
+  # Image Security Scan
+  # ===========================================================================
+  scan:
+    name: Scan Docker Image
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      security-events: write
+    
+    steps:
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build.outputs.image_digest }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+      
+      - name: Upload Trivy scan results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+      
+      - name: Run Trivy in table format
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build.outputs.image_digest }}
+          format: 'table'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+
+  # ===========================================================================
+  # Summary
+  # ===========================================================================
+  summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [quality, unit-tests, integration-tests, security, build, scan]
+    if: always()
+    
+    steps:
+      - name: Check results
+        run: |
+          echo "## CI Pipeline Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Code Quality | ${{ needs.quality.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Unit Tests | ${{ needs.unit-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Integration Tests | ${{ needs.integration-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Scan | ${{ needs.security.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build Image | ${{ needs.build.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Scan Image | ${{ needs.scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Fail if any job failed
+        if: |
+          needs.quality.result == 'failure' ||
+          needs.unit-tests.result == 'failure' ||
+          needs.integration-tests.result == 'failure' ||
+          needs.build.result == 'failure'
+        run: exit 1

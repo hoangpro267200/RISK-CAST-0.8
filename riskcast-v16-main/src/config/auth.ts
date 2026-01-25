@@ -10,7 +10,7 @@
 export const AUTH_CONFIG = {
   // These should match backend config
   // Frontend will respect backend's AUTH_ENABLED setting via API responses
-  ENABLED: true, // Default to true, backend will enforce
+  ENABLED: false, // Disabled for development
   PROTECT_INPUT: false, // Can be overridden by backend
   PROTECT_RESULTS: false, // Can be overridden by backend
 };

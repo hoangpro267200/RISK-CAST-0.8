@@ -3,28 +3,10 @@ Application Configuration
 Centralized settings management for RISKCAST V3
 """
 import os
-import json
-import traceback
 from typing import Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field, validator
 
-# #region agent log - Import time logging
-try:
-    with open(r"c:\Users\RIM\OneDrive\Desktop\ok\.cursor\debug.log", "a", encoding="utf-8") as f:
-        f.write(json.dumps({"location": "config.py:import", "message": "Config module importing", "data": {"pid": os.getpid()}, "timestamp": __import__("time").time() * 1000, "sessionId": "debug-session", "runId": "run4", "hypothesisId": "D"}) + "\n")
-except:
-    pass
-# #endregion
-
-
-# #region agent log - Before Settings class definition
-try:
-    with open(r"c:\Users\RIM\OneDrive\Desktop\ok\.cursor\debug.log", "a", encoding="utf-8") as f:
-        f.write(json.dumps({"location": "config.py:21", "message": "Defining Settings class", "data": {"pid": os.getpid()}, "timestamp": __import__("time").time() * 1000, "sessionId": "debug-session", "runId": "run5", "hypothesisId": "E"}) + "\n")
-except:
-    pass
-# #endregion
 
 class Settings(BaseSettings):
     """Application settings with environment variable support"""
@@ -42,7 +24,7 @@ class Settings(BaseSettings):
     
     # Database
     DATABASE_URL: str = Field(
-        default="mysql+pymysql://riskcast:password@localhost:3306/riskcast_v3",
+        default="sqlite:///./riskcast.db",
         env="DATABASE_URL"
     )
     DATABASE_ECHO: bool = Field(default=False, env="DATABASE_ECHO")
@@ -60,14 +42,14 @@ class Settings(BaseSettings):
     
     # CORS
     ALLOWED_ORIGINS: list[str] = Field(
-        default_factory=lambda: ["http://localhost:3000", "http://localhost:8000"],
+        default_factory=lambda: ["http://localhost:3000", "http://localhost:8000", "http://127.0.0.1:8000"],
         env="ALLOWED_ORIGINS"
     )
     
     # Observability
     LOG_LEVEL: str = Field(default="INFO", env="LOG_LEVEL")
-    ENABLE_OPENTELEMETRY: bool = Field(default=True, env="ENABLE_OPENTELEMETRY")
-    ENABLE_PROMETHEUS: bool = Field(default=True, env="ENABLE_PROMETHEUS")
+    ENABLE_OPENTELEMETRY: bool = Field(default=False, env="ENABLE_OPENTELEMETRY")
+    ENABLE_PROMETHEUS: bool = Field(default=False, env="ENABLE_PROMETHEUS")
     OTEL_EXPORTER_OTLP_ENDPOINT: Optional[str] = Field(
         default=None,
         env="OTEL_EXPORTER_OTLP_ENDPOINT"
@@ -148,9 +130,7 @@ class Settings(BaseSettings):
     CELERY_BROKER_URL: Optional[str] = Field(default=None, env="CELERY_BROKER_URL")
     CELERY_RESULT_BACKEND: Optional[str] = Field(default=None, env="CELERY_RESULT_BACKEND")
     
-    # Auth-related settings (handled separately in app.config.auth, but defined here to avoid validation errors)
-    # These are not used by this Settings class - they're for the auth config module
-    # Defined as optional strings to allow any value from environment variables
+    # Auth-related settings (handled separately in app.auth_config.auth, but defined here to avoid validation errors)
     AUTH_ENABLED: Optional[str] = Field(default=None, env="AUTH_ENABLED")
     SESSION_SECRET: Optional[str] = Field(default=None, env="SESSION_SECRET")
     SESSION_EXPIRE_HOURS: Optional[str] = Field(default=None, env="SESSION_EXPIRE_HOURS")
@@ -160,10 +140,12 @@ class Settings(BaseSettings):
     PROTECT_RESULTS: Optional[str] = Field(default=None, env="PROTECT_RESULTS")
     INVITE_ONLY: Optional[str] = Field(default=None, env="INVITE_ONLY")
     
-    @validator("ALLOWED_ORIGINS", pre=True)
-    def parse_origins(cls, v):
+    @validator("ALLOWED_ORIGINS", "REQUIRED_ORACLE_SOURCES", pre=True)
+    def parse_list_fields(cls, v):
+        if v is None or v == "":
+            return []
         if isinstance(v, str):
-            return [origin.strip() for origin in v.split(",")]
+            return [item.strip() for item in v.split(",") if item.strip()]
         return v
     
     @validator("SECRET_KEY")
@@ -182,45 +164,9 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=True,
-        extra="ignore"  # Ignore any other extra environment variables we haven't explicitly defined
+        extra="ignore"
     )
 
 
 # Global settings instance
-# #region agent log
-try:
-    # Log before instantiation
-    with open(r"c:\Users\RIM\OneDrive\Desktop\ok\.cursor\debug.log", "a", encoding="utf-8") as f:
-        f.write(json.dumps({"location": "config.py:165", "message": "About to instantiate Settings", "data": {"pid": os.getpid(), "ppid": os.getppid() if hasattr(os, 'getppid') else None, "has_auth_fields": all(hasattr(Settings, f) for f in ['AUTH_ENABLED', 'SESSION_SECRET']), "model_fields": list(Settings.model_fields.keys()) if hasattr(Settings, 'model_fields') else []}, "timestamp": __import__("time").time() * 1000, "sessionId": "debug-session", "runId": "run5", "hypothesisId": "E"}) + "\n")
-    
-    # Try to instantiate and catch any validation errors
-    try:
-        settings = Settings()
-    except Exception as validation_error:
-        # Log the validation error details
-        error_info = {
-            "error": str(validation_error),
-            "error_type": type(validation_error).__name__,
-            "pid": os.getpid()
-        }
-        with open(r"c:\Users\RIM\OneDrive\Desktop\ok\.cursor\debug.log", "a", encoding="utf-8") as f:
-            f.write(json.dumps({"location": "config.py:165", "message": "Settings validation error caught", "data": error_info, "timestamp": __import__("time").time() * 1000, "sessionId": "debug-session", "runId": "run5", "hypothesisId": "E"}) + "\n")
-        raise
-    
-    # Check if auth fields are present
-    auth_fields_present = all(hasattr(settings, f) for f in ['AUTH_ENABLED', 'SESSION_SECRET', 'PROTECT_INPUT'])
-    auth_values = {f: getattr(settings, f, None) for f in ['AUTH_ENABLED', 'SESSION_SECRET', 'PROTECT_INPUT']}
-    
-    with open(r"c:\Users\RIM\OneDrive\Desktop\ok\.cursor\debug.log", "a", encoding="utf-8") as f:
-        f.write(json.dumps({"location": "config.py:156", "message": "Settings instantiated successfully", "data": {"env": settings.ENVIRONMENT, "has_extra_config": hasattr(Settings, "model_config"), "auth_fields_defined": auth_fields_present, "auth_values": auth_values, "pid": os.getpid()}, "timestamp": __import__("time").time() * 1000, "sessionId": "debug-session", "runId": "run4", "hypothesisId": "D"}) + "\n")
-except Exception as e:
-    error_details = {
-        "error": str(e),
-        "error_type": type(e).__name__,
-        "traceback": traceback.format_exc(),
-        "pid": os.getpid()
-    }
-    with open(r"c:\Users\RIM\OneDrive\Desktop\ok\.cursor\debug.log", "a", encoding="utf-8") as f:
-        f.write(json.dumps({"location": "config.py:156", "message": "Settings instantiation failed", "data": error_details, "timestamp": __import__("time").time() * 1000, "sessionId": "debug-session", "runId": "run4", "hypothesisId": "D"}) + "\n")
-    raise
-# #endregion
+settings = Settings()

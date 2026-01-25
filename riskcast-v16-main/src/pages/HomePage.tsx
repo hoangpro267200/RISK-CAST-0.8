@@ -5,7 +5,7 @@
  * Shows login form when not authenticated, welcome screen when authenticated.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../store/authStore';
 import * as authApi from '../api/auth';
 
@@ -14,6 +14,14 @@ export default function HomePage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [inlineError, setInlineError] = useState<string | null>(null);
+  const [authConfig, setAuthConfig] = useState<authApi.AuthConfig | null>(null);
+
+  // Fetch auth config to know which auth methods are available
+  useEffect(() => {
+    authApi.getAuthConfig()
+      .then(setAuthConfig)
+      .catch(err => console.warn('Failed to fetch auth config:', err));
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -118,24 +126,27 @@ export default function HomePage() {
                 Sign In
               </button>
 
-              <button
-                type="button"
-                onClick={async () => {
-                  setIsGoogleLoading(true);
-                  setInlineError(null);
-                  try {
-                    const { redirect_url } = await authApi.googleStart(window.location.origin);
-                    window.location.href = redirect_url;
-                  } catch (err: any) {
-                    setInlineError(err?.message || 'Failed to start Google login');
-                    setIsGoogleLoading(false);
-                  }
-                }}
-                disabled={isGoogleLoading}
-                className="w-full py-3 bg-white/90 hover:bg-white text-slate-900 font-medium rounded-lg transition flex items-center justify-center gap-2 border border-slate-200"
-              >
-                {isGoogleLoading ? 'Redirecting…' : 'Continue with Google'}
-              </button>
+              {/* Only show Google button if Google OAuth is configured */}
+              {authConfig?.google_enabled && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setIsGoogleLoading(true);
+                    setInlineError(null);
+                    try {
+                      const { redirect_url } = await authApi.googleStart(window.location.origin);
+                      window.location.href = redirect_url;
+                    } catch (err: any) {
+                      setInlineError(err?.message || 'Failed to start Google login');
+                      setIsGoogleLoading(false);
+                    }
+                  }}
+                  disabled={isGoogleLoading}
+                  className="w-full py-3 bg-white/90 hover:bg-white text-slate-900 font-medium rounded-lg transition flex items-center justify-center gap-2 border border-slate-200"
+                >
+                  {isGoogleLoading ? 'Redirecting…' : 'Continue with Google'}
+                </button>
+              )}
             </form>
 
             {inlineError && (

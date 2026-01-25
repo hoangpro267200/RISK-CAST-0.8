@@ -1,0 +1,276 @@
+# =============================================================================
+# Prometheus Alerting Rules
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-rules
+  namespace: monitoring
+data:
+  riskcast-alerts.yml: |
+    groups:
+      - name: riskcast-api
+        rules:
+          # High error rate
+          - alert: HighErrorRate
+            expr: |
+              sum(rate(riskcast_http_requests_total{status_code=~"5.."}[5m])) 
+              / sum(rate(riskcast_http_requests_total[5m])) > 0.05
+            for: 5m
+            labels:
+              severity: critical
+              service: riskcast-api
+              team: platform
+            annotations:
+              summary: "High API error rate"
+              description: "Error rate is {{ $value | humanizePercentage }} (threshold: 5%)"
+              runbook_url: "https://docs.riskcast.io/runbooks/high-error-rate"
+
+          # High latency
+          - alert: HighLatency
+            expr: |
+              histogram_quantile(0.95, sum(rate(riskcast_http_request_duration_seconds_bucket[5m])) by (le, endpoint)) > 2
+            for: 5m
+            labels:
+              severity: warning
+              service: riskcast-api
+              team: platform
+            annotations:
+              summary: "High API latency"
+              description: "95th percentile latency is {{ $value }}s for endpoint {{ $labels.endpoint }}"
+              runbook_url: "https://docs.riskcast.io/runbooks/high-latency"
+
+          # API down
+          - alert: APIDown
+            expr: up{job="riskcast-api"} == 0
+            for: 1m
+            labels:
+              severity: critical
+              service: riskcast-api
+              team: platform
+            annotations:
+              summary: "RISKCAST API is down"
+              description: "API instance {{ $labels.instance }} is not responding"
+              runbook_url: "https://docs.riskcast.io/runbooks/api-down"
+
+          # Low pod count
+          - alert: LowPodCount
+            expr: |
+              count(up{job="riskcast-api"} == 1) < 2
+            for: 5m
+            labels:
+              severity: warning
+              service: riskcast-api
+              team: platform
+            annotations:
+              summary: "Low API pod count"
+              description: "Only {{ $value }} API pods are running"
+
+          # Request spike
+          - alert: RequestSpike
+            expr: |
+              sum(rate(riskcast_http_requests_total[5m])) 
+              / sum(rate(riskcast_http_requests_total[30m] offset 1h)) > 2
+            for: 10m
+            labels:
+              severity: warning
+              service: riskcast-api
+              team: platform
+            annotations:
+              summary: "Request traffic spike detected"
+              description: "Current request rate is {{ $value }}x the rate 1 hour ago"
+
+      - name: riskcast-business
+        rules:
+          # Quote conversion rate drop
+          - alert: LowQuoteConversion
+            expr: riskcast_quote_conversion_rate{period="daily"} < 0.1
+            for: 1h
+            labels:
+              severity: warning
+              service: riskcast-business
+              team: product
+            annotations:
+              summary: "Low quote conversion rate"
+              description: "Daily conversion rate is {{ $value | humanizePercentage }}"
+              runbook_url: "https://docs.riskcast.io/runbooks/low-conversion"
+
+          # Risk assessment failures
+          - alert: RiskAssessmentFailures
+            expr: |
+              sum(rate(riskcast_risk_assessments_total{status="error"}[15m])) 
+              / sum(rate(riskcast_risk_assessments_total[15m])) > 0.01
+            for: 10m
+            labels:
+              severity: warning
+              service: riskcast-risk
+              team: product
+            annotations:
+              summary: "High risk assessment failure rate"
+              description: "{{ $value | humanizePercentage }} of risk assessments are failing"
+
+          # No quotes in last hour
+          - alert: NoQuotesGenerated
+            expr: |
+              sum(increase(riskcast_quotes_total[1h])) == 0
+            for: 15m
+            labels:
+              severity: warning
+              service: riskcast-business
+              team: product
+            annotations:
+              summary: "No quotes generated in the last hour"
+              description: "Check if the quoting system is functioning properly"
+
+          # Unusual risk score distribution
+          - alert: UnusualRiskDistribution
+            expr: |
+              histogram_quantile(0.9, sum(rate(riskcast_risk_score_distribution_bucket[1h])) by (le)) > 0.9
+            for: 30m
+            labels:
+              severity: info
+              service: riskcast-risk
+              team: product
+            annotations:
+              summary: "Unusual risk score distribution"
+              description: "90th percentile risk score is {{ $value }}"
+
+      - name: riskcast-infrastructure
+        rules:
+          # Database connection pool exhaustion
+          - alert: DBConnectionPoolExhausted
+            expr: |
+              riskcast_db_connections{state="active"} 
+              / riskcast_db_connections{state="total"} > 0.9
+            for: 5m
+            labels:
+              severity: critical
+              service: riskcast-db
+              team: platform
+            annotations:
+              summary: "Database connection pool nearly exhausted"
+              description: "{{ $value | humanizePercentage }} of connections are in use"
+              runbook_url: "https://docs.riskcast.io/runbooks/db-connections"
+
+          # Slow database queries
+          - alert: SlowDatabaseQueries
+            expr: |
+              histogram_quantile(0.95, sum(rate(riskcast_db_query_duration_seconds_bucket[5m])) by (le, operation)) > 0.5
+            for: 10m
+            labels:
+              severity: warning
+              service: riskcast-db
+              team: platform
+            annotations:
+              summary: "Slow database queries detected"
+              description: "P95 query latency for {{ $labels.operation }} is {{ $value }}s"
+
+          # External service failures
+          - alert: ExternalServiceFailure
+            expr: |
+              sum(rate(riskcast_external_requests_total{status="error"}[5m])) by (service) 
+              / sum(rate(riskcast_external_requests_total[5m])) by (service) > 0.1
+            for: 5m
+            labels:
+              severity: warning
+              service: riskcast-external
+              team: platform
+            annotations:
+              summary: "External service failing"
+              description: "Service {{ $labels.service }} has {{ $value | humanizePercentage }} error rate"
+
+          # External service slow
+          - alert: ExternalServiceSlow
+            expr: |
+              histogram_quantile(0.95, sum(rate(riskcast_external_request_duration_seconds_bucket[5m])) by (le, service)) > 5
+            for: 10m
+            labels:
+              severity: warning
+              service: riskcast-external
+              team: platform
+            annotations:
+              summary: "External service slow"
+              description: "P95 latency for {{ $labels.service }} is {{ $value }}s"
+
+          # Cache miss rate high
+          - alert: HighCacheMissRate
+            expr: |
+              sum(rate(riskcast_cache_misses_total[5m])) 
+              / (sum(rate(riskcast_cache_hits_total[5m])) + sum(rate(riskcast_cache_misses_total[5m]))) > 0.5
+            for: 15m
+            labels:
+              severity: warning
+              service: riskcast-cache
+              team: platform
+            annotations:
+              summary: "High cache miss rate"
+              description: "Cache miss rate is {{ $value | humanizePercentage }}"
+
+          # Job queue backlog
+          - alert: JobQueueBacklog
+            expr: riskcast_job_queue_size > 1000
+            for: 10m
+            labels:
+              severity: warning
+              service: riskcast-worker
+              team: platform
+            annotations:
+              summary: "Job queue backlog"
+              description: "{{ $value }} jobs in queue"
+
+          # Job failures
+          - alert: HighJobFailureRate
+            expr: |
+              sum(rate(riskcast_jobs_total{status="error"}[15m])) 
+              / sum(rate(riskcast_jobs_total[15m])) > 0.05
+            for: 10m
+            labels:
+              severity: warning
+              service: riskcast-worker
+              team: platform
+            annotations:
+              summary: "High background job failure rate"
+              description: "{{ $value | humanizePercentage }} of jobs are failing"
+
+      - name: kubernetes-resources
+        rules:
+          # High CPU usage
+          - alert: HighCPUUsage
+            expr: |
+              sum(rate(container_cpu_usage_seconds_total{namespace="riskcast",container!=""}[5m])) by (pod) 
+              / sum(container_spec_cpu_quota{namespace="riskcast",container!=""}/container_spec_cpu_period{namespace="riskcast",container!=""}) by (pod) > 0.9
+            for: 10m
+            labels:
+              severity: warning
+              service: kubernetes
+              team: platform
+            annotations:
+              summary: "High CPU usage"
+              description: "Pod {{ $labels.pod }} is using {{ $value | humanizePercentage }} of CPU"
+
+          # High memory usage
+          - alert: HighMemoryUsage
+            expr: |
+              sum(container_memory_working_set_bytes{namespace="riskcast",container!=""}) by (pod) 
+              / sum(container_spec_memory_limit_bytes{namespace="riskcast",container!=""}) by (pod) > 0.9
+            for: 10m
+            labels:
+              severity: warning
+              service: kubernetes
+              team: platform
+            annotations:
+              summary: "High memory usage"
+              description: "Pod {{ $labels.pod }} is using {{ $value | humanizePercentage }} of memory"
+
+          # Pod restart rate
+          - alert: HighPodRestartRate
+            expr: |
+              rate(kube_pod_container_status_restarts_total{namespace="riskcast"}[15m]) > 0
+            for: 5m
+            labels:
+              severity: warning
+              service: kubernetes
+              team: platform
+            annotations:
+              summary: "Pod restarting frequently"
+              description: "Pod {{ $labels.pod }} is restarting at {{ $value }} restarts/second"
