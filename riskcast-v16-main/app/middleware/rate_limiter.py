@@ -407,7 +407,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     
     async def dispatch(self, request: Request, call_next) -> Response:
         # Skip rate limiting for certain paths
-        skip_paths = ["/health", "/docs", "/openapi.json", "/redoc"]
+        skip_paths = ["/health", "/docs", "/openapi.json", "/redoc", "/static", "/favicon.ico"]
         if any(request.url.path.startswith(p) for p in skip_paths):
             return await call_next(request)
         

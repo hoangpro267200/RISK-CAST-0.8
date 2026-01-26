@@ -1,0 +1,34 @@
+apiVersion: v2
+name: riskcast
+description: RiskCast V16 - Enterprise Marine Cargo Insurance Platform
+type: application
+version: 1.0.0
+appVersion: "16.0.0"
+keywords:
+  - insurance
+  - marine
+  - cargo
+  - risk
+  - saas
+home: https://riskcast.ai
+sources:
+  - https://github.com/riskcast/riskcast-v16
+maintainers:
+  - name: RiskCast Team
+    email: devops@riskcast.ai
+dependencies:
+  - name: postgresql
+    version: "12.x.x"
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
+  - name: redis
+    version: "17.x.x"
+    repository: https://charts.bitnami.com/bitnami
+    condition: redis.enabled
+  - name: rabbitmq
+    version: "12.x.x"
+    repository: https://charts.bitnami.com/bitnami
+    condition: rabbitmq.enabled
+annotations:
+  category: Insurance
+  licenses: MIT

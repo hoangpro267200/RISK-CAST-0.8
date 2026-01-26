@@ -3,7 +3,7 @@ Health Check API Endpoints
 """
 
 from datetime import datetime
-from typing import List
+from typing import List, Optional, Dict, Any
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
@@ -18,10 +18,10 @@ router = APIRouter(prefix="/health", tags=["Health"])
 class ComponentHealthResponse(BaseModel):
     component: str
     status: str
-    latency_ms: float = None
+    latency_ms: Optional[float] = None
     message: str
     last_checked: datetime
-    details: dict = None
+    details: Optional[Dict[str, Any]] = None
 
 
 class SystemHealthResponse(BaseModel):

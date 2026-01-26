@@ -22,6 +22,6 @@ class Shipment(TimeStampedSchema):
     legs: List[RouteLeg] = Field(default_factory=list)
     
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 

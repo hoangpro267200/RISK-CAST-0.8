@@ -1,0 +1,100 @@
+version: '3.8'
+
+services:
+  celery-worker-default:
+    build: .
+    command: celery -A app.tasks.celery_app worker -l info -Q default -c 4
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      - redis
+      - db
+    restart: unless-stopped
+    deploy:
+      replicas: 2
+
+  celery-worker-risk:
+    build: .
+    command: celery -A app.tasks.celery_app worker -l info -Q risk -c 2
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      - redis
+      - db
+    restart: unless-stopped
+
+  celery-worker-notifications:
+    build: .
+    command: celery -A app.tasks.celery_app worker -l info -Q notifications -c 2
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      - redis
+      - db
+    restart: unless-stopped
+
+  celery-worker-reports:
+    build: .
+    command: celery -A app.tasks.celery_app worker -l info -Q reports -c 2
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      - redis
+      - db
+    restart: unless-stopped
+
+  celery-worker-data:
+    build: .
+    command: celery -A app.tasks.celery_app worker -l info -Q data -c 2
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      - redis
+      - db
+    restart: unless-stopped
+
+  celery-beat:
+    build: .
+    command: celery -A app.tasks.celery_app beat -l info
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      - redis
+      - db
+    restart: unless-stopped
+
+  flower:
+    build: .
+    command: celery -A app.tasks.celery_app flower --port=5555
+    ports:
+      - "5555:5555"
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+    depends_on:
+      - redis
+      - celery-worker-default
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  redis_data:

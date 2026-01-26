@@ -147,6 +147,61 @@ try:
 except ImportError:
     evidence_bundles_router = None
 
+try:
+    from app.api.v3.ais import router as ais_router
+except ImportError:
+    ais_router = None
+
+try:
+    from app.api.v3.news import router as news_router
+except ImportError:
+    news_router = None
+
+try:
+    from app.api.v3.currency import router as currency_router
+except ImportError:
+    currency_router = None
+
+try:
+    from app.api.v3.sanctions import router as sanctions_router
+except ImportError:
+    sanctions_router = None
+
+try:
+    from app.api.v3.model_monitoring import router as model_monitoring_router
+except ImportError:
+    model_monitoring_router = None
+
+# Market Data router
+try:
+    from app.api.v3.market import router as market_router
+except ImportError:
+    market_router = None
+
+# Billing router
+try:
+    from app.api.v3.billing import router as billing_router
+except ImportError:
+    billing_router = None
+
+# API Marketplace router
+try:
+    from app.api.v3.marketplace import router as marketplace_router
+except ImportError:
+    marketplace_router = None
+
+# GDPR Compliance router
+try:
+    from app.api.v3.gdpr import router as gdpr_router
+except ImportError:
+    gdpr_router = None
+
+# Recommendations router
+try:
+    from app.api.v3.recommendations import router as recommendations_router
+except ImportError:
+    recommendations_router = None
+
 model_versions_router = None
 try:
     from app.api.v3.model_versions import router as model_versions_router
@@ -272,6 +327,36 @@ if websocket_router:
     router.include_router(websocket_router)
 if evidence_bundles_router:
     router.include_router(evidence_bundles_router)
+if ais_router:
+    router.include_router(ais_router)
+if news_router:
+    router.include_router(news_router)
+if currency_router:
+    router.include_router(currency_router)
+if sanctions_router:
+    router.include_router(sanctions_router)
+if model_monitoring_router:
+    router.include_router(model_monitoring_router)
+
+# Market Data router
+if market_router:
+    router.include_router(market_router)
+
+# Billing router
+if billing_router:
+    router.include_router(billing_router)
+
+# API Marketplace router
+if marketplace_router:
+    router.include_router(marketplace_router)
+
+# GDPR Compliance router
+if gdpr_router:
+    router.include_router(gdpr_router)
+
+# Recommendations router
+if recommendations_router:
+    router.include_router(recommendations_router)
 
 # Include other module routers (if available)
 # Note: Only include module routers that are NOT covered by v3 API routers

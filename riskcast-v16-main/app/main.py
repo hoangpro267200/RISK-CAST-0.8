@@ -514,26 +514,10 @@ async def input_v20_submit(request: Request):
 
 @app.get("/summary", response_class=HTMLResponse)
 async def summary_page(request: Request):
-    """Summary page - Redirect to React frontend in development"""
-    # In development, redirect to React dev server
-    # Port can be 3000 or 3001 depending on availability
-    import os
-    if os.getenv("RISKCAST_ENV", "development") == "development":
-        react_port = os.getenv("REACT_DEV_PORT", "3001")
-        return RedirectResponse(url=f"http://localhost:{react_port}/summary", status_code=302)
-    
-    # Production: Try Jinja2 template fallback
-    from fastapi.responses import JSONResponse
-    if TEMPLATES_AVAILABLE:
-        try:
-            context = {"request": request}
-            context.update(get_template_context())
-            context.update(get_auth_context(request))
-            return templates.TemplateResponse("summary/summary_v400.html", context)
-        except Exception as e:
-            logger.warning(f"Template error for /summary: {e}")
-            return JSONResponse({"error": f"Template error: {e}", "fallback": "/docs"})
-    return JSONResponse({"error": "Template not available", "fallback": "/docs"})
+    """Summary page - Redirect to React frontend (port 3000)"""
+    # In development, always redirect to React dev server on port 3000
+    # React server should be started with: npm run dev
+    return RedirectResponse(url="http://localhost:3000/summary", status_code=302)
 
 # NOTE: /results/data MUST be defined BEFORE /results to ensure proper routing
 @app.get("/results/data")
@@ -573,34 +557,9 @@ async def results_data_api():
 
 @app.get("/results", response_class=HTMLResponse)
 async def results_page(request: Request):
-    """Results page - Redirect to React frontend in development"""
-    # In development, redirect to React dev server
-    import os
-    if os.getenv("RISKCAST_ENV", "development") == "development":
-        react_port = os.getenv("REACT_DEV_PORT", "3001")
-        return RedirectResponse(url=f"http://localhost:{react_port}/results", status_code=302)
-    
-    # Production: Try Jinja2 template fallback
-    from fastapi.responses import JSONResponse
-    if TEMPLATES_AVAILABLE:
-        try:
-            context = {"request": request}
-            context.update(get_template_context())
-            context.update(get_auth_context(request))
-            # Try to inject summary data
-            try:
-                from app.core.engine_state import get_last_result_v2
-                import json
-                v2_result = get_last_result_v2()
-                if v2_result:
-                    context["summary_json"] = json.dumps(v2_result, ensure_ascii=False)
-            except Exception:
-                pass
-            return templates.TemplateResponse("results.html", context)
-        except Exception as e:
-            logger.warning(f"Template error for /results: {e}")
-            return JSONResponse({"error": f"Template error: {e}", "fallback": "/docs"})
-    return JSONResponse({"error": "Template not available", "fallback": "/docs"})
+    """Results page - Redirect to React frontend (port 3000)"""
+    # In development, always redirect to React dev server on port 3000
+    return RedirectResponse(url="http://localhost:3000/results", status_code=302)
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard_page(request: Request):

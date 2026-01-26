@@ -1,5 +1,6 @@
 from datetime import datetime
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, Dict
+from pydantic import BaseModel
 
 
 def envelope(ok: bool, data: Optional[Any] = None, error: Optional[str] = None) -> dict:
@@ -18,6 +19,17 @@ def success(data: Any) -> dict:
 def failure(error: Union[str, Exception]) -> dict:
     message = str(error) if not isinstance(error, str) else error
     return envelope(False, error=message)
+
+
+class StandardResponse(BaseModel):
+    """Standard API response format for consistent responses."""
+    success: bool
+    data: Optional[Dict[str, Any]] = None
+    message: Optional[str] = None
+    error: Optional[str] = None
+    
+    class Config:
+        from_attributes = True
 
 
 

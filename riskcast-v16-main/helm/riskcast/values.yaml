@@ -1,0 +1,397 @@
+# RiskCast Helm Chart Values
+# Default configuration for production deployment
+
+# =============================================================================
+# Global Settings
+# =============================================================================
+global:
+  environment: production
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: ""
+
+# =============================================================================
+# Application Settings
+# =============================================================================
+replicaCount: 3
+
+image:
+  repository: riskcast/riskcast-api
+  tag: "16.0.0"
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+# =============================================================================
+# Service Account
+# =============================================================================
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# =============================================================================
+# Pod Settings
+# =============================================================================
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8000"
+  prometheus.io/path: "/metrics"
+
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+
+# =============================================================================
+# Service Settings
+# =============================================================================
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8000
+  annotations: {}
+
+# =============================================================================
+# Ingress Settings
+# =============================================================================
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: api.riskcast.ai
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: riskcast-api-tls
+      hosts:
+        - api.riskcast.ai
+
+# =============================================================================
+# Resources
+# =============================================================================
+resources:
+  limits:
+    cpu: 2000m
+    memory: 4Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
+
+# =============================================================================
+# Autoscaling
+# =============================================================================
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 20
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 10
+          periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 15
+        - type: Pods
+          value: 4
+          periodSeconds: 15
+      selectPolicy: Max
+
+# =============================================================================
+# Pod Disruption Budget
+# =============================================================================
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2
+
+# =============================================================================
+# Node Selector & Tolerations
+# =============================================================================
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - riskcast
+          topologyKey: kubernetes.io/hostname
+
+# =============================================================================
+# Probes
+# =============================================================================
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+startupProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 30
+
+# =============================================================================
+# Application Configuration
+# =============================================================================
+config:
+  # Application
+  APP_NAME: "RiskCast V16"
+  APP_VERSION: "16.0.0"
+  ENVIRONMENT: "production"
+  DEBUG: "false"
+  LOG_LEVEL: "INFO"
+  
+  # API
+  API_V3_PREFIX: "/api/v3"
+  CORS_ORIGINS: "https://app.riskcast.ai,https://admin.riskcast.ai"
+  
+  # Features
+  ENABLE_PROMETHEUS: "true"
+  ENABLE_OPENTELEMETRY: "true"
+  
+  # Rate Limiting
+  RATE_LIMIT_ENABLED: "true"
+  RATE_LIMIT_REQUESTS_PER_MINUTE: "100"
+
+# =============================================================================
+# Secrets (Reference to External Secrets)
+# =============================================================================
+secrets:
+  # Database
+  DATABASE_URL: ""  # Set via external secret
+  
+  # Redis
+  REDIS_URL: ""  # Set via external secret
+  
+  # JWT
+  JWT_SECRET: ""  # Set via external secret
+  JWT_ALGORITHM: "HS256"
+  JWT_EXPIRATION_MINUTES: "60"
+  
+  # Stripe
+  STRIPE_SECRET_KEY: ""
+  STRIPE_WEBHOOK_SECRET: ""
+  
+  # External APIs
+  LLOYDS_API_KEY: ""
+  WEATHER_API_KEY: ""
+  AIS_API_KEY: ""
+
+# External Secrets Operator
+externalSecrets:
+  enabled: true
+  secretStoreRef:
+    name: aws-secrets-manager
+    kind: ClusterSecretStore
+  refreshInterval: 1h
+  target:
+    name: riskcast-secrets
+  data:
+    - secretKey: DATABASE_URL
+      remoteRef:
+        key: riskcast/production/database
+        property: url
+    - secretKey: REDIS_URL
+      remoteRef:
+        key: riskcast/production/redis
+        property: url
+    - secretKey: JWT_SECRET
+      remoteRef:
+        key: riskcast/production/jwt
+        property: secret
+
+# =============================================================================
+# PostgreSQL (Subchart)
+# =============================================================================
+postgresql:
+  enabled: false  # Use external RDS in production
+  auth:
+    postgresPassword: ""
+    username: riskcast
+    password: ""
+    database: riskcast
+  primary:
+    persistence:
+      size: 100Gi
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+
+# =============================================================================
+# Redis (Subchart)
+# =============================================================================
+redis:
+  enabled: false  # Use external ElastiCache in production
+  architecture: replication
+  auth:
+    enabled: true
+    password: ""
+  master:
+    persistence:
+      size: 10Gi
+  replica:
+    replicaCount: 2
+
+# =============================================================================
+# RabbitMQ (Subchart)
+# =============================================================================
+rabbitmq:
+  enabled: false  # Use external Amazon MQ in production
+  auth:
+    username: riskcast
+    password: ""
+
+# =============================================================================
+# Celery Workers
+# =============================================================================
+celery:
+  enabled: true
+  worker:
+    replicaCount: 3
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 250m
+        memory: 512Mi
+    concurrency: 4
+    queues: "default,risk,notifications"
+  beat:
+    enabled: true
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+# =============================================================================
+# Flower (Celery Monitoring)
+# =============================================================================
+flower:
+  enabled: true
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  ingress:
+    enabled: true
+    host: flower.riskcast.ai
+
+# =============================================================================
+# Monitoring
+# =============================================================================
+monitoring:
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+  prometheusRule:
+    enabled: true
+    rules:
+      - alert: RiskCastHighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: High error rate detected
+          description: Error rate is above 5% for the last 5 minutes
+      - alert: RiskCastHighLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: High latency detected
+          description: 95th percentile latency is above 2 seconds
+
+# =============================================================================
+# Network Policies
+# =============================================================================
+networkPolicy:
+  enabled: true
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: prometheus
+  egress:
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: postgresql
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: redis
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+      ports:
+        - protocol: TCP
+          port: 443
